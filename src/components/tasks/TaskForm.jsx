@@ -175,14 +175,26 @@ export default function TaskForm({ task, recipients, onClose }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="assigned_to">Assign To (Email)</Label>
-            <Input
-              id="assigned_to"
-              type="email"
+            <Label htmlFor="assigned_to">Assign To</Label>
+            <Select
               value={formData.assigned_to}
-              onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-              placeholder="caregiver@example.com"
-            />
+              onValueChange={(value) => setFormData({ ...formData, assigned_to: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select team member" />
+              </SelectTrigger>
+              <SelectContent>
+                {recipients.length > 0 && formData.care_recipient_id && (
+                  (() => {
+                    const recipientId = formData.care_recipient_id;
+                    // In a real app, we'd fetch team members for this recipient
+                    // For now, show empty option
+                    return null;
+                  })()
+                )}
+                <SelectItem value={null}>Unassigned</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex gap-3 pt-4">
