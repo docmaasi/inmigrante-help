@@ -100,6 +100,11 @@ export default function Dashboard() {
             <h2 className="text-lg font-medium text-slate-800 mb-4">Urgent Tasks</h2>
             <UrgentTasks tasks={urgentTasks} onTaskUpdate={refetchTasks} />
           </div>
+
+          <div className="lg:col-span-2">
+            <h2 className="text-lg font-medium text-slate-800 mb-4">Recent Activity</h2>
+            <ActivityLog limit={15} />
+          </div>
         </div>
       </div>
     </div>
