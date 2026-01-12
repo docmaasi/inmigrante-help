@@ -10,9 +10,9 @@ import Medications from './pages/Medications';
 import Messages from './pages/Messages';
 import RecipientProfile from './pages/RecipientProfile';
 import Refills from './pages/Refills';
+import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
-import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -29,9 +29,9 @@ export const PAGES = {
     "Messages": Messages,
     "RecipientProfile": RecipientProfile,
     "Refills": Refills,
+    "Reports": Reports,
     "Tasks": Tasks,
     "Team": Team,
-    "Reports": Reports,
 }
 
 export const pagesConfig = {
