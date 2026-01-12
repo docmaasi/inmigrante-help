@@ -1,14 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, Users, Calendar, Pill, ListTodo, Heart } from 'lucide-react';
+import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle } from 'lucide-react';
 
 export default function Layout({ children, currentPageName }) {
   const navItems = [
     { name: 'Dashboard', icon: Home, path: 'Dashboard' },
     { name: 'Care Recipients', icon: Users, path: 'CareRecipients' },
-    { name: 'Appointments', icon: Calendar, path: 'Appointments' },
+    { name: 'Calendar', icon: Calendar, path: 'Calendar' },
     { name: 'Medications', icon: Pill, path: 'Medications' },
+    { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog' },
+    { name: 'Emergency', icon: AlertCircle, path: 'Emergency' },
     { name: 'Tasks', icon: ListTodo, path: 'Tasks' }
   ];
 
