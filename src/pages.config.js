@@ -19,6 +19,7 @@ import ClientAppointments from './pages/ClientAppointments';
 import ClientMedicationLog from './pages/ClientMedicationLog';
 import ClientTasks from './pages/ClientTasks';
 import ClientUpdates from './pages/ClientUpdates';
+import Scheduling from './pages/Scheduling';
 import __Layout from './Layout.jsx';
 
 
@@ -44,6 +45,7 @@ export const PAGES = {
     "ClientMedicationLog": ClientMedicationLog,
     "ClientTasks": ClientTasks,
     "ClientUpdates": ClientUpdates,
+    "Scheduling": Scheduling,
 }
 
 export const pagesConfig = {
