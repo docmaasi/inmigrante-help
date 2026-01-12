@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Pill, CheckSquare } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Pill, CheckSquare, User } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Card, CardContent } from '../ui/card';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, parseISO, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
 
 export default function CalendarView() {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const { data: appointments = [] } = useQuery({
@@ -26,40 +26,64 @@ export default function CalendarView() {
     queryFn: () => base44.entities.Medication.list()
   });
 
+  const { data: medicationLogs = [] } = useQuery({
+    queryKey: ['medicationLogs'],
+    queryFn: () => base44.entities.MedicationLog.list('-date_taken', 1000)
+  });
+
   const { data: recipients = [] } = useQuery({
     queryKey: ['careRecipients'],
     queryFn: () => base44.entities.CareRecipient.list()
   });
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart);
   const calendarEnd = endOfWeek(monthEnd);
   const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+
+  const getRecipientName = (id) => {
+    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+  };
 
   const getEventsForDate = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const events = [];
 
+    // Add appointments
     appointments.forEach(apt => {
       if (apt.date === dateStr) {
         events.push({
           type: 'appointment',
           title: apt.title,
           time: apt.time,
-          data: apt,
-          color: 'blue'
+          color: 'bg-blue-500',
+          data: apt
         });
       }
     });
 
+    // Add tasks
     tasks.forEach(task => {
       if (task.due_date === dateStr && task.status !== 'completed') {
         events.push({
           type: 'task',
           title: task.title,
-          data: task,
-          color: 'purple'
+          color: task.priority === 'urgent' ? 'bg-red-500' : task.priority === 'high' ? 'bg-orange-500' : 'bg-purple-500',
+          data: task
+        });
+      }
+    });
+
+    // Add medication logs
+    medicationLogs.forEach(log => {
+      if (log.date_taken === dateStr) {
+        events.push({
+          type: 'medication',
+          title: log.medication_name,
+          time: log.time_taken,
+          color: log.status === 'taken' ? 'bg-green-500' : log.status === 'skipped' ? 'bg-yellow-500' : 'bg-slate-400',
+          data: log
         });
       }
     });
@@ -67,61 +91,57 @@ export default function CalendarView() {
     return events;
   };
 
-  const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
-  };
-
   const selectedDateEvents = getEventsForDate(selectedDate);
 
   return (
-    <div className="space-y-6">
-      <Card className="shadow-sm border-slate-200/60">
-        <CardHeader className="border-b border-slate-100">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold">
-              {format(currentMonth, 'MMMM yyyy')}
-            </CardTitle>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Calendar */}
+      <Card className="lg:col-span-2">
+        <CardContent className="p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-slate-800">
+              {format(currentDate, 'MMMM yyyy')}
+            </h2>
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                size="icon"
-                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                size="sm"
+                onClick={() => setCurrentDate(subMonths(currentDate, 1))}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setCurrentMonth(new Date());
-                  setSelectedDate(new Date());
-                }}
+                size="sm"
+                onClick={() => setCurrentDate(new Date())}
               >
                 Today
               </Button>
               <Button
                 variant="outline"
-                size="icon"
-                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                size="sm"
+                onClick={() => setCurrentDate(addMonths(currentDate, 1))}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2">
-            {/* Day Headers */}
+
+          {/* Weekday Headers */}
+          <div className="grid grid-cols-7 gap-2 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-xs font-semibold text-slate-600 py-2">
+              <div key={day} className="text-center text-sm font-medium text-slate-600 py-2">
                 {day}
               </div>
             ))}
+          </div>
 
-            {/* Calendar Days */}
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-2">
             {calendarDays.map(day => {
               const events = getEventsForDate(day);
-              const isCurrentMonth = isSameMonth(day, currentMonth);
+              const isCurrentMonth = isSameMonth(day, currentDate);
               const isSelected = isSameDay(day, selectedDate);
               const isToday = isSameDay(day, new Date());
 
@@ -129,36 +149,32 @@ export default function CalendarView() {
                 <button
                   key={day.toString()}
                   onClick={() => setSelectedDate(day)}
-                  className={`min-h-20 p-2 rounded-lg border transition-all ${
+                  className={`min-h-[80px] p-2 rounded-lg border transition-all text-left ${
                     isSelected
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                      ? 'bg-blue-50 border-blue-300 shadow-md'
                       : isToday
-                      ? 'bg-blue-50 border-blue-300 text-slate-800'
+                      ? 'bg-orange-50 border-orange-300'
                       : isCurrentMonth
-                      ? 'bg-white border-slate-200 hover:border-blue-300 text-slate-800'
+                      ? 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
                       : 'bg-slate-50 border-slate-100 text-slate-400'
                   }`}
                 >
-                  <div className={`text-sm font-medium mb-1 ${isSelected ? 'text-white' : ''}`}>
+                  <div className={`text-sm font-medium mb-1 ${
+                    isToday ? 'text-orange-600' : isCurrentMonth ? 'text-slate-800' : 'text-slate-400'
+                  }`}>
                     {format(day, 'd')}
                   </div>
                   <div className="space-y-1">
                     {events.slice(0, 2).map((event, idx) => (
                       <div
                         key={idx}
-                        className={`text-xs px-1 py-0.5 rounded truncate ${
-                          isSelected
-                            ? 'bg-white/20 text-white'
-                            : event.color === 'blue'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-purple-100 text-purple-700'
-                        }`}
+                        className={`text-xs px-1 py-0.5 rounded text-white truncate ${event.color}`}
                       >
-                        {event.type === 'appointment' ? '📅' : '✓'} {event.title}
+                        {event.time || ''} {event.title}
                       </div>
                     ))}
                     {events.length > 2 && (
-                      <div className={`text-xs ${isSelected ? 'text-white/70' : 'text-slate-500'}`}>
+                      <div className="text-xs text-slate-500 px-1">
                         +{events.length - 2} more
                       </div>
                     )}
@@ -171,44 +187,48 @@ export default function CalendarView() {
       </Card>
 
       {/* Selected Date Details */}
-      <Card className="shadow-sm border-slate-200/60">
-        <CardHeader className="border-b border-slate-100">
-          <CardTitle className="flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-blue-600" />
-            {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-          </CardTitle>
-        </CardHeader>
+      <Card>
         <CardContent className="p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-slate-800 mb-1">
+              {format(selectedDate, 'MMMM d, yyyy')}
+            </h3>
+            <p className="text-sm text-slate-500">
+              {selectedDateEvents.length} {selectedDateEvents.length === 1 ? 'event' : 'events'}
+            </p>
+          </div>
+
           {selectedDateEvents.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">No events scheduled for this day</p>
+            <div className="text-center py-8">
+              <CalendarIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm">No events on this day</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {selectedDateEvents.map((event, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
-                  <div className={`p-2 rounded-lg ${
-                    event.type === 'appointment' ? 'bg-blue-100' : 'bg-purple-100'
-                  }`}>
-                    {event.type === 'appointment' ? (
-                      <CalendarIcon className="w-5 h-5 text-blue-600" />
-                    ) : (
-                      <CheckSquare className="w-5 h-5 text-purple-600" />
-                    )}
+                <div key={idx} className="p-3 rounded-lg border border-slate-200 bg-white">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${event.color}`}>
+                      {event.type === 'appointment' && <CalendarIcon className="w-4 h-4 text-white" />}
+                      {event.type === 'task' && <CheckSquare className="w-4 h-4 text-white" />}
+                      {event.type === 'medication' && <Pill className="w-4 h-4 text-white" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-800 text-sm">{event.title}</p>
+                      {event.time && (
+                        <p className="text-xs text-slate-500 mt-0.5">{event.time}</p>
+                      )}
+                      {event.data.care_recipient_id && (
+                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {getRecipientName(event.data.care_recipient_id)}
+                        </p>
+                      )}
+                      <Badge className="mt-2 text-xs" variant="outline">
+                        {event.type}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-slate-800 mb-1">{event.title}</h4>
-                    {event.time && (
-                      <p className="text-sm text-slate-600 mb-1">{event.time}</p>
-                    )}
-                    <p className="text-sm text-slate-500">
-                      For: {getRecipientName(event.data.care_recipient_id)}
-                    </p>
-                    {event.data.location && (
-                      <p className="text-sm text-slate-500">{event.data.location}</p>
-                    )}
-                  </div>
-                  <Badge className={event.type === 'appointment' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}>
-                    {event.type}
-                  </Badge>
                 </div>
               ))}
             </div>
