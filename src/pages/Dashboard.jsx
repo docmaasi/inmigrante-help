@@ -9,6 +9,7 @@ import UpcomingAppointments from '../components/dashboard/UpcomingAppointments';
 import TodaysMedications from '../components/dashboard/TodaysMedications';
 import UrgentTasks from '../components/dashboard/UrgentTasks';
 import ActivityLog from '../components/accountability/ActivityLog';
+import RefillTracker from '../components/medications/RefillTracker';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -104,6 +105,11 @@ export default function Dashboard() {
           <div className="lg:col-span-2">
             <h2 className="text-lg font-medium text-slate-800 mb-4">Recent Activity</h2>
             <ActivityLog limit={15} />
+          </div>
+
+          <div className="lg:col-span-2">
+            <h2 className="text-lg font-medium text-slate-800 mb-4">Upcoming Refills</h2>
+            <RefillTracker />
           </div>
         </div>
       </div>
