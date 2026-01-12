@@ -42,7 +42,7 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="flex gap-1 overflow-x-auto">
             {navItems.map(item => {
               const Icon = item.icon;
