@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -8,6 +8,7 @@ import ReportExporter from './ReportExporter';
 import { Bell, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 export default function RefillHistoryReport({ recipientId, recipientName, dateRange }) {
+  const contentRef = useRef(null);
   const { data: refills = [] } = useQuery({
     queryKey: ['refills', recipientId, dateRange],
     queryFn: () => base44.entities.MedicationRefill.filter({
@@ -155,9 +156,11 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
       <ReportExporter
         title={`Refill History Report - ${recipientName}`}
         dateRange={dateRange}
-        content={reportContent}
+        contentRef={contentRef}
       />
-      {reportContent}
+      <div ref={contentRef}>
+        {reportContent}
+      </div>
     </div>
   );
 }

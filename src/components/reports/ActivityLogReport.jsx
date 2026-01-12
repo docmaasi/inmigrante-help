@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -8,6 +8,7 @@ import ReportExporter from './ReportExporter';
 import { Activity, CheckCircle, AlertCircle, FileText, Pill } from 'lucide-react';
 
 export default function ActivityLogReport({ recipientId, recipientName, dateRange }) {
+  const contentRef = useRef(null);
   const { data: appointments = [] } = useQuery({
     queryKey: ['appointments', recipientId],
     queryFn: () => base44.entities.Appointment.filter({ care_recipient_id: recipientId })
@@ -202,9 +203,11 @@ export default function ActivityLogReport({ recipientId, recipientName, dateRang
       <ReportExporter
         title={`Activity Log Report - ${recipientName}`}
         dateRange={dateRange}
-        content={reportContent}
+        contentRef={contentRef}
       />
-      {reportContent}
+      <div ref={contentRef}>
+        {reportContent}
+      </div>
     </div>
   );
 }

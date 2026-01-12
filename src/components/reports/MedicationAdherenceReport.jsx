@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -9,6 +9,7 @@ import ReportExporter from './ReportExporter';
 import { Pill, TrendingUp } from 'lucide-react';
 
 export default function MedicationAdherenceReport({ recipientId, recipientName, dateRange }) {
+  const contentRef = useRef(null);
   const { data: medicationLogs = [] } = useQuery({
     queryKey: ['medicationLogs', recipientId, dateRange],
     queryFn: () => base44.entities.MedicationLog.filter({
@@ -155,9 +156,11 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
       <ReportExporter
         title={`Medication Adherence Report - ${recipientName}`}
         dateRange={dateRange}
-        content={reportContent}
+        contentRef={contentRef}
       />
-      {reportContent}
+      <div ref={contentRef}>
+        {reportContent}
+      </div>
     </div>
   );
 }
