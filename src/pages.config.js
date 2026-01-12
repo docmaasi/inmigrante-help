@@ -11,6 +11,7 @@ import Team from './pages/Team';
 import CarePlans from './pages/CarePlans';
 import Messages from './pages/Messages';
 import Refills from './pages/Refills';
+import RecipientProfile from './pages/RecipientProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "CarePlans": CarePlans,
     "Messages": Messages,
     "Refills": Refills,
+    "RecipientProfile": RecipientProfile,
 }
 
 export const pagesConfig = {

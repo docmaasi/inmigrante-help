@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { X, Upload, Loader2 } from 'lucide-react';
+import { X, Upload, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { format, parseISO } from 'date-fns';
 
 export default function CareRecipientForm({ recipient, onClose }) {
   const queryClient = useQueryClient();
@@ -17,13 +18,39 @@ export default function CareRecipientForm({ recipient, onClose }) {
     date_of_birth: '',
     photo_url: '',
     primary_condition: '',
+    conditions_diagnoses: '[]',
+    medical_history: '[]',
     allergies: '',
+    dietary_restrictions: '',
     emergency_contact_name: '',
+    emergency_contact_relationship: '',
     emergency_contact_phone: '',
+    emergency_contact_email: '',
+    secondary_emergency_contact_name: '',
+    secondary_emergency_contact_phone: '',
     primary_physician: '',
     physician_phone: '',
     notes: ''
   });
+
+  const [conditions, setConditions] = useState(() => {
+    try {
+      return recipient?.conditions_diagnoses ? JSON.parse(recipient.conditions_diagnoses) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [medicalHistory, setMedicalHistory] = useState(() => {
+    try {
+      return recipient?.medical_history ? JSON.parse(recipient.medical_history) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [newCondition, setNewCondition] = useState({ condition: '', diagnosed_date: '' });
+  const [newHistory, setNewHistory] = useState({ event: '', date: '', notes: '' });
 
   const saveMutation = useMutation({
     mutationFn: (data) => {
@@ -61,7 +88,34 @@ export default function CareRecipientForm({ recipient, onClose }) {
       toast.error('Please enter a name');
       return;
     }
-    saveMutation.mutate(formData);
+    const dataToSave = {
+      ...formData,
+      conditions_diagnoses: JSON.stringify(conditions),
+      medical_history: JSON.stringify(medicalHistory)
+    };
+    saveMutation.mutate(dataToSave);
+  };
+
+  const addCondition = () => {
+    if (newCondition.condition.trim()) {
+      setConditions([...conditions, newCondition]);
+      setNewCondition({ condition: '', diagnosed_date: '' });
+    }
+  };
+
+  const removeCondition = (index) => {
+    setConditions(conditions.filter((_, i) => i !== index));
+  };
+
+  const addHistory = () => {
+    if (newHistory.event.trim()) {
+      setMedicalHistory([...medicalHistory, newHistory]);
+      setNewHistory({ event: '', date: '', notes: '' });
+    }
+  };
+
+  const removeHistory = (index) => {
+    setMedicalHistory(medicalHistory.filter((_, i) => i !== index));
   };
 
   return (
@@ -158,6 +212,105 @@ export default function CareRecipientForm({ recipient, onClose }) {
                 />
               </div>
             </div>
+
+            {/* Conditions & Diagnoses */}
+            <div className="space-y-2">
+              <Label>Conditions & Diagnoses</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <Input
+                  placeholder="Condition name"
+                  value={newCondition.condition}
+                  onChange={(e) => setNewCondition({ ...newCondition, condition: e.target.value })}
+                />
+                <Input
+                  type="date"
+                  placeholder="Diagnosed date"
+                  value={newCondition.diagnosed_date}
+                  onChange={(e) => setNewCondition({ ...newCondition, diagnosed_date: e.target.value })}
+                />
+                <Button type="button" onClick={addCondition} variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+              {conditions.length > 0 && (
+                <div className="space-y-1 mt-2">
+                  {conditions.map((cond, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
+                      <div className="flex-1">
+                        <span className="font-medium text-sm">{cond.condition}</span>
+                        {cond.diagnosed_date && (
+                          <span className="text-xs text-slate-500 ml-2">
+                            {format(parseISO(cond.diagnosed_date), 'MMM yyyy')}
+                          </span>
+                        )}
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeCondition(idx)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Medical History */}
+            <div className="space-y-2">
+              <Label>Medical History (Surgeries, Illnesses)</Label>
+              <div className="grid grid-cols-1 gap-2">
+                <Input
+                  placeholder="Event (e.g., Hip replacement surgery)"
+                  value={newHistory.event}
+                  onChange={(e) => setNewHistory({ ...newHistory, event: e.target.value })}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="date"
+                    placeholder="Date"
+                    value={newHistory.date}
+                    onChange={(e) => setNewHistory({ ...newHistory, date: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Additional notes"
+                    value={newHistory.notes}
+                    onChange={(e) => setNewHistory({ ...newHistory, notes: e.target.value })}
+                  />
+                </div>
+                <Button type="button" onClick={addHistory} variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add History Item
+                </Button>
+              </div>
+              {medicalHistory.length > 0 && (
+                <div className="space-y-1 mt-2">
+                  {medicalHistory.map((hist, idx) => (
+                    <div key={idx} className="flex items-start justify-between p-2 bg-slate-50 rounded border">
+                      <div className="flex-1">
+                        <span className="font-medium text-sm block">{hist.event}</span>
+                        <div className="text-xs text-slate-500">
+                          {hist.date && format(parseISO(hist.date), 'MMM yyyy')}
+                          {hist.notes && ` • ${hist.notes}`}
+                        </div>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeHistory(idx)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dietary_restrictions">Dietary Restrictions/Preferences</Label>
+              <Textarea
+                id="dietary_restrictions"
+                value={formData.dietary_restrictions}
+                onChange={(e) => setFormData({ ...formData, dietary_restrictions: e.target.value })}
+                placeholder="e.g., Diabetic diet, Low sodium, Vegetarian, Food allergies..."
+                rows={2}
+              />
+            </div>
           </div>
 
           {/* Physician Info */}
@@ -187,7 +340,7 @@ export default function CareRecipientForm({ recipient, onClose }) {
 
           {/* Emergency Contact */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Emergency Contact</h3>
+            <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Primary Emergency Contact</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="emergency_contact_name">Contact Name</Label>
@@ -199,12 +352,53 @@ export default function CareRecipientForm({ recipient, onClose }) {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="emergency_contact_relationship">Relationship</Label>
+                <Input
+                  id="emergency_contact_relationship"
+                  value={formData.emergency_contact_relationship}
+                  onChange={(e) => setFormData({ ...formData, emergency_contact_relationship: e.target.value })}
+                  placeholder="Son, Daughter, Spouse..."
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="emergency_contact_phone">Contact Phone</Label>
                 <Input
                   id="emergency_contact_phone"
                   value={formData.emergency_contact_phone}
                   onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
                   placeholder="(555) 123-4567"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="emergency_contact_email">Contact Email</Label>
+                <Input
+                  id="emergency_contact_email"
+                  type="email"
+                  value={formData.emergency_contact_email}
+                  onChange={(e) => setFormData({ ...formData, emergency_contact_email: e.target.value })}
+                  placeholder="john@example.com"
+                />
+              </div>
+            </div>
+
+            <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide mt-4">Secondary Emergency Contact</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="secondary_emergency_contact_name">Contact Name</Label>
+                <Input
+                  id="secondary_emergency_contact_name"
+                  value={formData.secondary_emergency_contact_name}
+                  onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_name: e.target.value })}
+                  placeholder="Jane Smith"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secondary_emergency_contact_phone">Contact Phone</Label>
+                <Input
+                  id="secondary_emergency_contact_phone"
+                  value={formData.secondary_emergency_contact_phone}
+                  onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_phone: e.target.value })}
+                  placeholder="(555) 987-6543"
                 />
               </div>
             </div>
