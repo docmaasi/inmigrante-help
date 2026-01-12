@@ -8,6 +8,7 @@ import Calendar from './pages/Calendar';
 import Emergency from './pages/Emergency';
 import MedicationLog from './pages/MedicationLog';
 import Team from './pages/Team';
+import CarePlans from './pages/CarePlans';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Emergency": Emergency,
     "MedicationLog": MedicationLog,
     "Team": Team,
+    "CarePlans": CarePlans,
 }
 
 export const pagesConfig = {
