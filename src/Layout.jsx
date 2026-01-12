@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText } from 'lucide-react';
+import NotificationBell from './components/notifications/NotificationBell';
+import NotificationGenerator from './components/notifications/NotificationGenerator';
 
 export default function Layout({ children, currentPageName }) {
   const navItems = [
@@ -36,9 +38,12 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-xs text-slate-500">Coordinating care together</p>
               </div>
             </Link>
+            <NotificationBell />
           </div>
         </div>
       </header>
+
+      <NotificationGenerator />
 
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-200">
