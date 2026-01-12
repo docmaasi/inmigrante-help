@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pill, Plus, Bell, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import RefillTracker from '../components/medications/RefillTracker';
+import RefillReminders from '../components/medications/RefillReminders';
 
 export default function Refills() {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -197,8 +198,17 @@ export default function Refills() {
         </Button>
       </div>
 
-      {/* Refill Tracker */}
-      <RefillTracker />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Reminder System */}
+        <div className="lg:col-span-1">
+          <RefillReminders />
+        </div>
+
+        {/* Refill Tracker */}
+        <div className="lg:col-span-2">
+          <RefillTracker />
+        </div>
+      </div>
 
       {/* Add Refill Dialog */}
       <Dialog open={showAddDialog} onOpenChange={handleClose}>
