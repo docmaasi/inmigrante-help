@@ -1,11 +1,13 @@
 import Dashboard from './pages/Dashboard';
 import CareRecipients from './pages/CareRecipients';
+import Appointments from './pages/Appointments';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Dashboard": Dashboard,
     "CareRecipients": CareRecipients,
+    "Appointments": Appointments,
 }
 
 export const pagesConfig = {
