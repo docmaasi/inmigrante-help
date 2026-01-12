@@ -1,179 +1,271 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, User, Phone, Calendar, Heart, AlertCircle, Stethoscope, Edit2, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
-import CareRecipientForm from '../components/care/CareRecipientForm';
-import { Badge } from "@/components/ui/badge";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, X } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import RecipientCard from '../components/recipients/RecipientCard';
 
 export default function CareRecipients() {
-  const [selectedRecipient, setSelectedRecipient] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    relationship: '',
+    date_of_birth: '',
+    primary_doctor: '',
+    emergency_contact: '',
+    emergency_phone: '',
+    medical_conditions: [],
+    allergies: [],
+    notes: ''
+  });
+  const [conditionInput, setConditionInput] = useState('');
+  const [allergyInput, setAllergyInput] = useState('');
+
   const queryClient = useQueryClient();
 
   const { data: recipients = [], isLoading } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list('-created_date')
+    queryKey: ['recipients'],
+    queryFn: () => base44.entities.CareRecipient.list('-created_date'),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.CareRecipient.delete(id),
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.CareRecipient.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['careRecipients']);
-    }
+      queryClient.invalidateQueries(['recipients']);
+      setIsDialogOpen(false);
+      resetForm();
+    },
   });
 
-  const handleEdit = (recipient) => {
-    setSelectedRecipient(recipient);
-    setShowForm(true);
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      relationship: '',
+      date_of_birth: '',
+      primary_doctor: '',
+      emergency_contact: '',
+      emergency_phone: '',
+      medical_conditions: [],
+      allergies: [],
+      notes: ''
+    });
+    setConditionInput('');
+    setAllergyInput('');
   };
 
-  const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to remove this care recipient?')) {
-      deleteMutation.mutate(id);
+  const handleAddCondition = () => {
+    if (conditionInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        medical_conditions: [...prev.medical_conditions, conditionInput.trim()]
+      }));
+      setConditionInput('');
     }
+  };
+
+  const handleAddAllergy = () => {
+    if (allergyInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        allergies: [...prev.allergies, allergyInput.trim()]
+      }));
+      setAllergyInput('');
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createMutation.mutate(formData);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800">Care Recipients</h1>
-          <p className="text-slate-500 mt-1">Manage profiles for your loved ones</p>
-        </div>
-        <Button
-          onClick={() => {
-            setSelectedRecipient(null);
-            setShowForm(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/30"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Care Recipient
-        </Button>
-      </div>
-
-      {/* Form */}
-      {showForm && (
-        <CareRecipientForm
-          recipient={selectedRecipient}
-          onClose={() => {
-            setShowForm(false);
-            setSelectedRecipient(null);
-          }}
-        />
-      )}
-
-      {/* Recipients Grid */}
-      {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        </div>
-      ) : recipients.length === 0 ? (
-        <Card className="border-slate-200/60">
-          <CardContent className="p-12 text-center">
-            <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">No Care Recipients Yet</h3>
-            <p className="text-slate-500 mb-6">Add your first care recipient to get started</p>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Care Recipient
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipients.map(recipient => (
-            <Card key={recipient.id} className="shadow-sm border-slate-200/60 hover:shadow-lg transition-shadow overflow-hidden group">
-              {/* Header with gradient */}
-              <div className="h-24 bg-gradient-to-br from-blue-600 to-blue-700 relative">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iYSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIj48cGF0aCBkPSJNMCAwaDQwdjQwSDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjYSkiLz48L3N2Zz4=')] opacity-30"></div>
-                <div className="absolute -bottom-12 left-6">
-                  {recipient.photo_url ? (
-                    <img
-                      src={recipient.photo_url}
-                      alt={recipient.full_name}
-                      className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-light text-slate-800 mb-2">Care Recipients</h1>
+            <p className="text-slate-500">Manage profiles for your loved ones</p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Recipient
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add Care Recipient</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      required
                     />
-                  ) : (
-                    <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center">
-                      <User className="w-10 h-10 text-white" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <CardContent className="pt-16 p-6">
-                <div className="mb-4">
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">{recipient.full_name}</h3>
-                  {recipient.date_of_birth && (
-                    <p className="text-sm text-slate-500 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      Born {format(new Date(recipient.date_of_birth), 'MMM d, yyyy')}
-                    </p>
-                  )}
-                </div>
-
-                {recipient.primary_condition && (
-                  <div className="mb-4">
-                    <Badge className="bg-blue-100 text-blue-700 border-0">
-                      {recipient.primary_condition}
-                    </Badge>
                   </div>
-                )}
-
-                <div className="space-y-2 mb-4">
-                  {recipient.primary_physician && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Stethoscope className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-600">Dr. {recipient.primary_physician}</span>
-                    </div>
-                  )}
-                  {recipient.emergency_contact_name && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-600">{recipient.emergency_contact_name}</span>
-                    </div>
-                  )}
-                  {recipient.allergies && (
-                    <div className="flex items-start gap-2 text-sm">
-                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
-                      <span className="text-slate-600">Allergies: {recipient.allergies}</span>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="relationship">Relationship</Label>
+                    <Input
+                      id="relationship"
+                      value={formData.relationship}
+                      onChange={(e) => setFormData({...formData, relationship: e.target.value})}
+                      placeholder="Mother, Father, Spouse..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dob">Date of Birth</Label>
+                    <Input
+                      id="dob"
+                      type="date"
+                      value={formData.date_of_birth}
+                      onChange={(e) => setFormData({...formData, date_of_birth: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="doctor">Primary Doctor</Label>
+                    <Input
+                      id="doctor"
+                      value={formData.primary_doctor}
+                      onChange={(e) => setFormData({...formData, primary_doctor: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency">Emergency Contact</Label>
+                    <Input
+                      id="emergency"
+                      value={formData.emergency_contact}
+                      onChange={(e) => setFormData({...formData, emergency_contact: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Emergency Phone</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.emergency_phone}
+                      onChange={(e) => setFormData({...formData, emergency_phone: e.target.value})}
+                    />
+                  </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-4 border-t border-slate-100">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(recipient)}
-                    className="flex-1"
-                  >
-                    <Edit2 className="w-3 h-3 mr-2" />
-                    Edit
+                <div className="space-y-2">
+                  <Label>Medical Conditions</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={conditionInput}
+                      onChange={(e) => setConditionInput(e.target.value)}
+                      placeholder="Enter condition"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCondition())}
+                    />
+                    <Button type="button" onClick={handleAddCondition} variant="outline">
+                      Add
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.medical_conditions.map((condition, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-2">
+                        {condition}
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({
+                            ...prev,
+                            medical_conditions: prev.medical_conditions.filter((_, i) => i !== idx)
+                          }))}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Allergies</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={allergyInput}
+                      onChange={(e) => setAllergyInput(e.target.value)}
+                      placeholder="Enter allergy"
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAllergy())}
+                    />
+                    <Button type="button" onClick={handleAddAllergy} variant="outline">
+                      Add
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.allergies.map((allergy, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm flex items-center gap-2">
+                        {allergy}
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({
+                            ...prev,
+                            allergies: prev.allergies.filter((_, i) => i !== idx)
+                          }))}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Additional Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(recipient.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-3 h-3" />
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    {createMutation.isPending ? 'Creating...' : 'Create Recipient'}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
-      )}
+
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div>
+          </div>
+        ) : recipients.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-8 h-8 text-blue-600" />
+            </div>
+            <h3 className="text-xl font-medium text-slate-800 mb-2">No care recipients yet</h3>
+            <p className="text-slate-500 mb-6">Add your first care recipient to get started</p>
+            <Button onClick={() => setIsDialogOpen(true)} className="bg-gradient-to-r from-blue-600 to-green-600">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Recipient
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recipients.map(recipient => (
+              <RecipientCard key={recipient.id} recipient={recipient} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
