@@ -8,6 +8,7 @@ import StatCard from '../components/dashboard/StatCard';
 import UpcomingAppointments from '../components/dashboard/UpcomingAppointments';
 import TodaysMedications from '../components/dashboard/TodaysMedications';
 import UrgentTasks from '../components/dashboard/UrgentTasks';
+import ActivityLog from '../components/accountability/ActivityLog';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
