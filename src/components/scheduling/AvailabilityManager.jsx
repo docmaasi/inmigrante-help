@@ -71,9 +71,9 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{caregiverName}'s Availability</CardTitle>
+    <Card className="rounded-xl shadow-md border border-slate-200 hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-slate-800">{caregiverName}'s Availability</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -81,7 +81,7 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
             const slot = availability.find(a => a.day_of_week === index);
 
             return (
-              <div key={index} className="flex items-center gap-4 p-3 border border-slate-200 rounded-lg">
+              <div key={index} className="flex items-center gap-4 p-3 border border-slate-200 rounded-lg hover:bg-slate-50/50 transition-colors">
                 <div className="w-20">
                   <span className="font-medium text-sm text-slate-800">{day}</span>
                 </div>

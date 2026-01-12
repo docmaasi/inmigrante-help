@@ -83,7 +83,7 @@ export default function Scheduling() {
         </div>
 
         {/* Recipient & Actions */}
-        <Card className="mb-6">
+        <Card className="rounded-xl shadow-md border border-slate-200 mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 max-w-xs">
@@ -108,7 +108,7 @@ export default function Scheduling() {
                   setEditingShift(null);
                   setShowShiftForm(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 gap-2"
+                className="gap-2"
                 disabled={!selectedRecipientId}
               >
                 <Plus className="w-4 h-4" />
@@ -134,16 +134,16 @@ export default function Scheduling() {
                 />
               ) : (
                 <>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Upcoming Shifts</CardTitle>
-                    </CardHeader>
+                   <Card className="rounded-xl shadow-md border border-slate-200">
+                     <CardHeader className="pb-4">
+                       <CardTitle className="text-lg font-semibold text-slate-800">Upcoming Shifts</CardTitle>
+                     </CardHeader>
                     <CardContent className="space-y-3">
                       {upcomingShifts.length === 0 ? (
                         <p className="text-sm text-slate-500 py-4">No upcoming shifts</p>
                       ) : (
                         upcomingShifts.map(shift => (
-                          <div key={shift.id} className="p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
+                          <div key={shift.id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <h3 className="font-medium text-slate-800">{shift.caregiver_name}</h3>

@@ -86,8 +86,8 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
   };
 
   return (
-    <Card className="shadow-lg border-slate-200/60">
-      <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between">
+    <Card className="rounded-xl shadow-md border border-slate-200 hover:shadow-lg transition-shadow">
+      <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between pb-4">
         <CardTitle>{shift ? 'Edit Shift' : 'Create Shift'}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="w-5 h-5" />
@@ -254,7 +254,7 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
             <Button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              className="flex-1"
             >
               {saveMutation.isPending ? (
                 <>
