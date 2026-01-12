@@ -144,18 +144,18 @@ export default function Team() {
       {/* Role Legend */}
       <Card className="mb-6 shadow-sm border-slate-200/60">
         <CardContent className="p-4">
-          <div className="flex items-center gap-6">
-            <span className="text-sm font-medium text-slate-700">Permission Levels:</span>
+          <p className="text-sm font-medium text-slate-700 mb-3">Permission Levels:</p>
+          <div className="grid grid-cols-3 gap-4">
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-red-600" />
+              <Shield className="w-4 h-4 text-red-600 flex-shrink-0" />
               <span className="text-sm text-slate-600">Admin - Full access to all features</span>
             </div>
             <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-blue-600" />
+              <UserCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
               <span className="text-sm text-slate-600">Caregiver - Can create and edit records</span>
             </div>
             <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-slate-600" />
+              <Eye className="w-4 h-4 text-slate-600 flex-shrink-0" />
               <span className="text-sm text-slate-600">Viewer - Read-only access</span>
             </div>
           </div>
