@@ -6,6 +6,24 @@ import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 
 export default function Layout({ children, currentPageName }) {
+  const styles = `
+    :root {
+      --primary: #3B82F6;
+      --primary-hover: #2563EB;
+      --secondary: #8B5CF6;
+      --accent: #EF4444;
+      --accent-soft: #FCA5A5;
+      --success: #22C55E;
+      --warning: #FBBF24;
+      --background-light: #F8FAFC;
+      --background-lighter: #F1F5F9;
+      --border-light: #E2E8F0;
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+    }
+  `;
+
   const navItems = [
     { name: 'Dashboard', icon: Home, path: 'Dashboard' },
     { name: 'Care Recipients', icon: Users, path: 'CareRecipients' },
@@ -24,9 +42,10 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+      <style>{styles}</style>
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white/95 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-50 shadow-sm hover:shadow-md transition-shadow">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-between">
             <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
@@ -48,7 +67,7 @@ export default function Layout({ children, currentPageName }) {
       <NotificationGenerator />
 
       {/* Navigation */}
-      <nav className="bg-white border-b border-slate-200">
+      <nav className="bg-white/90 border-b border-slate-200/60 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 md:px-8">
           <div className="flex gap-1 overflow-x-auto">
             {navItems.map(item => {
@@ -79,7 +98,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-16">
+      <footer className="bg-white/90 border-t border-slate-200/60 backdrop-blur-sm mt-16">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
