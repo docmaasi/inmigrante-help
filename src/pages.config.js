@@ -9,6 +9,7 @@ import Emergency from './pages/Emergency';
 import MedicationLog from './pages/MedicationLog';
 import Team from './pages/Team';
 import CarePlans from './pages/CarePlans';
+import Messages from './pages/Messages';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "MedicationLog": MedicationLog,
     "Team": Team,
     "CarePlans": CarePlans,
+    "Messages": Messages,
 }
 
 export const pagesConfig = {
