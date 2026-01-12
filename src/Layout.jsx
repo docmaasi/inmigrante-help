@@ -17,8 +17,9 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog' },
     { name: 'Team', icon: UserCheck, path: 'Team' },
         { name: 'Emergency', icon: AlertCircle, path: 'Emergency' },
-        { name: 'Tasks', icon: ListTodo, path: 'Tasks' },
-        { name: 'Reports', icon: FileText, path: 'Reports' }
+                { name: 'Tasks', icon: ListTodo, path: 'Tasks' },
+                { name: 'Collaboration', icon: Users, path: 'Collaboration' },
+                { name: 'Reports', icon: FileText, path: 'Reports' }
   ];
 
   return (
