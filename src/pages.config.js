@@ -13,6 +13,7 @@ import Refills from './pages/Refills';
 import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
+import Collaboration from './pages/Collaboration';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "Reports": Reports,
     "Tasks": Tasks,
     "Team": Team,
+    "Collaboration": Collaboration,
 }
 
 export const pagesConfig = {
