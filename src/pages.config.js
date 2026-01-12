@@ -14,6 +14,11 @@ import Reports from './pages/Reports';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Collaboration from './pages/Collaboration';
+import ClientPortal from './pages/ClientPortal';
+import ClientAppointments from './pages/ClientAppointments';
+import ClientMedicationLog from './pages/ClientMedicationLog';
+import ClientTasks from './pages/ClientTasks';
+import ClientUpdates from './pages/ClientUpdates';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +39,11 @@ export const PAGES = {
     "Tasks": Tasks,
     "Team": Team,
     "Collaboration": Collaboration,
+    "ClientPortal": ClientPortal,
+    "ClientAppointments": ClientAppointments,
+    "ClientMedicationLog": ClientMedicationLog,
+    "ClientTasks": ClientTasks,
+    "ClientUpdates": ClientUpdates,
 }
 
 export const pagesConfig = {
