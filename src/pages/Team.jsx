@@ -144,19 +144,28 @@ export default function Team() {
       {/* Role Legend */}
       <Card className="mb-6 shadow-sm border-slate-200/60">
         <CardContent className="p-4">
-          <div className="flex items-center gap-6">
-            <span className="text-sm font-medium text-slate-700">Permission Levels:</span>
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-red-600" />
-              <span className="text-sm text-slate-600">Admin - Full access to all features</span>
+          <h3 className="text-sm font-medium text-slate-700 mb-3">Permission Levels:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-start gap-2">
+              <Shield className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-slate-700">Admin</p>
+                <p className="text-sm text-slate-600">Full access to all features</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-blue-600" />
-              <span className="text-sm text-slate-600">Caregiver - Can create and edit records</span>
+            <div className="flex items-start gap-2">
+              <UserCheck className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-slate-700">Caregiver</p>
+                <p className="text-sm text-slate-600">Can create and edit records</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-slate-600" />
-              <span className="text-sm text-slate-600">Viewer - Read-only access</span>
+            <div className="flex items-start gap-2">
+              <Eye className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-slate-700">Viewer</p>
+                <p className="text-sm text-slate-600">Read-only access</p>
+              </div>
             </div>
           </div>
         </CardContent>
