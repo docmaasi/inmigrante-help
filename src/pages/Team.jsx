@@ -127,14 +127,14 @@ export default function Team() {
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Care Team</h1>
           <p className="text-slate-500 mt-1">Manage caregivers, family members, and their roles</p>
         </div>
         <Button
           onClick={() => setShowAddDialog(true)}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-blue-600 hover:bg-blue-700 mt-4"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Team Member
