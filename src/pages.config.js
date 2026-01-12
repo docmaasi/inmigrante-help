@@ -1,35 +1,37 @@
-import Dashboard from './pages/Dashboard';
-import CareRecipients from './pages/CareRecipients';
 import Appointments from './pages/Appointments';
-import Medications from './pages/Medications';
-import Tasks from './pages/Tasks';
-import CareNotes from './pages/CareNotes';
 import Calendar from './pages/Calendar';
+import CareNotes from './pages/CareNotes';
+import CarePlans from './pages/CarePlans';
+import CareRecipients from './pages/CareRecipients';
+import Dashboard from './pages/Dashboard';
 import Emergency from './pages/Emergency';
 import MedicationLog from './pages/MedicationLog';
-import Team from './pages/Team';
-import CarePlans from './pages/CarePlans';
+import Medications from './pages/Medications';
 import Messages from './pages/Messages';
-import Refills from './pages/Refills';
 import RecipientProfile from './pages/RecipientProfile';
+import Refills from './pages/Refills';
+import Tasks from './pages/Tasks';
+import Team from './pages/Team';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "CareRecipients": CareRecipients,
     "Appointments": Appointments,
-    "Medications": Medications,
-    "Tasks": Tasks,
-    "CareNotes": CareNotes,
     "Calendar": Calendar,
+    "CareNotes": CareNotes,
+    "CarePlans": CarePlans,
+    "CareRecipients": CareRecipients,
+    "Dashboard": Dashboard,
     "Emergency": Emergency,
     "MedicationLog": MedicationLog,
-    "Team": Team,
-    "CarePlans": CarePlans,
+    "Medications": Medications,
     "Messages": Messages,
-    "Refills": Refills,
     "RecipientProfile": RecipientProfile,
+    "Refills": Refills,
+    "Tasks": Tasks,
+    "Team": Team,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
