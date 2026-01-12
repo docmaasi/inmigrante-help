@@ -25,6 +25,27 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <style>{`
+        :root {
+          --primary: #3B82F6;
+          --primary-light: #93C5FD;
+          --primary-dark: #1E40AF;
+          --secondary: #8B5CF6;
+          --secondary-light: #D8B4FE;
+          --secondary-dark: #6D28D9;
+          --accent: #EF4444;
+          --accent-light: #FCA5A5;
+          --accent-dark: #991B1B;
+          --success: #22C55E;
+          --success-light: #86EFAC;
+          --warning: #FBBF24;
+          --warning-light: #FDE047;
+          --neutral-bg-light: #F8FAFC;
+          --neutral-bg: #E2E8F0;
+          --neutral-text: #64748B;
+          --neutral-text-dark: #1E293B;
+        }
+      `}</style>
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
