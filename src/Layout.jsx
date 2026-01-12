@@ -19,7 +19,8 @@ export default function Layout({ children, currentPageName }) {
         { name: 'Emergency', icon: AlertCircle, path: 'Emergency' },
                 { name: 'Tasks', icon: ListTodo, path: 'Tasks' },
                 { name: 'Collaboration', icon: Users, path: 'Collaboration' },
-                { name: 'Reports', icon: FileText, path: 'Reports' }
+                        { name: 'Scheduling', icon: Calendar, path: 'Scheduling' },
+                        { name: 'Reports', icon: FileText, path: 'Reports' }
   ];
 
   return (
