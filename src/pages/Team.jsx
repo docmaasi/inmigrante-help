@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2, UserX } from 'lucide-react';
+import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
 
 export default function Team() {
@@ -165,8 +166,25 @@ export default function Team() {
 
       {/* Team Members List */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="shadow-sm border-slate-200/60">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <Skeleton className="w-12 h-12 rounded-lg" />
+                  <div className="flex-1">
+                    <Skeleton className="h-5 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+                <Skeleton className="h-6 w-24 rounded-full mb-3" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : activeMembers.length === 0 ? (
         <Card className="border-slate-200/60">

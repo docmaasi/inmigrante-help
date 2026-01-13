@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pill, User, Clock, Calendar, AlertCircle, Edit2, Trash2, Archive } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { Skeleton } from '../components/ui/skeleton';
 import MedicationForm from '../components/medications/MedicationForm';
 
 export default function Medications() {
@@ -91,8 +92,26 @@ export default function Medications() {
 
       {/* Medications List */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="shadow-sm border-slate-200/60">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <Skeleton className="w-12 h-12 rounded-lg" />
+                  <div className="flex-1">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-4 mb-4 space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : filteredMedications.length === 0 ? (
         <Card className="border-slate-200/60">

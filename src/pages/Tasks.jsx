@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, CheckSquare, User, Calendar, Clock, AlertCircle, Edit2, Trash2, Check } from 'lucide-react';
 import { format, parseISO, isPast, isToday } from 'date-fns';
+import { Skeleton } from '../components/ui/skeleton';
 import TaskForm from '../components/tasks/TaskForm';
 
 export default function Tasks() {
@@ -124,8 +125,26 @@ export default function Tasks() {
 
       {/* Tasks List */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="shadow-sm border-slate-200/60">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3 mb-3">
+                  <Skeleton className="w-12 h-12 rounded-lg" />
+                  <div className="flex-1">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                  <Skeleton className="w-16 h-6 rounded-full" />
+                </div>
+                <div className="flex gap-2 mb-4">
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : filteredTasks.length === 0 ? (
         <Card className="border-slate-200/60">

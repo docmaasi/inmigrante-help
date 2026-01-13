@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Calendar, Pill, ListTodo, Users } from 'lucide-react';
 import { isAfter, parseISO, startOfToday } from 'date-fns';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Skeleton } from '@/components/ui/skeleton';
 import WelcomeHeader from '../components/dashboard/WelcomeHeader';
 import StatCard from '../components/dashboard/StatCard';
 import UpcomingAppointments from '../components/dashboard/UpcomingAppointments';
