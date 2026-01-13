@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   const { data: tasks = [], refetch: refetchTasks } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.CareTask.list('-due_date'),
+    queryFn: () => base44.entities.Task.list('-due_date'),
   });
 
   const upcomingAppointments = appointments
