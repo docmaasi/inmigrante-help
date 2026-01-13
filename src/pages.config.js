@@ -10,7 +10,9 @@ import ClientTasks from './pages/ClientTasks';
 import ClientUpdates from './pages/ClientUpdates';
 import Collaboration from './pages/Collaboration';
 import Dashboard from './pages/Dashboard';
+import Documents from './pages/Documents';
 import Emergency from './pages/Emergency';
+import EmergencyProfile from './pages/EmergencyProfile';
 import MedicationLog from './pages/MedicationLog';
 import Medications from './pages/Medications';
 import Messages from './pages/Messages';
@@ -18,12 +20,11 @@ import RecipientProfile from './pages/RecipientProfile';
 import Refills from './pages/Refills';
 import Reports from './pages/Reports';
 import Scheduling from './pages/Scheduling';
+import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
-import Documents from './pages/Documents';
 import Today from './pages/Today';
-import EmergencyProfile from './pages/EmergencyProfile';
-import ShiftHandoff from './pages/ShiftHandoff';
+import Checkout from './pages/Checkout';
 import __Layout from './Layout.jsx';
 
 
@@ -40,7 +41,9 @@ export const PAGES = {
     "ClientUpdates": ClientUpdates,
     "Collaboration": Collaboration,
     "Dashboard": Dashboard,
+    "Documents": Documents,
     "Emergency": Emergency,
+    "EmergencyProfile": EmergencyProfile,
     "MedicationLog": MedicationLog,
     "Medications": Medications,
     "Messages": Messages,
@@ -48,12 +51,11 @@ export const PAGES = {
     "Refills": Refills,
     "Reports": Reports,
     "Scheduling": Scheduling,
+    "ShiftHandoff": ShiftHandoff,
     "Tasks": Tasks,
     "Team": Team,
-    "Documents": Documents,
     "Today": Today,
-    "EmergencyProfile": EmergencyProfile,
-    "ShiftHandoff": ShiftHandoff,
+    "Checkout": Checkout,
 }
 
 export const pagesConfig = {
