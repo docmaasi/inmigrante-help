@@ -28,10 +28,6 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Subscribe', icon: Heart, path: 'Checkout', bg: 'bg-gradient-to-br from-orange-400 to-pink-500', special: true }
     ];
 
-  if (currentPageName === 'Index') {
-    return children;
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
       <style>{`
@@ -59,7 +55,7 @@ export default function Layout({ children, currentPageName }) {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-between">
-            <Link to={createPageUrl('Index')} className="flex items-center gap-3">
+            <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg" 
                 alt="FamilyCare.Help Logo" 
