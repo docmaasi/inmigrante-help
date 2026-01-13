@@ -13,6 +13,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Messages', icon: MessageSquare, path: 'Messages', bg: 'bg-green-50' },
     { name: 'Calendar', icon: Calendar, path: 'Calendar', bg: 'bg-pink-50' },
     { name: 'AI Care Plans', icon: Sparkles, path: 'CarePlans', bg: 'bg-violet-50' },
+    { name: 'Plan Builder', icon: FileText, path: 'CarePlanBuilder', bg: 'bg-indigo-50' },
     { name: 'Documents', icon: FileText, path: 'Documents', bg: 'bg-cyan-50' },
     { name: 'Medications', icon: Pill, path: 'Medications', bg: 'bg-rose-50' },
     { name: 'Refills', icon: Bell, path: 'Refills', bg: 'bg-indigo-50' },

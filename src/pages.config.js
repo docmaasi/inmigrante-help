@@ -25,6 +25,7 @@ import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Today from './pages/Today';
+import CarePlanBuilder from './pages/CarePlanBuilder';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "Tasks": Tasks,
     "Team": Team,
     "Today": Today,
+    "CarePlanBuilder": CarePlanBuilder,
 }
 
 export const pagesConfig = {
