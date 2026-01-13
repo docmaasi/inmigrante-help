@@ -79,17 +79,17 @@ export default function Tasks() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-orange-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Tasks</h1>
-          <p className="text-slate-500 mt-1">Manage caregiver responsibilities</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Tasks</h1>
+          <p className="text-sm md:text-base text-slate-500 mt-1">Manage caregiver responsibilities</p>
         </div>
         <Button
           onClick={() => {
             setSelectedTask(null);
             setShowForm(true);
           }}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Task
@@ -97,14 +97,14 @@ export default function Tasks() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
         {['all', 'pending', 'in_progress', 'completed', 'cancelled'].map(status => (
           <Button
             key={status}
             variant={filterStatus === status ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilterStatus(status)}
-            className={filterStatus === status ? 'bg-purple-600' : ''}
+            className={`whitespace-nowrap ${filterStatus === status ? 'bg-purple-600' : ''}`}
           >
             {status === 'all' ? 'All' : status.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
           </Button>
@@ -148,14 +148,14 @@ export default function Tasks() {
         </div>
       ) : filteredTasks.length === 0 ? (
         <Card className="border-slate-200/60">
-          <CardContent className="p-12 text-center">
-            <CheckSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">No Tasks</h3>
-            <p className="text-slate-500 mb-6">
+          <CardContent className="p-8 md:p-12 text-center">
+            <CheckSquare className="w-12 h-12 md:w-16 md:h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Tasks</h3>
+            <p className="text-sm md:text-base text-slate-500 mb-6">
               {filterStatus === 'all' ? 'Add your first task to get started' : `No ${filterStatus.replace(/_/g, ' ')} tasks`}
             </p>
             {filterStatus === 'all' && (
-              <Button onClick={() => setShowForm(true)} className="bg-purple-600 hover:bg-purple-700">
+              <Button onClick={() => setShowForm(true)} className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
               </Button>

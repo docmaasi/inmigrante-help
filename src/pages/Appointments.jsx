@@ -90,12 +90,12 @@ export default function Appointments() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div>
-            <h1 className="text-3xl font-light text-slate-800 mb-2">Appointments</h1>
-            <p className="text-slate-500">Schedule and track medical visits</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1">Appointments</h1>
+            <p className="text-sm md:text-base text-slate-500">Schedule and track medical visits</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="mt-4 bg-blue-600 hover:bg-blue-700">
+              <Button className="mt-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Appointment
               </Button>
@@ -250,11 +250,11 @@ export default function Appointments() {
             ))}
           </div>
         ) : appointments.length === 0 ? (
-          <div className="text-center py-16">
-            <Calendar className="w-16 h-16 text-purple-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-slate-800 mb-2">No appointments scheduled</h3>
-            <p className="text-slate-500 mb-6">Schedule your first appointment</p>
-            <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+          <div className="text-center py-12 md:py-16">
+            <Calendar className="w-12 h-12 md:w-16 md:h-16 text-purple-300 mx-auto mb-4" />
+            <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No appointments scheduled</h3>
+            <p className="text-sm md:text-base text-slate-500 mb-6">Schedule your first appointment</p>
+            <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Add Appointment
             </Button>

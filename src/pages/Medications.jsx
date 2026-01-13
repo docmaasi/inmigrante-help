@@ -52,12 +52,12 @@ export default function Medications() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Medications</h1>
-          <p className="text-slate-500 mt-1">Track medications and schedules</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Medications</h1>
+          <p className="text-sm md:text-base text-slate-500 mt-1">Track medications and schedules</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -70,7 +70,7 @@ export default function Medications() {
               setSelectedMedication(null);
               setShowForm(true);
             }}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-initial"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Medication
@@ -115,11 +115,11 @@ export default function Medications() {
         </div>
       ) : filteredMedications.length === 0 ? (
         <Card className="border-slate-200/60">
-          <CardContent className="p-12 text-center">
-            <Pill className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">No Medications</h3>
-            <p className="text-slate-500 mb-6">Add your first medication to get started</p>
-            <Button onClick={() => setShowForm(true)} className="bg-green-600 hover:bg-green-700">
+          <CardContent className="p-8 md:p-12 text-center">
+            <Pill className="w-12 h-12 md:w-16 md:h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Medications</h3>
+            <p className="text-sm md:text-base text-slate-500 mb-6">Add your first medication to get started</p>
+            <Button onClick={() => setShowForm(true)} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Add Medication
             </Button>

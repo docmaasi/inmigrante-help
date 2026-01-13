@@ -71,7 +71,7 @@ export default function Layout({ children, currentPageName }) {
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="flex gap-1 overflow-x-auto">
+          <div className="flex gap-1 overflow-x-auto scrollbar-hide">
             {navItems.map(item => {
               const Icon = item.icon;
               const isActive = currentPageName === item.path;
@@ -79,14 +79,14 @@ export default function Layout({ children, currentPageName }) {
                 <Link
                   key={item.path}
                   to={createPageUrl(item.path)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
                     isActive
                       ? 'text-blue-600 border-blue-600'
                       : 'text-slate-600 border-transparent hover:text-slate-800 hover:border-slate-300'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {item.name}
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">{item.name}</span>
                 </Link>
               );
             })}

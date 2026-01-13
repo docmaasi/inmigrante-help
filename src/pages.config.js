@@ -17,9 +17,9 @@ import Messages from './pages/Messages';
 import RecipientProfile from './pages/RecipientProfile';
 import Refills from './pages/Refills';
 import Reports from './pages/Reports';
+import Scheduling from './pages/Scheduling';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
-import Scheduling from './pages/Scheduling';
 import __Layout from './Layout.jsx';
 
 
@@ -43,9 +43,9 @@ export const PAGES = {
     "RecipientProfile": RecipientProfile,
     "Refills": Refills,
     "Reports": Reports,
+    "Scheduling": Scheduling,
     "Tasks": Tasks,
     "Team": Team,
-    "Scheduling": Scheduling,
 }
 
 export const pagesConfig = {

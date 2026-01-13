@@ -130,13 +130,13 @@ export default function Team() {
       <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800">Care Team</h1>
-          <p className="text-slate-500 mt-1">Manage caregivers, family members, and their roles</p>
+        <div className="mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Care Team</h1>
+          <p className="text-sm md:text-base text-slate-500 mt-1">Manage caregivers, family members, and their roles</p>
         </div>
         <Button
           onClick={() => setShowAddDialog(true)}
-          className="bg-blue-600 hover:bg-blue-700 mt-4"
+          className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Team Member
@@ -145,19 +145,19 @@ export default function Team() {
 
       {/* Role Legend */}
       <Card className="mb-6 shadow-sm border-slate-200/60">
-        <CardContent className="p-4">
-          <p className="text-sm font-medium text-slate-700 mb-3">Permission Levels:</p>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-red-600 flex-shrink-0" />
+        <CardContent className="p-4 md:p-6">
+          <p className="text-sm font-semibold text-slate-700 mb-3">Permission Levels:</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <div className="flex items-start gap-2">
+              <Shield className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
               <span className="text-sm text-slate-600">Admin - Full access to all features</span>
             </div>
-            <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
+            <div className="flex items-start gap-2">
+              <UserCheck className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
               <span className="text-sm text-slate-600">Caregiver - Can create and edit records</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-slate-600 flex-shrink-0" />
+            <div className="flex items-start gap-2">
+              <Eye className="w-4 h-4 text-slate-600 flex-shrink-0 mt-0.5" />
               <span className="text-sm text-slate-600">Viewer - Read-only access</span>
             </div>
           </div>
@@ -188,11 +188,11 @@ export default function Team() {
         </div>
       ) : activeMembers.length === 0 ? (
         <Card className="border-slate-200/60">
-          <CardContent className="p-12 text-center">
-            <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">No Team Members</h3>
-            <p className="text-slate-500 mb-6">Add team members to coordinate care</p>
-            <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+          <CardContent className="p-8 md:p-12 text-center">
+            <Users className="w-12 h-12 md:w-16 md:h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Team Members</h3>
+            <p className="text-sm md:text-base text-slate-500 mb-6">Add team members to coordinate care</p>
+            <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Add Team Member
             </Button>
