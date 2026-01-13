@@ -74,8 +74,8 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-1 py-2">
             {navItems.map(item => {
               const Icon = item.icon;
               const isActive = currentPageName === item.path;
@@ -83,14 +83,14 @@ export default function Layout({ children, currentPageName }) {
                 <Link
                   key={item.path}
                   to={createPageUrl(item.path)}
-                  className={`flex items-center gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
+                  className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-colors ${
                     isActive
-                      ? 'text-blue-600 border-blue-600'
-                      : 'text-slate-600 border-transparent hover:text-slate-800 hover:border-slate-300'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
                   }`}
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">{item.name}</span>
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-center leading-tight">{item.name}</span>
                 </Link>
               );
             })}

@@ -3,6 +3,7 @@ import Calendar from './pages/Calendar';
 import CareNotes from './pages/CareNotes';
 import CarePlans from './pages/CarePlans';
 import CareRecipients from './pages/CareRecipients';
+import Checkout from './pages/Checkout';
 import ClientAppointments from './pages/ClientAppointments';
 import ClientMedicationLog from './pages/ClientMedicationLog';
 import ClientPortal from './pages/ClientPortal';
@@ -24,7 +25,6 @@ import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Today from './pages/Today';
-import Checkout from './pages/Checkout';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +34,7 @@ export const PAGES = {
     "CareNotes": CareNotes,
     "CarePlans": CarePlans,
     "CareRecipients": CareRecipients,
+    "Checkout": Checkout,
     "ClientAppointments": ClientAppointments,
     "ClientMedicationLog": ClientMedicationLog,
     "ClientPortal": ClientPortal,
@@ -55,7 +56,6 @@ export const PAGES = {
     "Tasks": Tasks,
     "Team": Team,
     "Today": Today,
-    "Checkout": Checkout,
 }
 
 export const pagesConfig = {
