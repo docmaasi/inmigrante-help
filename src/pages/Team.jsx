@@ -125,7 +125,8 @@ export default function Team() {
   const activeMembers = teamMembers.filter(m => m.active !== false);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <div>
@@ -363,6 +364,7 @@ export default function Team() {
           </form>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
