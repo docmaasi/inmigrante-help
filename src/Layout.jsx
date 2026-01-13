@@ -7,24 +7,24 @@ import NotificationGenerator from './components/notifications/NotificationGenera
 
 export default function Layout({ children, currentPageName }) {
   const navItems = [
-    { name: 'Dashboard', icon: Home, path: 'Dashboard' },
-    { name: 'Today', icon: Zap, path: 'Today' },
-    { name: 'Care Recipients', icon: Users, path: 'CareRecipients' },
-    { name: 'Messages', icon: MessageSquare, path: 'Messages' },
-    { name: 'Calendar', icon: Calendar, path: 'Calendar' },
-    { name: 'AI Care Plans', icon: Sparkles, path: 'CarePlans' },
-    { name: 'Documents', icon: FileText, path: 'Documents' },
-    { name: 'Medications', icon: Pill, path: 'Medications' },
-    { name: 'Refills', icon: Bell, path: 'Refills' },
-    { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog' },
-    { name: 'Team', icon: UserCheck, path: 'Team' },
-    { name: 'Emergency', icon: AlertCircle, path: 'EmergencyProfile' },
-    { name: 'Tasks', icon: ListTodo, path: 'Tasks' },
-    { name: 'Shift Handoff', icon: Clock, path: 'ShiftHandoff' },
-    { name: 'Collaboration', icon: Users, path: 'Collaboration' },
-    { name: 'Scheduling', icon: Calendar, path: 'Scheduling' },
-    { name: 'Reports', icon: FileText, path: 'Reports' },
-    { name: 'Subscribe', icon: Heart, path: 'Checkout' }
+    { name: 'Dashboard', icon: Home, path: 'Dashboard', bg: 'bg-blue-50' },
+    { name: 'Today', icon: Zap, path: 'Today', bg: 'bg-amber-50' },
+    { name: 'Care Recipients', icon: Users, path: 'CareRecipients', bg: 'bg-purple-50' },
+    { name: 'Messages', icon: MessageSquare, path: 'Messages', bg: 'bg-green-50' },
+    { name: 'Calendar', icon: Calendar, path: 'Calendar', bg: 'bg-pink-50' },
+    { name: 'AI Care Plans', icon: Sparkles, path: 'CarePlans', bg: 'bg-violet-50' },
+    { name: 'Documents', icon: FileText, path: 'Documents', bg: 'bg-cyan-50' },
+    { name: 'Medications', icon: Pill, path: 'Medications', bg: 'bg-rose-50' },
+    { name: 'Refills', icon: Bell, path: 'Refills', bg: 'bg-indigo-50' },
+    { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog', bg: 'bg-teal-50' },
+    { name: 'Team', icon: UserCheck, path: 'Team', bg: 'bg-lime-50' },
+    { name: 'Emergency', icon: AlertCircle, path: 'EmergencyProfile', bg: 'bg-red-50' },
+    { name: 'Tasks', icon: ListTodo, path: 'Tasks', bg: 'bg-sky-50' },
+    { name: 'Shift Handoff', icon: Clock, path: 'ShiftHandoff', bg: 'bg-emerald-50' },
+    { name: 'Collaboration', icon: Users, path: 'Collaboration', bg: 'bg-fuchsia-50' },
+    { name: 'Scheduling', icon: Calendar, path: 'Scheduling', bg: 'bg-orange-50' },
+    { name: 'Reports', icon: FileText, path: 'Reports', bg: 'bg-slate-50' },
+    { name: 'Subscribe', icon: Heart, path: 'Checkout', bg: 'bg-yellow-50' }
     ];
 
   return (
@@ -83,10 +83,10 @@ export default function Layout({ children, currentPageName }) {
                 <Link
                   key={item.path}
                   to={createPageUrl(item.path)}
-                  className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                      ? 'bg-blue-500 text-white shadow-md scale-105'
+                      : `${item.bg} text-slate-700 hover:shadow-md hover:scale-105`
                   }`}
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />
