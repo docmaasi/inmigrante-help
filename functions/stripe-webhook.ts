@@ -67,13 +67,19 @@ async function handleSubscriptionUpdate(subscription, context) {
 
   const user = users[0];
 
+  // Calculate max care recipients based on subscription metadata
+  const additionalMembers = parseInt(subscription.metadata?.additional_members || '0');
+  const maxCareRecipients = 1 + additionalMembers;
+
   await context.entities.User.update(user.id, {
     stripe_subscription_id: subscription.id,
     subscription_status: subscription.status,
-    subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+    subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    max_care_recipients: maxCareRecipients,
+    subscription_additional_members: additionalMembers
   });
 
-  console.log(`Updated subscription for user ${user.email}: ${subscription.status}`);
+  console.log(`Updated subscription for user ${user.email}: ${subscription.status}, max recipients: ${maxCareRecipients}`);
 }
 
 async function handleSubscriptionDeleted(subscription, context) {
