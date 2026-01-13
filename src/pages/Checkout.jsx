@@ -14,59 +14,55 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const plans = [
   {
-    id: 'basic',
-    name: 'Basic',
-    priceId: 'price_basic_monthly', // Replace with your actual Stripe Price ID
-    price: 29,
-    interval: 'month',
-    features: [
-      'Up to 3 care recipients',
-      'Unlimited team members',
-      'Basic scheduling',
-      'Task management',
-      'Mobile app access'
-    ]
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    priceId: 'price_pro_monthly', // Replace with your actual Stripe Price ID
-    price: 49,
+    id: 'monthly',
+    name: 'Monthly Plan',
+    priceId: 'price_monthly', // Replace with your actual Stripe Price ID
+    price: 14.99,
     interval: 'month',
     popular: true,
     features: [
-      'Up to 10 care recipients',
-      'Unlimited team members',
+      'Unlimited care recipients',
+      'All core features included',
       'Advanced scheduling',
       'AI care plans',
       'Document management',
-      'Priority support',
-      'Custom reports'
+      'Medication tracking',
+      'Team collaboration',
+      'Mobile app access',
+      'Add family members at $5/month each'
     ]
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    priceId: 'price_enterprise_monthly', // Replace with your actual Stripe Price ID
-    price: 99,
-    interval: 'month',
+    id: 'yearly',
+    name: 'Yearly Plan',
+    priceId: 'price_yearly', // Replace with your actual Stripe Price ID
+    price: 149.99,
+    interval: 'year',
+    savings: 'Save $29.89',
     features: [
       'Unlimited care recipients',
-      'Unlimited team members',
-      'All Professional features',
-      'Dedicated account manager',
-      'Custom integrations',
-      'SLA guarantee',
-      'Advanced analytics'
+      'All core features included',
+      'Advanced scheduling',
+      'AI care plans',
+      'Document management',
+      'Medication tracking',
+      'Team collaboration',
+      'Mobile app access',
+      'Add family members at $5/month each',
+      '2 months free compared to monthly'
     ]
   }
 ];
 
-function CheckoutForm({ selectedPlan, onSuccess }) {
+function CheckoutForm({ selectedPlan, additionalMembers, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const totalPrice = selectedPlan.interval === 'month' 
+    ? selectedPlan.price + (additionalMembers * 5)
+    : selectedPlan.price + (additionalMembers * 5 * 12);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -94,7 +90,8 @@ function CheckoutForm({ selectedPlan, onSuccess }) {
       const result = await base44.functions.invoke('stripe-create-subscription', {
         paymentMethodId: paymentMethod.id,
         priceId: selectedPlan.priceId,
-        planName: selectedPlan.name
+        planName: selectedPlan.name,
+        additionalMembers: additionalMembers
       });
 
       if (result.error) {
@@ -155,7 +152,7 @@ function CheckoutForm({ selectedPlan, onSuccess }) {
         ) : (
           <>
             <CreditCard className="w-5 h-5 mr-2" />
-            Subscribe - ${selectedPlan.price}/{selectedPlan.interval}
+            Subscribe - ${totalPrice.toFixed(2)}/{selectedPlan.interval === 'month' ? 'mo' : 'yr'}
           </>
         )}
       </Button>
@@ -169,6 +166,7 @@ function CheckoutForm({ selectedPlan, onSuccess }) {
 
 export default function Checkout() {
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [additionalMembers, setAdditionalMembers] = useState(0);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -195,7 +193,7 @@ export default function Checkout() {
         </div>
 
         {!selectedPlan ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {plans.map(plan => (
               <Card 
                 key={plan.id} 
@@ -206,6 +204,11 @@ export default function Checkout() {
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <Badge className="bg-blue-600 text-white">Most Popular</Badge>
+                  </div>
+                )}
+                {plan.savings && (
+                  <div className="absolute -top-3 right-4">
+                    <Badge className="bg-green-600 text-white">{plan.savings}</Badge>
                   </div>
                 )}
                 <CardHeader>
@@ -272,8 +275,67 @@ export default function Checkout() {
                   </div>
                 </div>
 
+                {/* Additional Family Members */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Additional Family Members
+                  </label>
+                  <p className="text-xs text-slate-500 mb-3">
+                    Add more family members to collaborate on care at $5/month each
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setAdditionalMembers(Math.max(0, additionalMembers - 1))}
+                      disabled={additionalMembers === 0}
+                    >
+                      -
+                    </Button>
+                    <div className="text-2xl font-semibold text-slate-800 w-12 text-center">
+                      {additionalMembers}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setAdditionalMembers(additionalMembers + 1)}
+                    >
+                      +
+                    </Button>
+                    {additionalMembers > 0 && (
+                      <div className="text-sm text-slate-600">
+                        +${(additionalMembers * 5 * (selectedPlan.interval === 'year' ? 12 : 1)).toFixed(2)}/{selectedPlan.interval}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Total Summary */}
+                {additionalMembers > 0 && (
+                  <div className="p-4 bg-slate-50 rounded-lg mb-6 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Base Plan</span>
+                      <span className="font-medium">${selectedPlan.price.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">{additionalMembers} Additional Member{additionalMembers !== 1 ? 's' : ''}</span>
+                      <span className="font-medium">
+                        +${(additionalMembers * 5 * (selectedPlan.interval === 'year' ? 12 : 1)).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200 flex justify-between">
+                      <span className="font-semibold text-slate-800">Total</span>
+                      <span className="font-bold text-blue-600 text-lg">
+                        ${(selectedPlan.price + (additionalMembers * 5 * (selectedPlan.interval === 'year' ? 12 : 1))).toFixed(2)}/{selectedPlan.interval}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <Elements stripe={stripePromise}>
-                  <CheckoutForm selectedPlan={selectedPlan} onSuccess={handleSuccess} />
+                  <CheckoutForm selectedPlan={selectedPlan} additionalMembers={additionalMembers} onSuccess={handleSuccess} />
                 </Elements>
               </CardContent>
             </Card>

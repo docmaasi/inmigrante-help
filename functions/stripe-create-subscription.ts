@@ -8,7 +8,7 @@
  * @returns {Object} subscription details or error
  */
 
-export default async function handler({ paymentMethodId, priceId, planName }, context) {
+export default async function handler({ paymentMethodId, priceId, planName, additionalMembers = 0 }, context) {
   const Stripe = require('stripe');
   const stripe = Stripe(context.secrets.STRIPE_SECRET_KEY);
 
@@ -69,6 +69,7 @@ export default async function handler({ paymentMethodId, priceId, planName }, co
       subscription_status: subscription.status,
       subscription_plan: planName,
       subscription_price_id: priceId,
+      subscription_additional_members: additionalMembers,
       subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
     });
 
