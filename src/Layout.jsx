@@ -23,8 +23,9 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Shift Handoff', icon: Clock, path: 'ShiftHandoff' },
     { name: 'Collaboration', icon: Users, path: 'Collaboration' },
     { name: 'Scheduling', icon: Calendar, path: 'Scheduling' },
-    { name: 'Reports', icon: FileText, path: 'Reports' }
-  ];
+    { name: 'Reports', icon: FileText, path: 'Reports' },
+    { name: 'Subscribe', icon: Heart, path: 'Checkout' }
+    ];
 
   return (
     <div className="min-h-screen bg-slate-50">
