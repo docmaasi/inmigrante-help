@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Plus, Users } from 'lucide-react';
+import { MessageSquare, Plus, Users, Phone } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from 'sonner';
 import ConversationList from '../components/messaging/ConversationList';
 import MessageThread from '../components/messaging/MessageThread';
 import MessageInput from '../components/messaging/MessageInput';
 import ShareUpdateDialog from '../components/messaging/ShareUpdateDialog';
+import ExternalCommLog from '../components/messaging/ExternalCommLog';
 
 export default function Messages() {
   const [user, setUser] = useState(null);
@@ -145,77 +147,97 @@ export default function Messages() {
     : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
-          <MessageSquare className="w-8 h-8 text-blue-600" />
-          Family Messages
-        </h1>
-        <p className="text-slate-500 mt-1">Communicate with your care team and family</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
+            <MessageSquare className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
+            Communications
+          </h1>
+          <p className="text-sm md:text-base text-slate-500 mt-1">Team messaging and external communication logs</p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Conversations List */}
-        <Card className="lg:col-span-1">
-          <CardHeader className="border-b border-slate-100">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Conversations</CardTitle>
-              <Button
-                size="sm"
-                onClick={() => setShowNewConvDialog(true)}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
+        <Tabs defaultValue="messages" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="messages" className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Team Messages
+            </TabsTrigger>
+            <TabsTrigger value="external" className="flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              External Communications
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="messages">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Conversations List */}
+              <Card className="lg:col-span-1 shadow-sm border-slate-200/60">
+                <CardHeader className="border-b border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Conversations</CardTitle>
+                    <Button
+                      size="sm"
+                      onClick={() => setShowNewConvDialog(true)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  {conversations.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                      <p className="text-slate-500 text-sm mb-4">No conversations yet</p>
+                      <Button onClick={() => setShowNewConvDialog(true)} size="sm">
+                        Start Conversation
+                      </Button>
+                    </div>
+                  ) : (
+                    <ConversationList
+                      conversations={conversations}
+                      selectedId={selectedConversationId}
+                      onSelect={setSelectedConversationId}
+                      recipients={recipients}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Message Thread */}
+              <Card className="lg:col-span-2 flex flex-col h-[600px] shadow-sm border-slate-200/60">
+                {selectedConversationId ? (
+                  <>
+                    <CardHeader className="border-b border-slate-100">
+                      <CardTitle className="text-lg">{selectedConversation?.name}</CardTitle>
+                      <p className="text-sm text-slate-500">
+                        {recipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
+                      </p>
+                    </CardHeader>
+                    <MessageThread messages={messages} currentUserEmail={user?.email} />
+                    <MessageInput
+                      onSend={handleSendMessage}
+                      onShareUpdate={() => setShowShareDialog(true)}
+                      disabled={!user}
+                    />
+                  </>
+                ) : (
+                  <CardContent className="flex items-center justify-center h-full">
+                    <div className="text-center text-slate-500">
+                      <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                      <p>Select a conversation to start messaging</p>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
             </div>
-          </CardHeader>
-          <CardContent className="p-4">
-            {conversations.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 text-sm mb-4">No conversations yet</p>
-                <Button onClick={() => setShowNewConvDialog(true)} size="sm">
-                  Start Conversation
-                </Button>
-              </div>
-            ) : (
-              <ConversationList
-                conversations={conversations}
-                selectedId={selectedConversationId}
-                onSelect={setSelectedConversationId}
-                recipients={recipients}
-              />
-            )}
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* Message Thread */}
-        <Card className="lg:col-span-2 flex flex-col h-[600px]">
-          {selectedConversationId ? (
-            <>
-              <CardHeader className="border-b border-slate-100">
-                <CardTitle className="text-lg">{selectedConversation?.name}</CardTitle>
-                <p className="text-sm text-slate-500">
-                  {recipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
-                </p>
-              </CardHeader>
-              <MessageThread messages={messages} currentUserEmail={user?.email} />
-              <MessageInput
-                onSend={handleSendMessage}
-                onShareUpdate={() => setShowShareDialog(true)}
-                disabled={!user}
-              />
-            </>
-          ) : (
-            <CardContent className="flex items-center justify-center h-full">
-              <div className="text-center text-slate-500">
-                <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p>Select a conversation to start messaging</p>
-              </div>
-            </CardContent>
-          )}
-        </Card>
-      </div>
+          <TabsContent value="external">
+            <ExternalCommLog />
+          </TabsContent>
+        </Tabs>
 
       {/* New Conversation Dialog */}
       <Dialog open={showNewConvDialog} onOpenChange={setShowNewConvDialog}>
@@ -333,6 +355,7 @@ export default function Messages() {
         medications={medications}
         tasks={tasks}
       />
+      </div>
     </div>
   );
 }
