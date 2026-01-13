@@ -12,6 +12,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Messages', icon: MessageSquare, path: 'Messages' },
     { name: 'Calendar', icon: Calendar, path: 'Calendar' },
     { name: 'AI Care Plans', icon: Sparkles, path: 'CarePlans' },
+    { name: 'Documents', icon: FileText, path: 'Documents' },
     { name: 'Medications', icon: Pill, path: 'Medications' },
     { name: 'Refills', icon: Bell, path: 'Refills' },
     { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog' },

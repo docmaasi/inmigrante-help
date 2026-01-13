@@ -20,6 +20,7 @@ import Reports from './pages/Reports';
 import Scheduling from './pages/Scheduling';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
+import Documents from './pages/Documents';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "Scheduling": Scheduling,
     "Tasks": Tasks,
     "Team": Team,
+    "Documents": Documents,
 }
 
 export const pagesConfig = {
