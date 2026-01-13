@@ -10,7 +10,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Dashboard', icon: Home, path: 'Dashboard', bg: 'bg-blue-50' },
     { name: 'Today', icon: Zap, path: 'Today', bg: 'bg-amber-50' },
     { name: 'Care Recipients', icon: Users, path: 'CareRecipients', bg: 'bg-purple-50' },
-    { name: 'Messages', icon: MessageSquare, path: 'Messages', bg: 'bg-green-50' },
+    { name: 'Comm Hub', icon: MessageSquare, path: 'CommunicationHub', bg: 'bg-green-50' },
     { name: 'Calendar', icon: Calendar, path: 'Calendar', bg: 'bg-pink-50' },
     { name: 'AI Care Plans', icon: Sparkles, path: 'CarePlans', bg: 'bg-violet-50' },
     { name: 'Plan Builder', icon: FileText, path: 'CarePlanBuilder', bg: 'bg-indigo-50' },

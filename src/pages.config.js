@@ -26,6 +26,7 @@ import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Today from './pages/Today';
 import CarePlanBuilder from './pages/CarePlanBuilder';
+import CommunicationHub from './pages/CommunicationHub';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "Team": Team,
     "Today": Today,
     "CarePlanBuilder": CarePlanBuilder,
+    "CommunicationHub": CommunicationHub,
 }
 
 export const pagesConfig = {
