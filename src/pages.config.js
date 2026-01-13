@@ -1,6 +1,6 @@
-import Appointments from './pages/Appointments';
 import Calendar from './pages/Calendar';
 import CareNotes from './pages/CareNotes';
+import CarePlanBuilder from './pages/CarePlanBuilder';
 import CarePlans from './pages/CarePlans';
 import CareRecipients from './pages/CareRecipients';
 import Checkout from './pages/Checkout';
@@ -10,7 +10,7 @@ import ClientPortal from './pages/ClientPortal';
 import ClientTasks from './pages/ClientTasks';
 import ClientUpdates from './pages/ClientUpdates';
 import Collaboration from './pages/Collaboration';
-import Dashboard from './pages/Dashboard';
+import CommunicationHub from './pages/CommunicationHub';
 import Documents from './pages/Documents';
 import Emergency from './pages/Emergency';
 import EmergencyProfile from './pages/EmergencyProfile';
@@ -25,15 +25,16 @@ import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Today from './pages/Today';
-import CarePlanBuilder from './pages/CarePlanBuilder';
-import CommunicationHub from './pages/CommunicationHub';
+import Dashboard from './pages/Dashboard';
+import Appointments from './pages/Appointments';
+import Landing from './pages/Landing';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Appointments": Appointments,
     "Calendar": Calendar,
     "CareNotes": CareNotes,
+    "CarePlanBuilder": CarePlanBuilder,
     "CarePlans": CarePlans,
     "CareRecipients": CareRecipients,
     "Checkout": Checkout,
@@ -43,7 +44,7 @@ export const PAGES = {
     "ClientTasks": ClientTasks,
     "ClientUpdates": ClientUpdates,
     "Collaboration": Collaboration,
-    "Dashboard": Dashboard,
+    "CommunicationHub": CommunicationHub,
     "Documents": Documents,
     "Emergency": Emergency,
     "EmergencyProfile": EmergencyProfile,
@@ -58,8 +59,9 @@ export const PAGES = {
     "Tasks": Tasks,
     "Team": Team,
     "Today": Today,
-    "CarePlanBuilder": CarePlanBuilder,
-    "CommunicationHub": CommunicationHub,
+    "Dashboard": Dashboard,
+    "Appointments": Appointments,
+    "Landing": Landing,
 }
 
 export const pagesConfig = {
