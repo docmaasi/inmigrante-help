@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 export default function DashboardWidget({ widget, onHide, onPin, isDragging, dragHandleProps, isPinned }) {
   return (
     <div
-      className={`relative border border-slate-200 rounded-lg bg-white transition-all ${
+      className={`relative border border-slate-200/60 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all ${
         isDragging ? 'opacity-50' : ''
       }`}
     >
