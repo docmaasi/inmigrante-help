@@ -1,10 +1,7 @@
 import React from 'react';
-import { AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
 import { base44 } from '@/api/base44Client';
 
 const priorityColors = {
@@ -16,7 +13,7 @@ const priorityColors = {
 export default function UrgentTasks({ tasks, onTaskUpdate }) {
   const handleToggleComplete = async (task) => {
     const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-    await base44.entities.Task.update(task.id, { status: newStatus });
+    await base44.entities.CareTask.update(task.id, { status: newStatus });
     if (onTaskUpdate) onTaskUpdate();
   };
 
@@ -78,11 +75,6 @@ export default function UrgentTasks({ tasks, onTaskUpdate }) {
           </div>
         </div>
       ))}
-      <Link to={createPageUrl('Tasks')}>
-        <Button variant="outline" size="sm" className="w-full gap-2 mt-4">
-          View All <ArrowRight className="w-4 h-4" />
-        </Button>
-      </Link>
     </div>
   );
 }

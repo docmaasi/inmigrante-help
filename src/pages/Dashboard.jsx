@@ -44,16 +44,20 @@ export default function Dashboard() {
 
   const { data: tasks = [], refetch: refetchTasks } = useQuery({
     queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-due_date'),
+    queryFn: () => base44.entities.CareTask.list('-due_date'),
   });
 
-  const upcomingAppointments = appointments?.filter?.(apt => !apt.completed && isAfter(parseISO(apt.date), startOfToday())).slice(0, 3) || [];
+  const upcomingAppointments = appointments
+    .filter(apt => !apt.completed && isAfter(parseISO(apt.date), startOfToday()))
+    .slice(0, 3);
 
-  const activeMedications = medications?.filter?.(med => med.active).slice(0, 3) || [];
+  const activeMedications = medications.filter(med => med.active).slice(0, 3);
 
-  const urgentTasks = tasks?.filter?.(task => task.status !== 'completed' && task.priority === 'high').slice(0, 3) || [];
+  const urgentTasks = tasks
+    .filter(task => task.status !== 'completed' && task.priority === 'high')
+    .slice(0, 3);
 
-  const pendingTasksCount = tasks?.filter?.(t => t.status !== 'completed').length || 0;
+  const pendingTasksCount = tasks.filter(t => t.status !== 'completed').length;
 
   const widgets = [
     { id: 'upcomingAppointments', title: 'Upcoming Appointments', component: <UpcomingAppointments appointments={upcomingAppointments} /> },

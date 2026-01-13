@@ -1,10 +1,7 @@
 import React from 'react';
-import { Calendar, MapPin, User, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, User } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
 
 const typeColors = {
   doctor: 'bg-blue-100 text-blue-700',
@@ -59,11 +56,6 @@ export default function UpcomingAppointments({ appointments }) {
           )}
         </div>
       ))}
-      <Link to={createPageUrl('Appointments')}>
-        <Button variant="outline" size="sm" className="w-full gap-2 mt-4">
-          View All <ArrowRight className="w-4 h-4" />
-        </Button>
-      </Link>
     </div>
   );
 }

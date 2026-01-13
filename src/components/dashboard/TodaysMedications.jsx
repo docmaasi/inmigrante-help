@@ -1,9 +1,6 @@
 import React from 'react';
-import { Pill, Clock, ArrowRight } from 'lucide-react';
+import { Pill, Clock } from 'lucide-react';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
 
 export default function TodaysMedications({ medications }) {
   if (!medications || medications.length === 0) {
@@ -23,10 +20,10 @@ export default function TodaysMedications({ medications }) {
           className="bg-white rounded-xl p-5 border border-slate-200 hover:border-green-300 transition-colors"
         >
           <div className="flex items-start justify-between mb-2">
-             <div className="flex-1">
-               <h4 className="font-medium text-slate-800">{med.medication_name}</h4>
-               <p className="text-sm text-slate-500 mt-1">{med.dosage}</p>
-             </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-slate-800">{med.name}</h4>
+              <p className="text-sm text-slate-500 mt-1">{med.dosage}</p>
+            </div>
             <Badge className={med.active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}>
               {med.active ? 'Active' : 'Inactive'}
             </Badge>
@@ -46,11 +43,6 @@ export default function TodaysMedications({ medications }) {
           )}
         </div>
       ))}
-      <Link to={createPageUrl('Medications')}>
-        <Button variant="outline" size="sm" className="w-full gap-2 mt-4">
-          View All <ArrowRight className="w-4 h-4" />
-        </Button>
-      </Link>
     </div>
   );
 }
