@@ -1,6 +1,9 @@
 import React from 'react';
-import { Pill, Clock } from 'lucide-react';
+import { Pill, Clock, ArrowRight } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../../utils';
 
 export default function TodaysMedications({ medications }) {
   if (!medications || medications.length === 0) {
@@ -43,6 +46,11 @@ export default function TodaysMedications({ medications }) {
           )}
         </div>
       ))}
+      <Link to={createPageUrl('Medications')}>
+        <Button variant="outline" size="sm" className="w-full gap-2 mt-4">
+          View All <ArrowRight className="w-4 h-4" />
+        </Button>
+      </Link>
     </div>
   );
 }
