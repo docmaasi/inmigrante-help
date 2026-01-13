@@ -1,3 +1,4 @@
+import Appointments from './pages/Appointments';
 import Calendar from './pages/Calendar';
 import CareNotes from './pages/CareNotes';
 import CarePlanBuilder from './pages/CarePlanBuilder';
@@ -11,9 +12,11 @@ import ClientTasks from './pages/ClientTasks';
 import ClientUpdates from './pages/ClientUpdates';
 import Collaboration from './pages/Collaboration';
 import CommunicationHub from './pages/CommunicationHub';
+import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
 import Emergency from './pages/Emergency';
 import EmergencyProfile from './pages/EmergencyProfile';
+import Index from './pages/Index';
 import MedicationLog from './pages/MedicationLog';
 import Medications from './pages/Medications';
 import Messages from './pages/Messages';
@@ -25,13 +28,11 @@ import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Today from './pages/Today';
-import Dashboard from './pages/Dashboard';
-import Appointments from './pages/Appointments';
-import Index from './pages/Index';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Appointments": Appointments,
     "Calendar": Calendar,
     "CareNotes": CareNotes,
     "CarePlanBuilder": CarePlanBuilder,
@@ -45,9 +46,11 @@ export const PAGES = {
     "ClientUpdates": ClientUpdates,
     "Collaboration": Collaboration,
     "CommunicationHub": CommunicationHub,
+    "Dashboard": Dashboard,
     "Documents": Documents,
     "Emergency": Emergency,
     "EmergencyProfile": EmergencyProfile,
+    "Index": Index,
     "MedicationLog": MedicationLog,
     "Medications": Medications,
     "Messages": Messages,
@@ -59,9 +62,6 @@ export const PAGES = {
     "Tasks": Tasks,
     "Team": Team,
     "Today": Today,
-    "Dashboard": Dashboard,
-    "Appointments": Appointments,
-    "Index": Index,
 }
 
 export const pagesConfig = {
