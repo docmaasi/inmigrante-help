@@ -69,7 +69,7 @@ export default function Medications() {
               setSelectedMedication(null);
               setShowForm(true);
             }}
-            className="bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/30"
+            className="bg-green-600 hover:bg-green-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Medication

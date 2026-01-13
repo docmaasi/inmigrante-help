@@ -32,7 +32,7 @@ export default function CareRecipients() {
           </div>
           <Button 
             onClick={() => setShowAddForm(true)}
-            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Recipient
@@ -50,7 +50,7 @@ export default function CareRecipients() {
             </div>
             <h3 className="text-xl font-medium text-slate-800 mb-2">No care recipients yet</h3>
             <p className="text-slate-500 mb-6">Add your first care recipient to get started</p>
-            <Button onClick={() => setShowAddForm(true)} className="bg-gradient-to-r from-blue-600 to-green-600">
+            <Button onClick={() => setShowAddForm(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
               Add Recipient
             </Button>

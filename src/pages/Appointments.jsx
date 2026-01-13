@@ -94,7 +94,7 @@ export default function Appointments() {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 mt-4">
+              <Button className="mt-4 bg-blue-600 hover:bg-blue-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Appointment
               </Button>
@@ -238,7 +238,7 @@ export default function Appointments() {
             <Calendar className="w-16 h-16 text-purple-300 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-slate-800 mb-2">No appointments scheduled</h3>
             <p className="text-slate-500 mb-6">Schedule your first appointment</p>
-            <Button onClick={() => setIsDialogOpen(true)} className="bg-gradient-to-r from-purple-600 to-blue-600">
+            <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
               Add Appointment
             </Button>

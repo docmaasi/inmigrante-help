@@ -88,7 +88,7 @@ export default function Tasks() {
             setSelectedTask(null);
             setShowForm(true);
           }}
-          className="bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-600/30"
+          className="bg-purple-600 hover:bg-purple-700"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Task
