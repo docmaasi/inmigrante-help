@@ -16,7 +16,7 @@ const priorityColors = {
 export default function UrgentTasks({ tasks, onTaskUpdate }) {
   const handleToggleComplete = async (task) => {
     const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-    await base44.entities.CareTask.update(task.id, { status: newStatus });
+    await base44.entities.Task.update(task.id, { status: newStatus });
     if (onTaskUpdate) onTaskUpdate();
   };
 
