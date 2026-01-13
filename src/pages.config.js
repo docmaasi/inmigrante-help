@@ -21,6 +21,8 @@ import Scheduling from './pages/Scheduling';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Documents from './pages/Documents';
+import Today from './pages/Today';
+import EmergencyProfile from './pages/EmergencyProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +50,8 @@ export const PAGES = {
     "Tasks": Tasks,
     "Team": Team,
     "Documents": Documents,
+    "Today": Today,
+    "EmergencyProfile": EmergencyProfile,
 }
 
 export const pagesConfig = {
