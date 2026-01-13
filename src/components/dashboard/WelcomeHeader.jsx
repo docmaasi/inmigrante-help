@@ -12,9 +12,11 @@ export default function WelcomeHeader({ userName }) {
   return (
     <div className="mb-6 md:mb-8">
       <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-          <Heart className="w-5 h-5 md:w-6 md:h-6 text-white" fill="white" />
-        </div>
+        <img 
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/dc1693022_215100fc-6f0b-4896-9b58-34fe0409b45b.png"
+          alt="FamilyCare.Help"
+          className="w-10 h-10 md:w-12 md:h-12 object-contain flex-shrink-0"
+        />
         <div className="min-w-0">
           <h1 className="text-xl md:text-2xl lg:text-3xl font-light text-slate-800 truncate">
             {greeting()}, <span className="font-semibold">{userName}</span>
