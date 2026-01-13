@@ -15,6 +15,8 @@ import RefillTracker from '../components/medications/RefillTracker';
 import DashboardWidget from '../components/dashboard/DashboardWidget';
 import HiddenWidgets from '../components/dashboard/HiddenWidgets';
 import useWidgetManager from '../components/dashboard/WidgetManager';
+import OnboardingWizard from '../components/onboarding/OnboardingWizard';
+import QuickActions from '../components/dashboard/QuickActions';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -87,6 +89,8 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         <WelcomeHeader userName={user?.full_name || 'there'} />
+
+        <OnboardingWizard />
 
         {/* Stat Cards */}
         {config.statCards?.visible !== false && (
@@ -185,6 +189,8 @@ export default function Dashboard() {
             )}
           </Droppable>
         </DragDropContext>
+
+        <QuickActions />
       </div>
     </div>
   );

@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText } from 'lucide-react';
+import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 
 export default function Layout({ children, currentPageName }) {
   const navItems = [
     { name: 'Dashboard', icon: Home, path: 'Dashboard' },
+    { name: 'Today', icon: Zap, path: 'Today' },
     { name: 'Care Recipients', icon: Users, path: 'CareRecipients' },
     { name: 'Messages', icon: MessageSquare, path: 'Messages' },
     { name: 'Calendar', icon: Calendar, path: 'Calendar' },
@@ -17,11 +18,12 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Refills', icon: Bell, path: 'Refills' },
     { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog' },
     { name: 'Team', icon: UserCheck, path: 'Team' },
-        { name: 'Emergency', icon: AlertCircle, path: 'Emergency' },
-                { name: 'Tasks', icon: ListTodo, path: 'Tasks' },
-                { name: 'Collaboration', icon: Users, path: 'Collaboration' },
-                        { name: 'Scheduling', icon: Calendar, path: 'Scheduling' },
-                        { name: 'Reports', icon: FileText, path: 'Reports' }
+    { name: 'Emergency', icon: AlertCircle, path: 'EmergencyProfile' },
+    { name: 'Tasks', icon: ListTodo, path: 'Tasks' },
+    { name: 'Shift Handoff', icon: Clock, path: 'ShiftHandoff' },
+    { name: 'Collaboration', icon: Users, path: 'Collaboration' },
+    { name: 'Scheduling', icon: Calendar, path: 'Scheduling' },
+    { name: 'Reports', icon: FileText, path: 'Reports' }
   ];
 
   return (

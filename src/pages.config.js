@@ -23,6 +23,7 @@ import Team from './pages/Team';
 import Documents from './pages/Documents';
 import Today from './pages/Today';
 import EmergencyProfile from './pages/EmergencyProfile';
+import ShiftHandoff from './pages/ShiftHandoff';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "Documents": Documents,
     "Today": Today,
     "EmergencyProfile": EmergencyProfile,
+    "ShiftHandoff": ShiftHandoff,
 }
 
 export const pagesConfig = {
