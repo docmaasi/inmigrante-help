@@ -28,6 +28,7 @@ import Today from './pages/Today';
 import Dashboard from './pages/Dashboard';
 import Appointments from './pages/Appointments';
 import Home from './pages/Home';
+import Index from './pages/Index';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Appointments": Appointments,
     "Home": Home,
+    "Index": Index,
 }
 
 export const pagesConfig = {
