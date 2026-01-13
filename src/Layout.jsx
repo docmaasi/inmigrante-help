@@ -24,7 +24,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Collaboration', icon: Users, path: 'Collaboration', bg: 'bg-fuchsia-50' },
     { name: 'Scheduling', icon: Calendar, path: 'Scheduling', bg: 'bg-orange-50' },
     { name: 'Reports', icon: FileText, path: 'Reports', bg: 'bg-slate-50' },
-    { name: 'Subscribe', icon: Heart, path: 'Checkout', bg: 'bg-yellow-50' }
+    { name: 'Subscribe', icon: Heart, path: 'Checkout', bg: 'bg-gradient-to-br from-orange-400 to-pink-500', special: true }
     ];
 
   return (
@@ -86,10 +86,12 @@ export default function Layout({ children, currentPageName }) {
                   className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
                     isActive
                       ? 'bg-blue-500 text-white shadow-md scale-105'
+                      : item.special
+                      ? `${item.bg} text-white hover:shadow-lg hover:scale-110 animate-pulse`
                       : `${item.bg} text-slate-700 hover:shadow-md hover:scale-105`
                   }`}
                 >
-                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <Icon className="w-5 h-5 flex-shrink-0" fill={item.special ? "currentColor" : "none"} />
                   <span className="text-center leading-tight">{item.name}</span>
                 </Link>
               );
