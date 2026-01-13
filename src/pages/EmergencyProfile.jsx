@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, Phone, FileText, Pill, User, MapPin, Heart, Share2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
+import EmergencyAlert from '../components/emergency/EmergencyAlert';
 
 export default function EmergencyProfile() {
   const [selectedRecipient, setSelectedRecipient] = useState('');
@@ -117,6 +118,9 @@ export default function EmergencyProfile() {
           </Card>
         ) : (
           <div className="space-y-6">
+            {/* Emergency Alert */}
+            <EmergencyAlert recipientId={recipient.id} recipientName={recipient.full_name} />
+
             {/* Basic Info */}
             <Card className="shadow-sm border-slate-200/60">
               <CardHeader className="bg-slate-50">
