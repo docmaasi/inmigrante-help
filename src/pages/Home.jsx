@@ -231,14 +231,16 @@ export default function Home() {
                 transition={{ delay: 0.8 }}
                 className="flex flex-col sm:flex-row gap-4 pt-4"
               >
+                <Link to={createPageUrl('Dashboard')} className="flex-1">
+                  <Button className="w-full h-12 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-lg">
+                    Explore the App <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
                 <Link to={createPageUrl('Checkout')} className="flex-1">
                   <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-lg">
                     Start Free Trial <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
-                <Button variant="outline" className="w-full sm:w-auto h-12 text-lg">
-                  Watch Demo
-                </Button>
               </motion.div>
             </motion.div>
           </div>
