@@ -63,12 +63,6 @@ export default function CalendarView() {
     return index !== -1 ? recipientColors[index % recipientColors.length] : 'bg-slate-500';
   };
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
-  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-
   const getRecipientName = (id) => {
     return recipients.find(r => r.id === id)?.full_name || 'Unknown';
   };
