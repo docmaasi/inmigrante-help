@@ -13,6 +13,11 @@ export default function Tasks() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const [filterRecipient, setFilterRecipient] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [sortBy, setSortBy] = useState('due_date');
+  const [groupBy, setGroupBy] = useState('none');
   const queryClient = useQueryClient();
 
   const { data: tasks = [], isLoading } = useQuery({
@@ -23,6 +28,11 @@ export default function Tasks() {
   const { data: recipients = [] } = useQuery({
     queryKey: ['careRecipients'],
     queryFn: () => base44.entities.CareRecipient.list()
+  });
+
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['teamMembers'],
+    queryFn: () => base44.entities.TeamMember.list()
   });
 
   const updateStatusMutation = useMutation({
@@ -51,9 +61,58 @@ export default function Tasks() {
     }
   };
 
-  const filteredTasks = filterStatus === 'all' 
-    ? tasks 
-    : tasks.filter(task => task.status === filterStatus);
+  let filteredTasks = tasks.filter(task => {
+    if (filterStatus !== 'all' && task.status !== filterStatus) return false;
+    if (filterPriority !== 'all' && task.priority !== filterPriority) return false;
+    if (filterRecipient !== 'all' && task.care_recipient_id !== filterRecipient) return false;
+    if (filterType !== 'all' && task.task_type !== filterType) return false;
+    return true;
+  });
+
+  // Sort tasks
+  filteredTasks = [...filteredTasks].sort((a, b) => {
+    if (sortBy === 'due_date') {
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return new Date(a.due_date) - new Date(b.due_date);
+    } else if (sortBy === 'priority') {
+      const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    } else if (sortBy === 'title') {
+      return a.title.localeCompare(b.title);
+    }
+    return 0;
+  });
+
+  // Group tasks
+  const groupedTasks = {};
+  if (groupBy === 'none') {
+    groupedTasks['All Tasks'] = filteredTasks;
+  } else if (groupBy === 'status') {
+    filteredTasks.forEach(task => {
+      const status = task.status || 'pending';
+      if (!groupedTasks[status]) groupedTasks[status] = [];
+      groupedTasks[status].push(task);
+    });
+  } else if (groupBy === 'priority') {
+    filteredTasks.forEach(task => {
+      const priority = task.priority || 'medium';
+      if (!groupedTasks[priority]) groupedTasks[priority] = [];
+      groupedTasks[priority].push(task);
+    });
+  } else if (groupBy === 'recipient') {
+    filteredTasks.forEach(task => {
+      const recipientName = getRecipientName(task.care_recipient_id);
+      if (!groupedTasks[recipientName]) groupedTasks[recipientName] = [];
+      groupedTasks[recipientName].push(task);
+    });
+  } else if (groupBy === 'type') {
+    filteredTasks.forEach(task => {
+      const type = task.task_type || 'other';
+      if (!groupedTasks[type]) groupedTasks[type] = [];
+      groupedTasks[type].push(task);
+    });
+  }
 
   const taskTypeColors = {
     personal_care: 'bg-pink-100 text-pink-700',
@@ -97,25 +156,118 @@ export default function Tasks() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-        {['all', 'pending', 'in_progress', 'completed', 'cancelled'].map(status => (
-          <Button
-            key={status}
-            variant={filterStatus === status ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilterStatus(status)}
-            className={`whitespace-nowrap ${filterStatus === status ? 'bg-purple-600' : ''}`}
-          >
-            {status === 'all' ? 'All' : status.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-          </Button>
-        ))}
-      </div>
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-slate-600">Status</Label>
+              <div className="flex gap-2 flex-wrap">
+                {['all', 'pending', 'in_progress', 'completed'].map(status => (
+                  <Button
+                    key={status}
+                    variant={filterStatus === status ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilterStatus(status)}
+                    className={`whitespace-nowrap ${filterStatus === status ? 'bg-purple-600' : ''}`}
+                  >
+                    {status === 'all' ? 'All' : status.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-slate-600">Priority</Label>
+              <Select value={filterPriority} onValueChange={setFilterPriority}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priorities</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-slate-600">Care Recipient</Label>
+              <Select value={filterRecipient} onValueChange={setFilterRecipient}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Recipients</SelectItem>
+                  {recipients.map(r => (
+                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-slate-600">Task Type</Label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="personal_care">Personal Care</SelectItem>
+                  <SelectItem value="meal_prep">Meal Prep</SelectItem>
+                  <SelectItem value="transportation">Transportation</SelectItem>
+                  <SelectItem value="medication">Medication</SelectItem>
+                  <SelectItem value="housekeeping">Housekeeping</SelectItem>
+                  <SelectItem value="companionship">Companionship</SelectItem>
+                  <SelectItem value="exercise">Exercise</SelectItem>
+                  <SelectItem value="shopping">Shopping</SelectItem>
+                  <SelectItem value="bill_payment">Bill Payment</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-slate-600">Sort By</Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="due_date">Due Date</SelectItem>
+                  <SelectItem value="priority">Priority</SelectItem>
+                  <SelectItem value="title">Title</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-slate-600">Group By</Label>
+              <Select value={groupBy} onValueChange={setGroupBy}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="priority">Priority</SelectItem>
+                  <SelectItem value="recipient">Recipient</SelectItem>
+                  <SelectItem value="type">Type</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Form */}
       {showForm && (
         <TaskForm
           task={selectedTask}
           recipients={recipients}
+          teamMembers={teamMembers}
           onClose={() => {
             setShowForm(false);
             setSelectedTask(null);
@@ -146,7 +298,7 @@ export default function Tasks() {
             </Card>
           ))}
         </div>
-      ) : filteredTasks.length === 0 ? (
+      ) : Object.keys(groupedTasks).length === 0 || filteredTasks.length === 0 ? (
         <Card className="border-slate-200/60">
           <CardContent className="p-8 md:p-12 text-center">
             <CheckSquare className="w-12 h-12 md:w-16 md:h-16 text-slate-300 mx-auto mb-4" />
@@ -163,8 +315,16 @@ export default function Tasks() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filteredTasks.map(task => {
+        <div className="space-y-6">
+          {Object.entries(groupedTasks).map(([groupName, groupTasks]) => (
+            <div key={groupName}>
+              {groupBy !== 'none' && (
+                <h2 className="text-lg font-semibold text-slate-800 mb-4 capitalize">
+                  {groupName.replace(/_/g, ' ')} ({groupTasks.length})
+                </h2>
+              )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {groupTasks.map(task => {
             const isOverdue = task.due_date && isPast(parseISO(task.due_date)) && task.status !== 'completed';
             const isDueToday = task.due_date && isToday(parseISO(task.due_date));
             
@@ -279,8 +439,11 @@ export default function Tasks() {
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
+                );
+              })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
       </div>

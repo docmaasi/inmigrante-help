@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
-export default function TaskForm({ task, recipients, onClose }) {
+export default function TaskForm({ task, recipients, teamMembers = [], onClose }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState(task || {
     care_recipient_id: '',
@@ -25,15 +26,32 @@ export default function TaskForm({ task, recipients, onClose }) {
   });
 
   const saveMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       if (task?.id) {
         return base44.entities.Task.update(task.id, data);
       }
-      return base44.entities.Task.create(data);
+      const created = await base44.entities.Task.create(data);
+      
+      // Log action
+      if (created && data.care_recipient_id) {
+        const user = await base44.auth.me();
+        await base44.entities.ActionLog.create({
+          care_recipient_id: data.care_recipient_id,
+          actor_email: user.email,
+          actor_name: user.full_name,
+          action_type: 'task_created',
+          entity_type: 'task',
+          entity_id: created.id,
+          description: `Created task: ${data.title}`,
+          details: JSON.stringify({ priority: data.priority, due_date: data.due_date })
+        });
+      }
+      
+      return created;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['tasks']);
-      toast.success(task ? 'Task updated' : 'Task added');
+      toast.success(task ? 'Task updated' : 'Task created');
       onClose();
     }
   });
@@ -177,22 +195,21 @@ export default function TaskForm({ task, recipients, onClose }) {
           <div className="space-y-2">
             <Label htmlFor="assigned_to">Assign To</Label>
             <Select
-              value={formData.assigned_to}
+              value={formData.assigned_to || ''}
               onValueChange={(value) => setFormData({ ...formData, assigned_to: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select team member" />
               </SelectTrigger>
               <SelectContent>
-                {recipients.length > 0 && formData.care_recipient_id && (
-                  (() => {
-                    const recipientId = formData.care_recipient_id;
-                    // In a real app, we'd fetch team members for this recipient
-                    // For now, show empty option
-                    return null;
-                  })()
-                )}
                 <SelectItem value={null}>Unassigned</SelectItem>
+                {teamMembers
+                  .filter(member => !formData.care_recipient_id || member.care_recipient_id === formData.care_recipient_id)
+                  .map(member => (
+                    <SelectItem key={member.id} value={member.user_email}>
+                      {member.full_name} ({member.role})
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
