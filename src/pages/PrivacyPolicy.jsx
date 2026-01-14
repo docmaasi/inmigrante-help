@@ -21,6 +21,7 @@ export default function PrivacyPolicy() {
                 <li>Loved One Profiles (non-medical coordination data)</li>
                 <li>Subscription and billing data (processed securely via third-party payment processors)</li>
                 <li>App usage and device data</li>
+                <li>We may log the time, device details, and IP address when you accept legal terms to help prevent fraud and maintain compliance records</li>
               </ul>
             </section>
 
