@@ -4,18 +4,22 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Pill, ListTodo, Clock, CheckCircle2, AlertCircle, Settings, Eye, UserCheck } from 'lucide-react';
+import { Calendar, Pill, ListTodo, Clock, CheckCircle2, AlertCircle, Settings, Eye, UserCheck, Bell } from 'lucide-react';
 import { format, isToday, parseISO, isPast } from 'date-fns';
 import { toast } from 'sonner';
+import { Skeleton } from '../components/ui/skeleton';
 import CaregiverDashboardWidget from '../components/dashboard/CaregiverDashboardWidget';
 import AssignedTasksSummary from '../components/dashboard/AssignedTasksSummary';
 import ImportantAlerts from '../components/dashboard/ImportantAlerts';
+import NotificationsWidget from '../components/dashboard/NotificationsWidget';
 import HiddenWidgets from '../components/dashboard/HiddenWidgets';
 import useWidgetManager from '../components/dashboard/WidgetManager';
+import TaskCompletionModal from '../components/tasks/TaskCompletionModal';
 
 export default function Today() {
   const [user, setUser] = useState(null);
   const [showCustomize, setShowCustomize] = useState(false);
+  const [completingTask, setCompletingTask] = useState(null);
   const queryClient = useQueryClient();
   const widgetManager = useWidgetManager(user);
 
@@ -75,11 +79,20 @@ export default function Today() {
     return recipients.find(r => r.id === id)?.full_name || 'Unknown';
   };
 
-  const completeTask = (task) => {
-    updateTaskMutation.mutate({
-      id: task.id,
-      data: { ...task, status: 'completed' }
-    });
+  const completeTask = (notes) => {
+    if (completingTask) {
+      updateTaskMutation.mutate(
+        {
+          id: completingTask.id,
+          data: { status: 'completed', completion_notes: notes }
+        },
+        {
+          onSuccess: () => {
+            setCompletingTask(null);
+          }
+        }
+      );
+    }
   };
 
   const priorityColors = {
@@ -97,6 +110,7 @@ export default function Today() {
   };
 
   const widgets = [
+    { id: 'notifications', title: 'Notifications', icon: Bell },
     { id: 'todaySchedule', title: "Today's Schedule", icon: Calendar },
     { id: 'urgentTasks', title: 'Urgent & Overdue', icon: AlertCircle },
     { id: 'importantAlerts', title: 'Important Alerts', icon: AlertCircle },
@@ -173,6 +187,22 @@ export default function Today() {
         {/* Widgets Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {widgets.map(widget => {
+            if (widget.id === 'notifications') {
+              return (
+                <CaregiverDashboardWidget
+                  key={widget.id}
+                  widgetId={widget.id}
+                  title={`${widget.title} (${notifications.length})`}
+                  icon={widget.icon}
+                  isPinned={widgetManager.config[widget.id]?.pinned}
+                  onPin={() => widgetManager.pinWidget(widget.id)}
+                  onHide={() => widgetManager.hideWidget(widget.id)}
+                >
+                  <NotificationsWidget notifications={notifications} />
+                </CaregiverDashboardWidget>
+              );
+            }
+            
             if (widget.id === 'todaySchedule') {
               return (
                 <CaregiverDashboardWidget
@@ -205,7 +235,7 @@ export default function Today() {
                         {todayTasks.map(task => (
                           <div key={`task-${task.id}`} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                             <button
-                              onClick={() => completeTask(task)}
+                              onClick={() => setCompletingTask(task)}
                               className="mt-1 text-blue-600 hover:text-blue-700"
                             >
                               <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
@@ -339,6 +369,15 @@ export default function Today() {
             return null;
           })}
         </div>
+
+        {/* Completion Modal */}
+        <TaskCompletionModal
+          isOpen={!!completingTask}
+          onClose={() => setCompletingTask(null)}
+          onComplete={completeTask}
+          task={completingTask}
+          isLoading={updateTaskMutation.isPending}
+        />
       </div>
     </div>
   );

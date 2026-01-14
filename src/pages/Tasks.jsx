@@ -8,10 +8,12 @@ import { Plus, CheckSquare, User, Calendar, Clock, AlertCircle, Edit2, Trash2, C
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import { Skeleton } from '../components/ui/skeleton';
 import TaskForm from '../components/tasks/TaskForm';
+import TaskCompletionModal from '../components/tasks/TaskCompletionModal';
 
 export default function Tasks() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [completingTask, setCompletingTask] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterRecipient, setFilterRecipient] = useState('all');
@@ -54,10 +56,16 @@ export default function Tasks() {
     return recipient?.full_name || 'Unknown';
   };
 
-  const handleComplete = (task) => {
-    const notes = prompt('Add completion notes (optional):');
-    if (notes !== null) {
-      updateStatusMutation.mutate({ id: task.id, status: 'completed', notes });
+  const handleComplete = (notes) => {
+    if (completingTask) {
+      updateStatusMutation.mutate(
+        { id: completingTask.id, status: 'completed', notes },
+        {
+          onSuccess: () => {
+            setCompletingTask(null);
+          }
+        }
+      );
     }
   };
 
@@ -275,6 +283,15 @@ export default function Tasks() {
         />
       )}
 
+      {/* Completion Modal */}
+      <TaskCompletionModal
+        isOpen={!!completingTask}
+        onClose={() => setCompletingTask(null)}
+        onComplete={handleComplete}
+        task={completingTask}
+        isLoading={updateStatusMutation.isPending}
+      />
+
       {/* Tasks List */}
       {isLoading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -406,7 +423,7 @@ export default function Tasks() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleComplete(task)}
+                        onClick={() => setCompletingTask(task)}
                         className="text-green-600 hover:text-green-700 hover:bg-green-50"
                       >
                         <Check className="w-3 h-3 mr-1" />
