@@ -23,22 +23,9 @@ export default function CookiePolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">How We Use Cookies</h2>
-              <p>
-                We use cookies to:
-              </p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Keep you signed in to your account</li>
-                <li>Remember your preferences and settings</li>
-                <li>Understand how you interact with our platform</li>
-                <li>Improve our services and user experience</li>
-                <li>Provide security and prevent fraud</li>
-              </ul>
-            </section>
-
-            <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Types of Cookies We Use</h2>
-              <div className="space-y-4">
+              <p>FamilyCare.Help uses the following types of cookies:</p>
+              <div className="space-y-4 mt-4">
                 <div>
                   <h3 className="text-lg font-semibold text-slate-800">Essential Cookies</h3>
                   <p>Required for the platform to function properly and cannot be disabled.</p>
@@ -48,8 +35,12 @@ export default function CookiePolicy() {
                   <p>Help us understand how visitors interact with our platform by collecting anonymous information.</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-800">Functionality Cookies</h3>
+                  <h3 className="text-lg font-semibold text-slate-800">Preference Cookies</h3>
                   <p>Remember your preferences and provide enhanced, personalized features.</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">Analytics Cookies</h3>
+                  <p>Used to operate and improve the platform's functionality and user experience.</p>
                 </div>
               </div>
             </section>
@@ -57,8 +48,7 @@ export default function CookiePolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Managing Cookies</h2>
               <p>
-                You can control and manage cookies through your browser settings. Please note that removing or blocking 
-                cookies may impact your user experience and some features may not function properly.
+                You may manage cookies via your browser settings. Disabling cookies may limit functionality of the platform.
               </p>
             </section>
 

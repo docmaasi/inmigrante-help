@@ -15,50 +15,56 @@ export default function TermsOfService() {
             <p className="text-sm text-slate-500">Last Updated: January 14, 2026</p>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Acceptance of Terms</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Eligibility</h2>
               <p>
-                By accessing and using FamilyCare.Help, you accept and agree to be bound by these Terms of Service. 
-                If you do not agree to these terms, please do not use our platform.
+                Users must be 18 years or older to use FamilyCare.Help.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">User Accounts</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Account Responsibility</h2>
               <p>
-                You are responsible for maintaining the confidentiality of your account credentials and for all 
-                activities that occur under your account. You agree to notify us immediately of any unauthorized use.
+                You are responsible for all activity under your account and the accuracy of information entered into the platform.
               </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Subscriptions</h2>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Monthly and annual plans available</li>
+                <li>Additional Loved One Profiles may incur additional fees</li>
+                <li>Subscriptions auto-renew unless canceled</li>
+                <li>No refunds except where required by law</li>
+              </ul>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Acceptable Use</h2>
               <p>
-                You agree to use FamilyCare.Help only for lawful purposes and in a manner that does not infringe 
-                the rights of others or restrict their use and enjoyment of the platform.
+                Users may not misuse the platform, impersonate others, or attempt to disrupt services.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Intellectual Property</h2>
               <p>
-                All content, features, and functionality of FamilyCare.Help are owned by us and are protected by 
-                copyright, trademark, and other intellectual property laws.
+                All content and software are owned by FamilyCare.Help and are protected by copyright, trademark, 
+                and other intellectual property laws.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Service Modifications</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Limitation of Liability</h2>
               <p>
-                We reserve the right to modify, suspend, or discontinue any aspect of FamilyCare.Help at any time 
-                without notice.
+                FamilyCare.Help is not liable for indirect or consequential damages. Total liability is limited to 
+                fees paid in the last 12 months.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Termination</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Governing Law</h2>
               <p>
-                We may terminate or suspend your access to FamilyCare.Help immediately, without prior notice, 
-                for any reason, including breach of these Terms.
+                These terms are governed by U.S. law and the state of business registration.
               </p>
             </section>
 

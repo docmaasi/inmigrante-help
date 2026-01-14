@@ -15,7 +15,26 @@ export default function PrivacyPolicy() {
             <p className="text-sm text-slate-500">Last Updated: January 14, 2026</p>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">HIPAA Status Statement</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Information We Collect</h2>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Account information (name, email, phone)</li>
+                <li>Loved One Profiles (non-medical coordination data)</li>
+                <li>Subscription and billing data (processed securely via third-party payment processors)</li>
+                <li>App usage and device data</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">What We Do Not Collect</h2>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>No Protected Health Information (PHI)</li>
+                <li>No medical records</li>
+                <li>No diagnosis or treatment data</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">HIPAA Status</h2>
               <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
                 <p className="mb-3">
                   <strong>FamilyCare.Help is not a Covered Entity or Business Associate</strong> as defined under the Health Insurance Portability and Accountability Act (HIPAA).
@@ -30,34 +49,30 @@ export default function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Information We Collect</h2>
-              <p>
-                We collect information you provide directly to us, including when you create an account, use our services, 
-                communicate with us, or participate in surveys or promotions.
-              </p>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Data Use</h2>
+              <p>We use data to:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Operate the platform</li>
+                <li>Provide reminders and coordination tools</li>
+                <li>Process subscriptions</li>
+                <li>Improve security and performance</li>
+              </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">How We Use Your Information</h2>
-              <p>
-                We use the information we collect to provide, maintain, and improve our services, to communicate with you, 
-                and to protect the security and integrity of our platform.
-              </p>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Data Sharing</h2>
+              <p>Limited to:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Payment processors (e.g., Stripe)</li>
+                <li>Infrastructure providers</li>
+                <li>Legal authorities when required</li>
+              </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Data Security</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">User Rights</h2>
               <p>
-                We implement appropriate technical and organizational measures to protect your personal information 
-                against unauthorized access, alteration, disclosure, or destruction.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Your Rights</h2>
-              <p>
-                You have the right to access, correct, or delete your personal information. You may also have the right 
-                to restrict or object to certain processing of your data.
+                You may access, update, or delete your data at any time through your account settings.
               </p>
             </section>
 

@@ -15,6 +15,31 @@ export default function LegalDisclosure() {
             <p className="text-sm text-slate-500">Last Updated: January 14, 2026</p>
 
             <section>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Platform Purpose</h2>
+              <p>
+                FamilyCare.Help provides a digital platform to help families organize, coordinate, and document care 
+                activities for seniors and individuals with disabilities.
+              </p>
+              <p className="mt-4">
+                <strong>FamilyCare.Help does not provide:</strong>
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Medical care</li>
+                <li>Legal advice</li>
+                <li>Financial services</li>
+                <li>Emergency services</li>
+              </ul>
+              <p className="mt-4">
+                All information and tools are provided for organizational and informational purposes only.
+              </p>
+              <div className="bg-red-50 border-l-4 border-red-600 p-4 rounded mt-4">
+                <p className="font-semibold text-red-900">
+                  ⚠️ In emergencies, call 911 or your local emergency number.
+                </p>
+              </div>
+            </section>
+
+            <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">HIPAA Status Statement</h2>
               <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
                 <p className="mb-3">
@@ -30,35 +55,23 @@ export default function LegalDisclosure() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Platform Purpose</h2>
-              <p>
-                FamilyCare.Help is a care coordination platform designed to help families and caregivers organize, 
-                communicate, and manage care-related tasks and information.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Not Medical Advice</h2>
-              <p>
-                The information and services provided through FamilyCare.Help are for organizational and coordination 
-                purposes only and do not constitute medical advice, diagnosis, or treatment. Always seek the advice of 
-                your physician or other qualified health provider with any questions you may have regarding a medical condition.
-              </p>
-            </section>
-
-            <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">User Responsibility</h2>
               <p>
-                Users are solely responsible for the accuracy and appropriateness of information they enter into the platform. 
-                FamilyCare.Help does not verify, endorse, or guarantee the accuracy of user-provided information.
+                You are responsible for all activity under your account and the accuracy of information entered into the platform.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Limitation of Liability</h2>
               <p>
-                To the fullest extent permitted by law, FamilyCare.Help shall not be liable for any indirect, incidental, 
-                special, consequential, or punitive damages resulting from your use of or inability to use the platform.
+                FamilyCare.Help is not liable for indirect or consequential damages. Total liability is limited to fees paid in the last 12 months.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Governing Law</h2>
+              <p>
+                These terms are governed by U.S. law and the state of business registration.
               </p>
             </section>
 
