@@ -109,14 +109,23 @@ export default function Layout({ children, currentPageName }) {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 mt-16">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-2">
               <Heart className="w-5 h-5 text-blue-600" fill="currentColor" />
               <span className="text-slate-600 font-medium">FamilyCare.Help</span>
             </div>
             <p className="text-sm text-slate-500">
               Giving caregivers clarity, accountability, and peace of mind
             </p>
+            <div className="flex items-center justify-center gap-4 text-sm text-slate-600">
+              <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
+              <span className="text-slate-300">|</span>
+              <a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a>
+              <span className="text-slate-300">|</span>
+              <a href="#" className="hover:text-blue-600 transition-colors">Cookie Policy</a>
+              <span className="text-slate-300">|</span>
+              <a href="#" className="hover:text-blue-600 transition-colors">Legal Disclosure</a>
+            </div>
           </div>
         </div>
       </footer>
