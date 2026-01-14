@@ -32,6 +32,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import LegalDisclosure from './pages/LegalDisclosure';
 import TermsOfService from './pages/TermsOfService';
 import CookiePolicy from './pages/CookiePolicy';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +71,7 @@ export const PAGES = {
     "LegalDisclosure": LegalDisclosure,
     "TermsOfService": TermsOfService,
     "CookiePolicy": CookiePolicy,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {

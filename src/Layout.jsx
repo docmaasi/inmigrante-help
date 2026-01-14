@@ -26,6 +26,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Collaboration', icon: Users, path: 'Collaboration', bg: 'bg-fuchsia-50' },
     { name: 'Scheduling', icon: Calendar, path: 'Scheduling', bg: 'bg-orange-50' },
     { name: 'Reports', icon: FileText, path: 'Reports', bg: 'bg-slate-50' },
+    { name: 'Settings', icon: Heart, path: 'Settings', bg: 'bg-gray-50' },
     { name: 'Subscribe', icon: Heart, path: 'Checkout', bg: 'bg-gradient-to-br from-orange-400 to-pink-500', special: true }
     ];
 

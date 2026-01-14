@@ -51,6 +51,7 @@ export default function LegalAcceptanceModal() {
     await base44.entities.LegalAcceptance.create({
       user_email: userEmail,
       document_type: documentType,
+      document_version: '1.0',
       acceptance_date: new Date().toISOString(),
     });
   };
