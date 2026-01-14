@@ -4,6 +4,7 @@ import { createPageUrl } from './utils';
 import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
+import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 
 export default function Layout({ children, currentPageName }) {
   const navItems = [
@@ -72,6 +73,7 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       <NotificationGenerator />
+      <LegalAcceptanceModal />
 
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-200">
