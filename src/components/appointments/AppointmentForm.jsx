@@ -16,6 +16,7 @@ export default function AppointmentForm({ appointment, recipients, onClose }) {
     care_recipient_id: '',
     title: '',
     appointment_type: 'doctor',
+    custom_appointment_type: '',
     date: '',
     time: '',
     location: '',
@@ -101,6 +102,19 @@ export default function AppointmentForm({ appointment, recipients, onClose }) {
               </Select>
             </div>
           </div>
+
+          {formData.appointment_type === 'other' && (
+            <div className="space-y-2">
+              <Label htmlFor="custom_appointment_type">Specify Type *</Label>
+              <Input
+                id="custom_appointment_type"
+                value={formData.custom_appointment_type}
+                onChange={(e) => setFormData({ ...formData, custom_appointment_type: e.target.value })}
+                placeholder="e.g., Physical Therapy, Vision Test"
+                required
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="title">Appointment Title *</Label>
