@@ -12,27 +12,27 @@ import ClientTasks from './pages/ClientTasks';
 import ClientUpdates from './pages/ClientUpdates';
 import Collaboration from './pages/Collaboration';
 import CommunicationHub from './pages/CommunicationHub';
+import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
 import Emergency from './pages/Emergency';
 import EmergencyProfile from './pages/EmergencyProfile';
 import Landing from './pages/Landing';
+import LegalDisclosure from './pages/LegalDisclosure';
 import MedicationLog from './pages/MedicationLog';
 import Medications from './pages/Medications';
 import Messages from './pages/Messages';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import RecipientProfile from './pages/RecipientProfile';
 import Refills from './pages/Refills';
 import Reports from './pages/Reports';
 import Scheduling from './pages/Scheduling';
+import Settings from './pages/Settings';
 import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
-import Today from './pages/Today';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import LegalDisclosure from './pages/LegalDisclosure';
 import TermsOfService from './pages/TermsOfService';
-import CookiePolicy from './pages/CookiePolicy';
-import Settings from './pages/Settings';
+import Today from './pages/Today';
 import __Layout from './Layout.jsx';
 
 
@@ -51,27 +51,27 @@ export const PAGES = {
     "ClientUpdates": ClientUpdates,
     "Collaboration": Collaboration,
     "CommunicationHub": CommunicationHub,
+    "CookiePolicy": CookiePolicy,
     "Dashboard": Dashboard,
     "Documents": Documents,
     "Emergency": Emergency,
     "EmergencyProfile": EmergencyProfile,
     "Landing": Landing,
+    "LegalDisclosure": LegalDisclosure,
     "MedicationLog": MedicationLog,
     "Medications": Medications,
     "Messages": Messages,
+    "PrivacyPolicy": PrivacyPolicy,
     "RecipientProfile": RecipientProfile,
     "Refills": Refills,
     "Reports": Reports,
     "Scheduling": Scheduling,
+    "Settings": Settings,
     "ShiftHandoff": ShiftHandoff,
     "Tasks": Tasks,
     "Team": Team,
-    "Today": Today,
-    "PrivacyPolicy": PrivacyPolicy,
-    "LegalDisclosure": LegalDisclosure,
     "TermsOfService": TermsOfService,
-    "CookiePolicy": CookiePolicy,
-    "Settings": Settings,
+    "Today": Today,
 }
 
 export const pagesConfig = {
