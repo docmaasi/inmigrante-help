@@ -118,13 +118,13 @@ export default function Layout({ children, currentPageName }) {
               Giving caregivers clarity, accountability, and peace of mind
             </p>
             <div className="flex items-center justify-center gap-4 text-sm text-slate-600">
-              <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
+              <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
               <span className="text-slate-300">|</span>
-              <a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a>
+              <Link to={createPageUrl('TermsOfService')} className="hover:text-blue-600 transition-colors">Terms of Service</Link>
               <span className="text-slate-300">|</span>
-              <a href="#" className="hover:text-blue-600 transition-colors">Cookie Policy</a>
+              <Link to={createPageUrl('CookiePolicy')} className="hover:text-blue-600 transition-colors">Cookie Policy</Link>
               <span className="text-slate-300">|</span>
-              <a href="#" className="hover:text-blue-600 transition-colors">Legal Disclosure</a>
+              <Link to={createPageUrl('LegalDisclosure')} className="hover:text-blue-600 transition-colors">Legal Disclosure</Link>
             </div>
           </div>
         </div>

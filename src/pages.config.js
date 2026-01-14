@@ -28,6 +28,10 @@ import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import Today from './pages/Today';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import LegalDisclosure from './pages/LegalDisclosure';
+import TermsOfService from './pages/TermsOfService';
+import CookiePolicy from './pages/CookiePolicy';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +66,10 @@ export const PAGES = {
     "Tasks": Tasks,
     "Team": Team,
     "Today": Today,
+    "PrivacyPolicy": PrivacyPolicy,
+    "LegalDisclosure": LegalDisclosure,
+    "TermsOfService": TermsOfService,
+    "CookiePolicy": CookiePolicy,
 }
 
 export const pagesConfig = {
