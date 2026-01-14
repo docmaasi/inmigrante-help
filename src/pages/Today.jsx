@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Pill, ListTodo, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, Pill, ListTodo, Clock, CheckCircle2, AlertCircle, Settings, Eye, UserCheck } from 'lucide-react';
 import { format, isToday, parseISO, isPast } from 'date-fns';
 import { toast } from 'sonner';
+import CaregiverDashboardWidget from '../components/dashboard/CaregiverDashboardWidget';
+import AssignedTasksSummary from '../components/dashboard/AssignedTasksSummary';
+import ImportantAlerts from '../components/dashboard/ImportantAlerts';
+import HiddenWidgets from '../components/dashboard/HiddenWidgets';
+import useWidgetManager from '../components/dashboard/WidgetManager';
 
 export default function Today() {
   const [user, setUser] = useState(null);
+  const [showCustomize, setShowCustomize] = useState(false);
   const queryClient = useQueryClient();
+  const widgetManager = useWidgetManager(user);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -34,6 +41,12 @@ export default function Today() {
   const { data: recipients = [] } = useQuery({
     queryKey: ['careRecipients'],
     queryFn: () => base44.entities.CareRecipient.list()
+  });
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications', user?.email],
+    queryFn: () => user ? base44.entities.Notification.filter({ user_email: user.email, read: false }) : [],
+    enabled: !!user
   });
 
   const updateTaskMutation = useMutation({
@@ -83,19 +96,50 @@ export default function Today() {
     return 'Good Evening';
   };
 
+  const widgets = [
+    { id: 'todaySchedule', title: "Today's Schedule", icon: Calendar },
+    { id: 'urgentTasks', title: 'Urgent & Overdue', icon: AlertCircle },
+    { id: 'importantAlerts', title: 'Important Alerts', icon: AlertCircle },
+    { id: 'assignedTasks', title: 'My Assigned Tasks', icon: UserCheck },
+    { id: 'medications', title: 'Medications', icon: Pill }
+  ].filter(w => widgetManager.config[w.id]?.visible !== false)
+   .sort((a, b) => (widgetManager.config[a.id]?.order || 999) - (widgetManager.config[b.id]?.order || 999));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-            {greeting()}, {user?.full_name?.split(' ')[0] || 'there'}
-          </h1>
-          <p className="text-slate-600 mt-1">Here's what needs attention today</p>
-          <p className="text-sm text-slate-500">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+              {greeting()}, {user?.full_name?.split(' ')[0] || 'there'}
+            </h1>
+            <p className="text-slate-600 mt-1">Here's what needs attention today</p>
+            <p className="text-sm text-slate-500">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowCustomize(!showCustomize)}
+            className="flex items-center gap-2"
+          >
+            {showCustomize ? <Eye className="w-4 h-4" /> : <Settings className="w-4 h-4" />}
+            {showCustomize ? 'Done' : 'Customize'}
+          </Button>
         </div>
 
+        {showCustomize && (
+          <Card className="mb-6 bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <HiddenWidgets 
+                config={widgetManager.config}
+                onShow={widgetManager.showWidget}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card className="shadow-sm border-slate-200/60">
             <CardContent className="p-4 text-center">
               <Calendar className="w-6 h-6 text-purple-600 mx-auto mb-2" />
@@ -112,6 +156,13 @@ export default function Today() {
           </Card>
           <Card className="shadow-sm border-slate-200/60">
             <CardContent className="p-4 text-center">
+              <AlertCircle className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-slate-800">{overdueTasks.length}</div>
+              <div className="text-xs text-slate-500">Overdue</div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm border-slate-200/60">
+            <CardContent className="p-4 text-center">
               <Pill className="w-6 h-6 text-green-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{activeMedications.length}</div>
               <div className="text-xs text-slate-500">Medications</div>
@@ -119,121 +170,175 @@ export default function Today() {
           </Card>
         </div>
 
-        {/* Overdue Alert */}
-        {overdueTasks.length > 0 && (
-          <Card className="mb-6 bg-red-50 border-red-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                <span className="font-semibold text-red-900">
-                  {overdueTasks.length} overdue task{overdueTasks.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Today's Appointments */}
-        <Card className="mb-6 shadow-sm border-slate-200/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-purple-600" />
-              Today's Appointments ({todayAppointments.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {todayAppointments.length === 0 ? (
-              <p className="text-slate-500 text-sm text-center py-4">No appointments today</p>
-            ) : (
-              <div className="space-y-3">
-                {todayAppointments.map(apt => (
-                  <div key={apt.id} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                    <Clock className="w-5 h-5 text-purple-600" />
-                    <div className="flex-1">
-                      <div className="font-medium text-slate-800">{apt.title}</div>
-                      <div className="text-sm text-slate-600">
-                        {getRecipientName(apt.care_recipient_id)}
-                        {apt.time && ` • ${apt.time}`}
-                        {apt.location && ` • ${apt.location}`}
-                      </div>
-                    </div>
-                    <Badge className="bg-purple-100 text-purple-700">{apt.appointment_type}</Badge>
+        {/* Widgets Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {widgets.map(widget => {
+            if (widget.id === 'todaySchedule') {
+              return (
+                <CaregiverDashboardWidget
+                  key={widget.id}
+                  widgetId={widget.id}
+                  title={`${widget.title} (${todayAppointments.length + todayTasks.length})`}
+                  icon={widget.icon}
+                  isPinned={widgetManager.config[widget.id]?.pinned}
+                  onPin={() => widgetManager.pinWidget(widget.id)}
+                  onHide={() => widgetManager.hideWidget(widget.id)}
+                >
+                  <div className="space-y-3">
+                    {todayAppointments.length === 0 && todayTasks.length === 0 ? (
+                      <p className="text-slate-500 text-sm text-center py-4">No appointments or tasks scheduled for today</p>
+                    ) : (
+                      <>
+                        {todayAppointments.map(apt => (
+                          <div key={`apt-${apt.id}`} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                            <Clock className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-slate-800">{apt.title}</div>
+                              <div className="text-sm text-slate-600">
+                                {getRecipientName(apt.care_recipient_id)}
+                                {apt.time && ` • ${apt.time}`}
+                              </div>
+                            </div>
+                            <Badge className="bg-purple-100 text-purple-700 text-xs">{apt.appointment_type}</Badge>
+                          </div>
+                        ))}
+                        {todayTasks.map(task => (
+                          <div key={`task-${task.id}`} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                            <button
+                              onClick={() => completeTask(task)}
+                              className="mt-1 text-blue-600 hover:text-blue-700"
+                            >
+                              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-slate-800">{task.title}</div>
+                              <div className="text-sm text-slate-600">
+                                {getRecipientName(task.care_recipient_id)}
+                              </div>
+                            </div>
+                            <Badge className={`${priorityColors[task.priority]} text-xs`}>{task.priority}</Badge>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Today's Tasks */}
-        <Card className="mb-6 shadow-sm border-slate-200/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ListTodo className="w-5 h-5 text-blue-600" />
-              Today's Tasks ({todayTasks.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {todayTasks.length === 0 ? (
-              <p className="text-slate-500 text-sm text-center py-4">No tasks due today</p>
-            ) : (
-              <div className="space-y-3">
-                {todayTasks.map(task => (
-                  <div key={task.id} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                    <button
-                      onClick={() => completeTask(task)}
-                      className="mt-1 text-blue-600 hover:text-blue-700"
-                    >
-                      <CheckCircle2 className="w-5 h-5" />
-                    </button>
-                    <div className="flex-1">
-                      <div className="font-medium text-slate-800">{task.title}</div>
-                      <div className="text-sm text-slate-600">
-                        {getRecipientName(task.care_recipient_id)}
-                        {task.assigned_to && ` • Assigned to ${task.assigned_to}`}
-                      </div>
-                      {task.description && (
-                        <p className="text-xs text-slate-500 mt-1">{task.description}</p>
-                      )}
+                </CaregiverDashboardWidget>
+              );
+            }
+            
+            if (widget.id === 'urgentTasks') {
+              return (
+                <CaregiverDashboardWidget
+                  key={widget.id}
+                  widgetId={widget.id}
+                  title={`${widget.title} (${overdueTasks.length})`}
+                  icon={widget.icon}
+                  isPinned={widgetManager.config[widget.id]?.pinned}
+                  onPin={() => widgetManager.pinWidget(widget.id)}
+                  onHide={() => widgetManager.hideWidget(widget.id)}
+                >
+                  {overdueTasks.length === 0 ? (
+                    <p className="text-slate-500 text-sm text-center py-4">No overdue tasks</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {overdueTasks.map(task => (
+                        <div key={task.id} className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-slate-800">{task.title}</div>
+                            <div className="text-sm text-red-700">
+                              Due: {format(parseISO(task.due_date), 'MMM d')} • {getRecipientName(task.care_recipient_id)}
+                            </div>
+                          </div>
+                          <Badge className="bg-red-600 text-white text-xs">{task.priority}</Badge>
+                        </div>
+                      ))}
                     </div>
-                    <Badge className={priorityColors[task.priority]}>{task.priority}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  )}
+                </CaregiverDashboardWidget>
+              );
+            }
 
-        {/* Today's Medications */}
-        <Card className="shadow-sm border-slate-200/60">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Pill className="w-5 h-5 text-green-600" />
-              Medications to Administer ({activeMedications.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {activeMedications.length === 0 ? (
-              <p className="text-slate-500 text-sm text-center py-4">No active medications</p>
-            ) : (
-              <div className="space-y-3">
-                {activeMedications.map(med => (
-                  <div key={med.id} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                    <Pill className="w-5 h-5 text-green-600" />
-                    <div className="flex-1">
-                      <div className="font-medium text-slate-800">{med.medication_name}</div>
-                      <div className="text-sm text-slate-600">
-                        {getRecipientName(med.care_recipient_id)} • {med.dosage}
-                        {med.time_of_day && ` • ${med.time_of_day}`}
-                      </div>
-                    </div>
-                    <Badge className="bg-green-100 text-green-700">{med.frequency}</Badge>
+            if (widget.id === 'importantAlerts') {
+              return (
+                <CaregiverDashboardWidget
+                  key={widget.id}
+                  widgetId={widget.id}
+                  title={widget.title}
+                  icon={widget.icon}
+                  isPinned={widgetManager.config[widget.id]?.pinned}
+                  onPin={() => widgetManager.pinWidget(widget.id)}
+                  onHide={() => widgetManager.hideWidget(widget.id)}
+                >
+                  <ImportantAlerts 
+                    tasks={tasks}
+                    appointments={appointments}
+                    medications={medications}
+                    recipients={recipients}
+                  />
+                </CaregiverDashboardWidget>
+              );
+            }
+
+            if (widget.id === 'assignedTasks') {
+              return (
+                <CaregiverDashboardWidget
+                  key={widget.id}
+                  widgetId={widget.id}
+                  title={widget.title}
+                  icon={widget.icon}
+                  isPinned={widgetManager.config[widget.id]?.pinned}
+                  onPin={() => widgetManager.pinWidget(widget.id)}
+                  onHide={() => widgetManager.hideWidget(widget.id)}
+                >
+                  <AssignedTasksSummary 
+                    tasks={tasks}
+                    userEmail={user?.email}
+                    recipients={recipients}
+                  />
+                </CaregiverDashboardWidget>
+              );
+            }
+
+            if (widget.id === 'medications') {
+              return (
+                <CaregiverDashboardWidget
+                  key={widget.id}
+                  widgetId={widget.id}
+                  title={`${widget.title} (${activeMedications.length})`}
+                  icon={widget.icon}
+                  isPinned={widgetManager.config[widget.id]?.pinned}
+                  onPin={() => widgetManager.pinWidget(widget.id)}
+                  onHide={() => widgetManager.hideWidget(widget.id)}
+                >
+                  <div className="space-y-2">
+                    {activeMedications.length === 0 ? (
+                      <p className="text-slate-500 text-sm text-center py-4">No active medications</p>
+                    ) : (
+                      <>
+                        {activeMedications.map(med => (
+                          <div key={med.id} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                            <Pill className="w-5 h-5 text-green-600 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-slate-800">{med.medication_name}</div>
+                              <div className="text-sm text-slate-600">
+                                {getRecipientName(med.care_recipient_id)} • {med.dosage}
+                                {med.time_of_day && ` • ${med.time_of_day}`}
+                              </div>
+                            </div>
+                            <Badge className="bg-green-100 text-green-700 text-xs whitespace-nowrap">{med.frequency}</Badge>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </CaregiverDashboardWidget>
+              );
+            }
+
+            return null;
+          })}
+        </div>
       </div>
     </div>
   );

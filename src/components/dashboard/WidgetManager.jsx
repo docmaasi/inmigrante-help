@@ -7,12 +7,11 @@ export default function useWidgetManager(user) {
   const [config, setConfig] = useState(null);
 
   const defaultConfig = {
-    statCards: { visible: true, order: 0 },
-    upcomingAppointments: { visible: true, order: 1, pinned: false },
-    todaysMedications: { visible: true, order: 2, pinned: false },
-    urgentTasks: { visible: true, order: 3, pinned: false },
-    activityLog: { visible: true, order: 4, pinned: false },
-    refillTracker: { visible: true, order: 5, pinned: false },
+    todaySchedule: { visible: true, order: 0, pinned: false },
+    urgentTasks: { visible: true, order: 1, pinned: false },
+    importantAlerts: { visible: true, order: 2, pinned: false },
+    assignedTasks: { visible: true, order: 3, pinned: false },
+    medications: { visible: true, order: 4, pinned: false },
   };
 
   const { data: preferences } = useQuery({
