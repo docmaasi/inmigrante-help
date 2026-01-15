@@ -56,23 +56,25 @@ export default function Dashboard() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg" 
                 alt="FamilyCare.Help Logo" 
-                className="w-10 h-10 object-contain"
+                className="w-10 h-10 object-contain flex-shrink-0"
               />
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">FamilyCare<span className="text-orange-500">.Help</span></h1>
-                <p className="text-xs text-slate-500">Coordinating care together</p>
+              <div className="min-w-0">
+                <h1 className="text-lg md:text-xl font-bold text-slate-800 truncate">FamilyCare<span className="text-orange-500">.Help</span></h1>
+                <p className="text-xs text-slate-500 hidden sm:block">Coordinating care together</p>
               </div>
             </div>
             <Link 
               to={createPageUrl('Today')}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium"
+              className="flex items-center gap-2 px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium text-sm md:text-base flex-shrink-0"
             >
-              Enter App <ArrowRight className="w-4 h-4" />
+              <span className="hidden sm:inline">Enter App</span>
+              <span className="sm:hidden">Enter</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
