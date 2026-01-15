@@ -57,7 +57,7 @@ export default function Dashboard() {
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-30"
         style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/0305cda26_Untitleddesign10.png)'
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/4e2e7d088_Untitleddesign13.png)'
         }}
       />
       {/* Header */}
