@@ -88,8 +88,14 @@ export default function Appointments() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen relative p-4 md:p-8">
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-40"
+        style={{ 
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/8d5b023a6_Untitleddesign8.png)'
+        }}
+      />
+      <div className="relative max-w-7xl mx-auto">
         <div className="mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1">Appointments</h1>
