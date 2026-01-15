@@ -81,7 +81,7 @@ export default function Layout({ children, currentPageName }) {
                 className="w-10 h-10 object-contain"
               />
               <div>
-                <h1 className="text-xl font-medium text-slate-800">FamilyCare<span className="text-orange-500">.Help</span></h1>
+                <h1 className="text-xl font-medium text-slate-800">www.FamilyCare<span className="text-orange-500">.Help</span></h1>
                 <p className="text-xs text-slate-500">Coordinating care together</p>
               </div>
             </Link>
@@ -139,7 +139,7 @@ export default function Layout({ children, currentPageName }) {
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2">
               <Heart className="w-5 h-5 text-blue-600" fill="currentColor" />
-              <span className="text-slate-600 font-medium">FamilyCare.Help</span>
+              <span className="text-slate-600 font-medium">www.FamilyCare.Help</span>
             </div>
             <p className="text-sm text-slate-500">
               Giving caregivers clarity, accountability, and peace of mind
