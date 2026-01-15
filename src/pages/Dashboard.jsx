@@ -82,7 +82,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-16">
+      <main className="relative max-w-7xl mx-auto px-4 md:px-8 py-16">
         {/* Hero Section */}
         <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
           <motion.div
@@ -211,7 +211,7 @@ export default function Dashboard() {
       </main>
 
       {/* Footer CTA */}
-      <footer className="bg-slate-900 text-white py-12 mt-20">
+      <footer className="relative bg-slate-900 text-white py-12 mt-20">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex justify-center mb-8">
             <ShareQRCode />
