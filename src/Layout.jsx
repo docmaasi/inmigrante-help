@@ -38,6 +38,15 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Subscribe', icon: Heart, path: 'Checkout', bg: 'bg-gradient-to-br from-orange-400 to-pink-500', special: true }
     ];
 
+    const footerNavItems = [
+    { name: 'FAQ', path: 'FAQ' },
+    { name: 'Privacy Policy', path: 'PrivacyPolicy' },
+    { name: 'Terms of Service', path: 'TermsOfService' },
+    { name: 'Cookie Policy', path: 'CookiePolicy' },
+    { name: 'Legal Disclosure', path: 'LegalDisclosure' },
+    { name: 'Record Retention', path: 'RecordRetentionPolicy' }
+    ];
+
   return (
     <div className="min-h-screen bg-slate-50">
       <style>{`
@@ -136,15 +145,14 @@ export default function Layout({ children, currentPageName }) {
               Giving caregivers clarity, accountability, and peace of mind
             </p>
             <div className="flex items-center justify-center gap-4 text-sm text-slate-600 flex-wrap">
-              <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
-              <span className="text-slate-300">|</span>
-              <Link to={createPageUrl('TermsOfService')} className="hover:text-blue-600 transition-colors">Terms of Service</Link>
-              <span className="text-slate-300">|</span>
-              <Link to={createPageUrl('CookiePolicy')} className="hover:text-blue-600 transition-colors">Cookie Policy</Link>
-              <span className="text-slate-300">|</span>
-              <Link to={createPageUrl('LegalDisclosure')} className="hover:text-blue-600 transition-colors">Legal Disclosure</Link>
-              <span className="text-slate-300">|</span>
-              <Link to={createPageUrl('RecordRetentionPolicy')} className="hover:text-blue-600 transition-colors">Record Retention</Link>
+              {footerNavItems.map((item, index) => (
+                <React.Fragment key={item.path}>
+                  {index > 0 && <span className="text-slate-300">|</span>}
+                  <Link to={createPageUrl(item.path)} className="hover:text-blue-600 transition-colors">
+                    {item.name}
+                  </Link>
+                </React.Fragment>
+              ))}
             </div>
           </div>
         </div>

@@ -34,6 +34,7 @@ import Team from './pages/Team';
 import TermsOfService from './pages/TermsOfService';
 import Today from './pages/Today';
 import RecordRetentionPolicy from './pages/RecordRetentionPolicy';
+import FAQ from './pages/FAQ';
 import __Layout from './Layout.jsx';
 
 
@@ -74,6 +75,7 @@ export const PAGES = {
     "TermsOfService": TermsOfService,
     "Today": Today,
     "RecordRetentionPolicy": RecordRetentionPolicy,
+    "FAQ": FAQ,
 }
 
 export const pagesConfig = {
