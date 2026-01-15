@@ -130,8 +130,16 @@ export default function Layout({ children, currentPageName }) {
       </nav>
 
       {/* Main Content */}
-      <main>
-        {children}
+      <main className="relative min-h-screen">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-30"
+          style={{ 
+            backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/a150f12cc_Untitleddesign17.png)'
+          }}
+        />
+        <div className="relative">
+          {children}
+        </div>
       </main>
 
       {/* Footer */}
