@@ -16,11 +16,18 @@ export default function Calendar() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+    <div className="min-h-screen relative">
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-30"
+        style={{ 
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/8e1951c10_Untitleddesign14.png)'
+        }}
+      />
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 relative">
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Calendar</h1>
-          <p className="text-slate-500 mt-1">View all appointments, tasks, and medication logs</p>
+          <h1 className="text-3xl font-bold text-slate-900">Calendar</h1>
+          <p className="text-slate-700 mt-1">View all appointments, tasks, and medication logs</p>
         </div>
         <Button 
           onClick={() => setShowAddForm(true)}
@@ -41,6 +48,7 @@ export default function Calendar() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

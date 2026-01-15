@@ -126,13 +126,19 @@ export default function Team() {
   const activeMembers = teamMembers.filter(m => m.active !== false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen relative p-4 md:p-8">
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-30"
+        style={{ 
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/59e1069c0_Untitleddesign17.png)'
+        }}
+      />
+      <div className="max-w-7xl mx-auto relative">
       {/* Header */}
       <div className="mb-6">
         <div className="mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Care Team</h1>
-          <p className="text-sm md:text-base text-slate-500 mt-1">Manage caregivers, family members, and their roles</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Care Team</h1>
+          <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregivers, family members, and their roles</p>
         </div>
         <Button
           onClick={() => setShowAddDialog(true)}
