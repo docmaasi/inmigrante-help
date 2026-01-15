@@ -70,16 +70,22 @@ export default function Scheduling() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
+    <div className="min-h-screen relative p-4 md:p-8">
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-30"
+        style={{ 
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/52ada0314_Untitleddesign15.png)'
+        }}
+      />
       <ShiftNotifications />
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto relative">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2 mb-2">
             <Calendar className="w-8 h-8 text-blue-600" />
             Shift Scheduling
           </h1>
-          <p className="text-slate-500">Manage caregiver shifts and availability</p>
+          <p className="text-slate-700">Manage caregiver shifts and availability</p>
         </div>
 
         {/* Recipient & Actions */}
