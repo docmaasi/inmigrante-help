@@ -5,8 +5,15 @@ import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCirc
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
+import CancellationReminder from './components/subscription/CancellationReminder';
 
 export default function Layout({ children, currentPageName }) {
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   const navItems = [
     { name: 'Dashboard', icon: Home, path: 'Dashboard', bg: 'bg-blue-50' },
     { name: 'Today', icon: Zap, path: 'Today', bg: 'bg-amber-50' },
@@ -75,6 +82,13 @@ export default function Layout({ children, currentPageName }) {
 
       <NotificationGenerator />
       <LegalAcceptanceModal />
+
+      {/* Cancellation Reminder */}
+      {user && (
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
+          <CancellationReminder userEmail={user.email} />
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-200">
