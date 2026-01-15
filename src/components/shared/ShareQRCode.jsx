@@ -11,9 +11,9 @@ export default function ShareQRCode({ className = "" }) {
           <p className="font-semibold text-sm">Share with someone in need</p>
         </div>
         <img 
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/9d3400711_283c3899-01fa-454b-be43-1de8e9a4296a.png"
+          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/0383fef8c_283c3899-01fa-454b-be43-1de8e9a4296a1.png"
           alt="FamilyCare.Help QR Code"
-          className="w-32 h-32 mx-auto rounded-lg"
+          className="w-40 h-40 mx-auto"
         />
         <p className="text-xs text-slate-600">Scan to access FamilyCare.Help</p>
       </div>
