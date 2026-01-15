@@ -8,6 +8,7 @@ import NotificationGenerator from './components/notifications/NotificationGenera
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
 import SubscriptionReminder from './components/subscription/SubscriptionReminder';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
@@ -140,7 +141,9 @@ export default function Layout({ children, currentPageName }) {
           }}
         />
         <div className="relative">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </div>
       </main>
 
