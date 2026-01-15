@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertCircle } from 'lucide-react';
 
 export default function Checkout() {
   useEffect(() => {
@@ -57,6 +59,21 @@ export default function Checkout() {
         <div className="mt-6 text-center text-sm text-slate-500">
           <p>Secure payment powered by Stripe • Cancel anytime</p>
         </div>
+
+        <Card className="mt-6 border-blue-200 bg-blue-50">
+          <CardContent className="p-4">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-blue-900 text-sm mb-1">Data Retention Notice</h3>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  After cancellation, FamilyCare.Help retains records for up to 90 days. Access is not guaranteed during this period. 
+                  If you renew within 90 days, your data remains intact. After 90 days, records may be permanently deleted and cannot be recovered.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
