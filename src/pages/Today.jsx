@@ -120,15 +120,21 @@ export default function Today() {
    .sort((a, b) => (widgetManager.config[a.id]?.order || 999) - (widgetManager.config[b.id]?.order || 999));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen relative p-4 md:p-8">
+      <div 
+        className="absolute inset-0 bg-cover bg-center opacity-30"
+        style={{ 
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/2b8d6ca55_Untitleddesign18.png)'
+        }}
+      />
+      <div className="max-w-6xl mx-auto relative">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
               {greeting()}, {user?.full_name?.split(' ')[0] || 'there'}
             </h1>
-            <p className="text-slate-600 mt-1">Here's what needs attention today</p>
-            <p className="text-sm text-slate-500">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+            <p className="text-slate-700 mt-1">Here's what needs attention today</p>
+            <p className="text-sm text-slate-600">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
           </div>
           <Button 
             variant="outline" 
