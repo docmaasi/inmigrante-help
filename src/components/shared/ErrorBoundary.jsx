@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Home } from 'lucide-react';
+import { createPageUrl } from '../../utils';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -26,15 +27,25 @@ class ErrorBoundary extends React.Component {
             </div>
             <h2 className="text-2xl font-semibold text-slate-800 mb-2">Something went wrong</h2>
             <p className="text-slate-600 mb-6">
-              Don't worry, your data is safe. Try refreshing the page.
+              Don't worry, your data is safe. Return to the dashboard or refresh.
             </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh Page
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => window.location.href = createPageUrl('Dashboard')}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Go to Dashboard
+              </Button>
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="flex-1"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
       );
