@@ -90,16 +90,16 @@ export default function Appointments() {
   return (
     <div className="min-h-screen relative p-4 md:p-8">
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-40"
+        className="absolute inset-0 bg-cover bg-center opacity-30"
         style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/8d5b023a6_Untitleddesign8.png)'
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/6ebff87ba_Untitleddesign17.png)'
         }}
       />
       <div className="relative max-w-7xl mx-auto">
         <div className="mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1">Appointments</h1>
-            <p className="text-sm md:text-base text-slate-500">Schedule and track medical visits</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Appointments</h1>
+            <p className="text-sm md:text-base text-slate-700">Schedule and track medical visits</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
