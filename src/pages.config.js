@@ -24,6 +24,7 @@ import MedicationLog from './pages/MedicationLog';
 import Medications from './pages/Medications';
 import Messages from './pages/Messages';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Receipts from './pages/Receipts';
 import RecipientProfile from './pages/RecipientProfile';
 import RecordRetentionPolicy from './pages/RecordRetentionPolicy';
 import Refills from './pages/Refills';
@@ -35,7 +36,6 @@ import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import TermsOfService from './pages/TermsOfService';
 import Today from './pages/Today';
-import Receipts from './pages/Receipts';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +66,7 @@ export const PAGES = {
     "Medications": Medications,
     "Messages": Messages,
     "PrivacyPolicy": PrivacyPolicy,
+    "Receipts": Receipts,
     "RecipientProfile": RecipientProfile,
     "RecordRetentionPolicy": RecordRetentionPolicy,
     "Refills": Refills,
@@ -77,7 +78,6 @@ export const PAGES = {
     "Team": Team,
     "TermsOfService": TermsOfService,
     "Today": Today,
-    "Receipts": Receipts,
 }
 
 export const pagesConfig = {

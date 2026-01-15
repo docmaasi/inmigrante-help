@@ -123,17 +123,22 @@ export default function Dashboard() {
             </Link>
           </motion.div>
 
-          {/* Featured Image */}
+          {/* Promotional Video */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="rounded-2xl overflow-hidden shadow-2xl"
+            className="rounded-2xl overflow-hidden shadow-2xl aspect-video"
           >
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f31f440e3_38059b21-9019-49c9-a815-4248f853af8f.png" 
-              alt="Family care" 
-              className="w-full h-96 object-cover"
+            <iframe 
+              src="https://www.veed.io/embed/9e64fd3d-7b6a-4b5d-9467-0c050a22480a?watermark=0&color=default&sharing=1&title=1" 
+              width="100%" 
+              height="100%" 
+              frameBorder="0" 
+              title="Simplifying Senior and Disability Care Management, www.FamilyCare.Help" 
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
             />
           </motion.div>
         </div>
