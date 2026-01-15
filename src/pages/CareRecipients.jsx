@@ -7,6 +7,7 @@ import { Skeleton } from '../components/ui/skeleton';
 import RecipientCard from '../components/recipients/RecipientCard';
 import CareRecipientForm from '../components/care/CareRecipientForm';
 import { createPageUrl } from '../utils';
+import ShareQRCode from '../components/shared/ShareQRCode';
 
 export default function CareRecipients() {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -102,11 +103,16 @@ export default function CareRecipients() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recipients.map(recipient => (
-              <RecipientCard key={recipient.id} recipient={recipient} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recipients.map(recipient => (
+                <RecipientCard key={recipient.id} recipient={recipient} />
+              ))}
+            </div>
+            <div className="mt-8 flex justify-center">
+              <ShareQRCode />
+            </div>
+          </>
         )}
       </div>
     </div>

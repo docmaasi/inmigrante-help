@@ -11,6 +11,7 @@ import { Plus, Receipt, DollarSign, Calendar, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import FileUpload from '../components/shared/FileUpload';
+import ShareQRCode from '../components/shared/ShareQRCode';
 
 export default function ReceiptsPage() {
   const queryClient = useQueryClient();
@@ -113,6 +114,10 @@ export default function ReceiptsPage() {
             <p className="text-slate-500">No receipts found. Add your first receipt to get started.</p>
           </Card>
         )}
+
+        <div className="mt-8 flex justify-center">
+          <ShareQRCode />
+        </div>
       </div>
     </div>
   );

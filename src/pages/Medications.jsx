@@ -8,6 +8,7 @@ import { Plus, Pill, User, Clock, Calendar, AlertCircle, Edit2, Trash2, Archive 
 import { format, parseISO } from 'date-fns';
 import { Skeleton } from '../components/ui/skeleton';
 import MedicationForm from '../components/medications/MedicationForm';
+import ShareQRCode from '../components/shared/ShareQRCode';
 
 export default function Medications() {
   const [selectedMedication, setSelectedMedication] = useState(null);
@@ -254,6 +255,10 @@ export default function Medications() {
           ))}
         </div>
       )}
+      
+      <div className="mt-8 flex justify-center">
+        <ShareQRCode />
+      </div>
       </div>
     </div>
   );
