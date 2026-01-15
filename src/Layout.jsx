@@ -7,6 +7,7 @@ import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
+import SubscriptionReminder from './components/subscription/SubscriptionReminder';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
@@ -93,6 +94,7 @@ export default function Layout({ children, currentPageName }) {
 
       <NotificationGenerator />
       <LegalAcceptanceModal />
+      <SubscriptionReminder userEmail={user?.email} />
 
       {/* Cancellation Reminder */}
       {user && (
