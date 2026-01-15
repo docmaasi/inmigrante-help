@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ArrowRight } from 'lucide-react';
+import ShareQRCode from '../components/shared/ShareQRCode';
 
 const QUOTES = [
   // Care for People With Disabilities
@@ -212,6 +213,9 @@ export default function Dashboard() {
       {/* Footer CTA */}
       <footer className="bg-slate-900 text-white py-12 mt-20">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="flex justify-center mb-8">
+            <ShareQRCode />
+          </div>
           <div className="grid md:grid-cols-2 gap-8 mb-8">
             <div>
               <h4 className="text-lg font-bold mb-2">Ready to Transform Care?</h4>
