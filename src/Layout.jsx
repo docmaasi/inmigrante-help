@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
+import { base44 } from '@/api/base44Client';
 import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
