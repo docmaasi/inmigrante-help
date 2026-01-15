@@ -33,6 +33,7 @@ import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import TermsOfService from './pages/TermsOfService';
 import Today from './pages/Today';
+import RecordRetentionPolicy from './pages/RecordRetentionPolicy';
 import __Layout from './Layout.jsx';
 
 
@@ -72,6 +73,7 @@ export const PAGES = {
     "Team": Team,
     "TermsOfService": TermsOfService,
     "Today": Today,
+    "RecordRetentionPolicy": RecordRetentionPolicy,
 }
 
 export const pagesConfig = {

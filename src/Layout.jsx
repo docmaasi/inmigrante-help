@@ -120,7 +120,7 @@ export default function Layout({ children, currentPageName }) {
             <p className="text-sm text-slate-500">
               Giving caregivers clarity, accountability, and peace of mind
             </p>
-            <div className="flex items-center justify-center gap-4 text-sm text-slate-600">
+            <div className="flex items-center justify-center gap-4 text-sm text-slate-600 flex-wrap">
               <Link to={createPageUrl('PrivacyPolicy')} className="hover:text-blue-600 transition-colors">Privacy Policy</Link>
               <span className="text-slate-300">|</span>
               <Link to={createPageUrl('TermsOfService')} className="hover:text-blue-600 transition-colors">Terms of Service</Link>
@@ -128,6 +128,8 @@ export default function Layout({ children, currentPageName }) {
               <Link to={createPageUrl('CookiePolicy')} className="hover:text-blue-600 transition-colors">Cookie Policy</Link>
               <span className="text-slate-300">|</span>
               <Link to={createPageUrl('LegalDisclosure')} className="hover:text-blue-600 transition-colors">Legal Disclosure</Link>
+              <span className="text-slate-300">|</span>
+              <Link to={createPageUrl('RecordRetentionPolicy')} className="hover:text-blue-600 transition-colors">Record Retention</Link>
             </div>
           </div>
         </div>
