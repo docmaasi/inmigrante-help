@@ -23,7 +23,7 @@ export default function SubscriptionReminder({ userEmail }) {
 
     const interval = setInterval(() => {
       setShowReminder(true);
-    }, 60000); // 60 seconds
+    }, 180000); // 3 minutes
 
     // Show immediately on mount for unsubscribed users
     const timeout = setTimeout(() => {
