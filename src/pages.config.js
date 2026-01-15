@@ -17,6 +17,7 @@ import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
 import Emergency from './pages/Emergency';
 import EmergencyProfile from './pages/EmergencyProfile';
+import FAQ from './pages/FAQ';
 import Landing from './pages/Landing';
 import LegalDisclosure from './pages/LegalDisclosure';
 import MedicationLog from './pages/MedicationLog';
@@ -24,6 +25,7 @@ import Medications from './pages/Medications';
 import Messages from './pages/Messages';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import RecipientProfile from './pages/RecipientProfile';
+import RecordRetentionPolicy from './pages/RecordRetentionPolicy';
 import Refills from './pages/Refills';
 import Reports from './pages/Reports';
 import Scheduling from './pages/Scheduling';
@@ -33,8 +35,7 @@ import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import TermsOfService from './pages/TermsOfService';
 import Today from './pages/Today';
-import RecordRetentionPolicy from './pages/RecordRetentionPolicy';
-import FAQ from './pages/FAQ';
+import Receipts from './pages/Receipts';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "Documents": Documents,
     "Emergency": Emergency,
     "EmergencyProfile": EmergencyProfile,
+    "FAQ": FAQ,
     "Landing": Landing,
     "LegalDisclosure": LegalDisclosure,
     "MedicationLog": MedicationLog,
@@ -65,6 +67,7 @@ export const PAGES = {
     "Messages": Messages,
     "PrivacyPolicy": PrivacyPolicy,
     "RecipientProfile": RecipientProfile,
+    "RecordRetentionPolicy": RecordRetentionPolicy,
     "Refills": Refills,
     "Reports": Reports,
     "Scheduling": Scheduling,
@@ -74,8 +77,7 @@ export const PAGES = {
     "Team": Team,
     "TermsOfService": TermsOfService,
     "Today": Today,
-    "RecordRetentionPolicy": RecordRetentionPolicy,
-    "FAQ": FAQ,
+    "Receipts": Receipts,
 }
 
 export const pagesConfig = {

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import FileUpload from '../shared/FileUpload';
 
 export default function MedicationForm({ medication, recipients, onClose }) {
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     refill_date: '',
     pharmacy: '',
     special_instructions: '',
+    photo_url: '',
     active: true
   });
   
@@ -293,6 +295,15 @@ export default function MedicationForm({ medication, recipients, onClose }) {
               onChange={(e) => setFormData({ ...formData, special_instructions: e.target.value })}
               placeholder="e.g., Take with food, Avoid grapefruit"
               rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Medication Photo</Label>
+            <FileUpload
+              value={formData.photo_url}
+              onChange={(url) => setFormData({ ...formData, photo_url: url })}
+              label="Upload Medication Photo"
             />
           </div>
 
