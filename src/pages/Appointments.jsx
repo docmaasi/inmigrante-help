@@ -84,7 +84,7 @@ export default function Appointments() {
   };
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.name || 'Unknown';
+    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
   };
 
   return (
@@ -114,19 +114,19 @@ export default function Appointments() {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Care Recipient *</Label>
+                  <Label htmlFor="care_recipient">Care Recipient *</Label>
                   <Select
                     value={formData.care_recipient_id}
                     onValueChange={(value) => setFormData({...formData, care_recipient_id: value})}
                     required
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="care_recipient">
                       <SelectValue placeholder="Select recipient" />
                     </SelectTrigger>
                     <SelectContent>
                       {recipients.map(recipient => (
                         <SelectItem key={recipient.id} value={recipient.id}>
-                          {recipient.name}
+                          {recipient.full_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -144,12 +144,12 @@ export default function Appointments() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Type</Label>
+                    <Label htmlFor="type">Type</Label>
                     <Select
                       value={formData.type}
                       onValueChange={(value) => setFormData({...formData, type: value})}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="type">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
