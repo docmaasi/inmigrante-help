@@ -9,14 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2, UserX, UserPlus } from 'lucide-react';
+import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2, UserX } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
-import InviteTeamMemberDialog from '../components/team/InviteTeamMemberDialog';
 
 export default function Team() {
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [formData, setFormData] = useState({
     user_email: '',
@@ -142,23 +140,13 @@ export default function Team() {
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Care Team</h1>
           <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregivers, family members, and their roles</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            onClick={() => setShowInviteDialog(true)}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 w-full sm:w-auto shadow-md"
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Invite Team Member
-          </Button>
-          <Button
-            onClick={() => setShowAddDialog(true)}
-            variant="outline"
-            className="w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Existing Member
-          </Button>
-        </div>
+        <Button
+          onClick={() => setShowAddDialog(true)}
+          className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Team Member
+        </Button>
       </div>
 
       {/* Role Legend */}
@@ -400,12 +388,6 @@ export default function Team() {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* Invite Dialog */}
-      <InviteTeamMemberDialog 
-        open={showInviteDialog} 
-        onClose={() => setShowInviteDialog(false)} 
-      />
       </div>
     </div>
   );

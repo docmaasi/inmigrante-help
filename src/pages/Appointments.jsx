@@ -3,14 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Calendar, MapPin, User, Clock } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Badge } from '../components/ui/badge';
+import { Skeleton } from '../components/ui/skeleton';
 
 const typeColors = {
   doctor: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -84,7 +84,7 @@ export default function Appointments() {
   };
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+    return recipients.find(r => r.id === id)?.name || 'Unknown';
   };
 
   return (
@@ -114,19 +114,19 @@ export default function Appointments() {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="care_recipient">Care Recipient *</Label>
+                  <Label>Care Recipient *</Label>
                   <Select
                     value={formData.care_recipient_id}
                     onValueChange={(value) => setFormData({...formData, care_recipient_id: value})}
                     required
                   >
-                    <SelectTrigger id="care_recipient">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select recipient" />
                     </SelectTrigger>
                     <SelectContent>
                       {recipients.map(recipient => (
                         <SelectItem key={recipient.id} value={recipient.id}>
-                          {recipient.full_name}
+                          {recipient.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -144,12 +144,12 @@ export default function Appointments() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="type">Type</Label>
+                    <Label>Type</Label>
                     <Select
                       value={formData.type}
                       onValueChange={(value) => setFormData({...formData, type: value})}
                     >
-                      <SelectTrigger id="type">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
