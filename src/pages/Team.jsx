@@ -38,12 +38,34 @@ export default function Team() {
     queryFn: () => base44.entities.CareRecipient.list()
   });
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.TeamMember.create(data),
-    onSuccess: () => {
+    mutationFn: async (data) => {
+      const response = await fetch('/api/functions/add-team-member-with-limit-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberData: data })
+      });
+      const result = await response.json();
+      if (!response.ok || result.error) {
+        throw new Error(result.error || 'Failed to add team member');
+      }
+      return result;
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['teamMembers']);
-      toast.success('Team member added');
+      const message = data.remainingSlots > 0 
+        ? `Team member added! You have ${data.remainingSlots} slot${data.remainingSlots > 1 ? 's' : ''} remaining.`
+        : 'Team member added! You have reached your member limit.';
+      toast.success(message);
       handleCloseDialog();
+    },
+    onError: (error) => {
+      toast.error(error.message);
     }
   });
 
@@ -139,6 +161,11 @@ export default function Team() {
         <div className="mb-4">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Care Team</h1>
           <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregivers, family members, and their roles</p>
+          {currentUser && currentUser.subscription_additional_members !== undefined && (
+            <p className="text-xs text-blue-600 mt-1">
+              {activeMembers.length} / {1 + (currentUser.subscription_additional_members || 0)} members used
+            </p>
+          )}
         </div>
         <Button
           onClick={() => setShowAddDialog(true)}
