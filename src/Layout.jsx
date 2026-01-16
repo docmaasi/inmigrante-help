@@ -18,6 +18,7 @@ export default function Layout({ children, currentPageName }) {
   const navItems = [
     { name: 'Dashboard', icon: Home, path: 'Dashboard', bg: 'bg-blue-50' },
     { name: 'Today', icon: Zap, path: 'Today', bg: 'bg-amber-50' },
+    { name: 'Diagnostics', icon: AlertCircle, path: 'Diagnostics', bg: 'bg-green-50' },
     { name: 'Care Recipients', icon: Users, path: 'CareRecipients', bg: 'bg-purple-50' },
     { name: 'Receipts', icon: FileText, path: 'Receipts', bg: 'bg-orange-50' },
     { name: 'Comm Hub', icon: MessageSquare, path: 'CommunicationHub', bg: 'bg-green-50' },

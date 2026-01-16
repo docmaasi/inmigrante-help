@@ -36,6 +36,7 @@ import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import TermsOfService from './pages/TermsOfService';
 import Today from './pages/Today';
+import Diagnostics from './pages/Diagnostics';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +79,7 @@ export const PAGES = {
     "Team": Team,
     "TermsOfService": TermsOfService,
     "Today": Today,
+    "Diagnostics": Diagnostics,
 }
 
 export const pagesConfig = {
