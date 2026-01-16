@@ -146,6 +146,12 @@ export default function Team() {
   };
 
   const activeMembers = teamMembers.filter(m => m.active !== false);
+  
+  // Calculate if limit is reached
+  const maxMembers = currentUser?.subscription_additional_members !== undefined 
+    ? 1 + (currentUser.subscription_additional_members || 0)
+    : 1;
+  const isLimitReached = activeMembers.length >= maxMembers;
 
   return (
     <div className="min-h-screen relative p-4 md:p-8">
@@ -162,18 +168,24 @@ export default function Team() {
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Care Team</h1>
           <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregivers, family members, and their roles</p>
           {currentUser && currentUser.subscription_additional_members !== undefined && (
-            <p className="text-xs text-blue-600 mt-1">
-              {activeMembers.length} / {1 + (currentUser.subscription_additional_members || 0)} members used
+            <p className={`text-xs mt-1 ${isLimitReached ? 'text-orange-600 font-semibold' : 'text-blue-600'}`}>
+              {activeMembers.length} / {maxMembers} members used {isLimitReached && '(Limit reached)'}
             </p>
           )}
         </div>
         <Button
           onClick={() => setShowAddDialog(true)}
-          className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+          disabled={isLimitReached}
+          className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add Team Member
+          {isLimitReached ? 'Member Limit Reached' : 'Add Team Member'}
         </Button>
+        {isLimitReached && (
+          <p className="text-sm text-orange-600 mt-2">
+            Upgrade your subscription to add more team members
+          </p>
+        )}
       </div>
 
       {/* Role Legend */}
@@ -225,9 +237,13 @@ export default function Team() {
             <Users className="w-12 h-12 md:w-16 md:h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Team Members</h3>
             <p className="text-sm md:text-base text-slate-500 mb-6">Add team members to coordinate care</p>
-            <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+            <Button 
+              onClick={() => setShowAddDialog(true)} 
+              disabled={isLimitReached}
+              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto disabled:opacity-50"
+            >
               <Plus className="w-4 h-4 mr-2" />
-              Add Team Member
+              {isLimitReached ? 'Member Limit Reached' : 'Add Team Member'}
             </Button>
           </CardContent>
         </Card>
