@@ -4,6 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, CheckSquare, User, Calendar, Clock, AlertCircle, Edit2, Trash2, Check } from 'lucide-react';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import { Skeleton } from '../components/ui/skeleton';
