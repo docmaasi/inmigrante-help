@@ -37,14 +37,16 @@ export default function Checkout() {
           <p className="text-slate-600">
             Select the plan that best fits your caregiving needs
           </p>
-          <div className="mt-4">
+          <div className="mt-6">
             <a 
               href="https://billing.stripe.com/p/login/aFaaEX04IcA44E1cjF4AU00" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              className="inline-flex items-center justify-center gap-3 px-8 py-5 text-lg font-bold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-pulse hover:animate-none"
             >
-              Manage Your Subscription
+              <span className="text-center">
+                Manage Your Subscription, Additional Members Can Be Added Here
+              </span>
             </a>
           </div>
         </div>

@@ -1,13 +1,16 @@
+import Appointments from './pages/Appointments';
 import Calendar from './pages/Calendar';
 import CareNotes from './pages/CareNotes';
 import CarePlanBuilder from './pages/CarePlanBuilder';
 import CarePlans from './pages/CarePlans';
 import CareRecipients from './pages/CareRecipients';
+import Checkout from './pages/Checkout';
 import ClientAppointments from './pages/ClientAppointments';
 import ClientMedicationLog from './pages/ClientMedicationLog';
 import ClientPortal from './pages/ClientPortal';
 import ClientTasks from './pages/ClientTasks';
 import ClientUpdates from './pages/ClientUpdates';
+import Collaboration from './pages/Collaboration';
 import CommunicationHub from './pages/CommunicationHub';
 import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
@@ -30,26 +33,26 @@ import Scheduling from './pages/Scheduling';
 import Settings from './pages/Settings';
 import ShiftHandoff from './pages/ShiftHandoff';
 import Tasks from './pages/Tasks';
+import Team from './pages/Team';
 import TermsOfService from './pages/TermsOfService';
 import Today from './pages/Today';
-import Checkout from './pages/Checkout';
-import Collaboration from './pages/Collaboration';
-import Team from './pages/Team';
-import Appointments from './pages/Appointments';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Appointments": Appointments,
     "Calendar": Calendar,
     "CareNotes": CareNotes,
     "CarePlanBuilder": CarePlanBuilder,
     "CarePlans": CarePlans,
     "CareRecipients": CareRecipients,
+    "Checkout": Checkout,
     "ClientAppointments": ClientAppointments,
     "ClientMedicationLog": ClientMedicationLog,
     "ClientPortal": ClientPortal,
     "ClientTasks": ClientTasks,
     "ClientUpdates": ClientUpdates,
+    "Collaboration": Collaboration,
     "CommunicationHub": CommunicationHub,
     "CookiePolicy": CookiePolicy,
     "Dashboard": Dashboard,
@@ -72,12 +75,9 @@ export const PAGES = {
     "Settings": Settings,
     "ShiftHandoff": ShiftHandoff,
     "Tasks": Tasks,
+    "Team": Team,
     "TermsOfService": TermsOfService,
     "Today": Today,
-    "Checkout": Checkout,
-    "Collaboration": Collaboration,
-    "Team": Team,
-    "Appointments": Appointments,
 }
 
 export const pagesConfig = {
