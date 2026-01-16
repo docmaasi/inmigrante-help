@@ -4,6 +4,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 
 export default function Checkout() {
+  // Add subtle pulse animation style
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes subtle-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.95; transform: scale(1.02); }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
   useEffect(() => {
     // Load the Stripe pricing table script
     const script = document.createElement('script');
@@ -42,7 +54,8 @@ export default function Checkout() {
               href="https://billing.stripe.com/p/login/aFaaEX04IcA44E1cjF4AU00" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 px-8 py-5 text-lg font-bold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-pulse hover:animate-none"
+              className="inline-flex items-center justify-center gap-3 px-8 py-5 text-lg font-bold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:brightness-110"
+              style={{ animation: 'subtle-pulse 3s ease-in-out infinite' }}
             >
               <span className="text-center">
                 Manage Your Subscription, Additional Members Can Be Added Here
