@@ -51,7 +51,7 @@ export default function Checkout() {
 
         <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
           <stripe-pricing-table 
-            pricing-table-id="prctbl_1SoJZsDw3DaD2xXn0MJ3EPyq"
+            pricing-table-id="prctbl_1Sq0SNDw3DaD2xXnnwMDC51e"
             publishable-key="pk_live_51SdEBaDw3DaD2xXn8j40oxVS5GTtf2y1CT0cN9TUc29BS2suu6jjAPjCAfNwj75XKVYV7oMvgGhSCCFx4C7Zgk6v00P0JBlsS3">
           </stripe-pricing-table>
         </div>
