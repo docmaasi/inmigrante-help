@@ -46,8 +46,11 @@ export default function Checkout() {
           <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
             Choose Your Plan
           </h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 mb-3">
             Select the plan that best fits your caregiving needs
+          </p>
+          <p className="text-sm text-slate-600 max-w-3xl mx-auto">
+            During checkout, you may add one additional family member to your FamilyCare.Help subscription. If you need to include more family members or care partners, additional members can be added at any time through Subscription Management. Each additional member is billed at $5 per month, allowing you to expand access as your care team grows.
           </p>
           <div className="mt-6">
             <a 
