@@ -4,6 +4,8 @@ import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ArrowRight } from 'lucide-react';
 import ShareQRCode from '../components/shared/ShareQRCode';
+import { base44 } from '@/api/base44Client';
+import OnboardingFlow from '../components/onboarding/OnboardingFlow';
 
 const QUOTES = [
   // Care for People With Disabilities
@@ -33,6 +35,11 @@ export default function Dashboard() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [shuffledImages, setShuffledImages] = useState([]);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   useEffect(() => {
     // Shuffle images on mount
@@ -89,6 +96,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="relative max-w-7xl mx-auto px-4 md:px-8 py-16">
+        {user && <OnboardingFlow user={user} />}
         {/* Hero Section */}
         <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
           <motion.div
