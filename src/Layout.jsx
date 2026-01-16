@@ -7,6 +7,7 @@ import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
+import ShareButton from './components/shared/ShareButton';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
@@ -87,10 +88,13 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-xs text-slate-500">Coordinating care together</p>
               </div>
             </Link>
-            <NotificationBell />
-          </div>
-        </div>
-      </header>
+            <div className="flex items-center gap-2">
+              <ShareButton />
+              <NotificationBell />
+            </div>
+            </div>
+            </div>
+            </header>
 
       <NotificationGenerator />
       <LegalAcceptanceModal />
