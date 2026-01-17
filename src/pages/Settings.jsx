@@ -128,6 +128,23 @@ export default function Settings() {
                   View Legal Disclosure
                 </Link>
               </div>
+
+              {needsReacceptance() && (
+                <div className="pt-4 border-t border-slate-200">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-amber-800">
+                      Our Terms of Service or Privacy Policy has been updated. Please review and accept the latest version.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => setShowReacceptModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Re-accept Latest Terms
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -150,101 +167,6 @@ export default function Settings() {
                 <Mail className="w-4 h-4" />
                 Contact Support (familycarehelp@mail.com)
               </a>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Re-acceptance Modal */}
-      <Dialog open={showReacceptModal} onOpenChange={setShowReacceptModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <Shield className="w-6 h-6 text-blue-600" />
-              Accept Updated Terms
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <p className="text-slate-600">
-              Please review and accept our updated legal agreements.
-            </p>
-
-            <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
-              <Link 
-                to={createPageUrl('TermsOfService')} 
-                target="_blank"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-              >
-                <FileText className="w-4 h-4" />
-                Terms of Service (v{CURRENT_VERSIONS.terms_of_service})
-              </Link>
-              <Link 
-                to={createPageUrl('PrivacyPolicy')} 
-                target="_blank"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-              >
-                <Shield className="w-4 h-4" />
-                Privacy Policy (v{CURRENT_VERSIONS.privacy_policy})
-              </Link>
-            </div>
-
-            <div className="flex items-start gap-3 pt-2">
-              <Checkbox 
-                id="reaccept-terms" 
-                checked={agreedToTerms}
-                onCheckedChange={setAgreedToTerms}
-              />
-              <label 
-                htmlFor="reaccept-terms" 
-                className="text-sm text-slate-700 cursor-pointer leading-relaxed"
-              >
-                I have read and agree to the updated Terms of Service and Privacy Policy
-              </label>
-            </div>
-
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => {
-                  setShowReacceptModal(false);
-                  setAgreedToTerms(false);
-                }}
-                variant="outline"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleReaccept}
-                disabled={!agreedToTerms || reacceptMutation.isPending}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                {reacceptMutation.isPending ? 'Processing...' : 'Accept'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-              {needsReacceptance() && (
-                <div className="pt-4 border-t border-slate-200">
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-amber-800">
-                      Our Terms of Service or Privacy Policy has been updated. Please review and accept the latest version.
-                    </p>
-                  </div>
-                  <Button 
-                    onClick={() => setShowReacceptModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Re-accept Latest Terms
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
