@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, FileText, RefreshCw } from 'lucide-react';
+import { Shield, FileText, RefreshCw, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -128,6 +128,106 @@ export default function Settings() {
                   View Legal Disclosure
                 </Link>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Help & Support Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-blue-600" />
+                Help & Support
+              </CardTitle>
+              <CardDescription>
+                Need assistance? We're here to help
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <a 
+                href="mailto:familycarehelp@mail.com"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <Mail className="w-4 h-4" />
+                Contact Support (familycarehelp@mail.com)
+              </a>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Re-acceptance Modal */}
+      <Dialog open={showReacceptModal} onOpenChange={setShowReacceptModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Shield className="w-6 h-6 text-blue-600" />
+              Accept Updated Terms
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <p className="text-slate-600">
+              Please review and accept our updated legal agreements.
+            </p>
+
+            <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
+              <Link 
+                to={createPageUrl('TermsOfService')} 
+                target="_blank"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <FileText className="w-4 h-4" />
+                Terms of Service (v{CURRENT_VERSIONS.terms_of_service})
+              </Link>
+              <Link 
+                to={createPageUrl('PrivacyPolicy')} 
+                target="_blank"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <Shield className="w-4 h-4" />
+                Privacy Policy (v{CURRENT_VERSIONS.privacy_policy})
+              </Link>
+            </div>
+
+            <div className="flex items-start gap-3 pt-2">
+              <Checkbox 
+                id="reaccept-terms" 
+                checked={agreedToTerms}
+                onCheckedChange={setAgreedToTerms}
+              />
+              <label 
+                htmlFor="reaccept-terms" 
+                className="text-sm text-slate-700 cursor-pointer leading-relaxed"
+              >
+                I have read and agree to the updated Terms of Service and Privacy Policy
+              </label>
+            </div>
+
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => {
+                  setShowReacceptModal(false);
+                  setAgreedToTerms(false);
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleReaccept}
+                disabled={!agreedToTerms || reacceptMutation.isPending}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                {reacceptMutation.isPending ? 'Processing...' : 'Accept'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
               {needsReacceptance() && (
                 <div className="pt-4 border-t border-slate-200">
