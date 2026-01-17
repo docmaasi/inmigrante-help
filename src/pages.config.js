@@ -14,6 +14,7 @@ import Collaboration from './pages/Collaboration';
 import CommunicationHub from './pages/CommunicationHub';
 import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
+import Diagnostics from './pages/Diagnostics';
 import Documents from './pages/Documents';
 import Emergency from './pages/Emergency';
 import EmergencyProfile from './pages/EmergencyProfile';
@@ -36,7 +37,6 @@ import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 import TermsOfService from './pages/TermsOfService';
 import Today from './pages/Today';
-import Diagnostics from './pages/Diagnostics';
 import __Layout from './Layout.jsx';
 
 
@@ -57,6 +57,7 @@ export const PAGES = {
     "CommunicationHub": CommunicationHub,
     "CookiePolicy": CookiePolicy,
     "Dashboard": Dashboard,
+    "Diagnostics": Diagnostics,
     "Documents": Documents,
     "Emergency": Emergency,
     "EmergencyProfile": EmergencyProfile,
@@ -79,7 +80,6 @@ export const PAGES = {
     "Team": Team,
     "TermsOfService": TermsOfService,
     "Today": Today,
-    "Diagnostics": Diagnostics,
 }
 
 export const pagesConfig = {

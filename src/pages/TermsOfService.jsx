@@ -71,7 +71,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Contact</h2>
               <p>
-                Questions about the Terms of Service should be sent to terms@familycare.help
+                Questions about the Terms of Service should be sent to familycarehelp@mail.com
               </p>
             </section>
           </div>
