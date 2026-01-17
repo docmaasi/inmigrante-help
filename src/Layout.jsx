@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap } from 'lucide-react';
+import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap, Mail } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
@@ -167,6 +167,11 @@ export default function Layout({ children, currentPageName }) {
                   </Link>
                 </React.Fragment>
               ))}
+              <span className="text-slate-300">|</span>
+              <a href="mailto:familycarehelp@mail.com" className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                <Mail className="w-4 h-4" />
+                Contact Support
+              </a>
             </div>
           </div>
         </div>
