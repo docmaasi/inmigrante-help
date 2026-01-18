@@ -2,12 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap, Mail } from 'lucide-react';
+import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap, Mail, LogOut, LogIn } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
 import ShareButton from './components/shared/ShareButton';
+import { Button } from '@/components/ui/button';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
@@ -91,6 +92,27 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-2">
               <ShareButton />
               <NotificationBell />
+              {user ? (
+                <Button
+                  onClick={() => base44.auth.logout()}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-600 hover:bg-slate-100"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => base44.auth.redirectToLogin()}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-600 hover:bg-slate-100"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Login</span>
+                </Button>
+              )}
             </div>
             </div>
             </div>
