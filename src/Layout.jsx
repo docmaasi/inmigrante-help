@@ -89,9 +89,9 @@ export default function Layout({ children, currentPageName }) {
                 <p className="text-xs text-slate-500">Coordinating care together</p>
               </div>
             </Link>
-            <div className="flex items-center gap-3">
-              <NotificationBell />
+            <div className="flex items-center gap-2">
               <ShareButton />
+              <NotificationBell />
               {user ? (
                 <Button
                   onClick={() => base44.auth.logout()}
