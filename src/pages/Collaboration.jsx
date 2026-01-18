@@ -7,6 +7,7 @@ import { Users } from 'lucide-react';
 import TaskAssignmentList from '../components/collaboration/TaskAssignmentList';
 import CaregiverActivityLog from '../components/collaboration/CaregiverActivityLog';
 import SharedCalendarView from '../components/collaboration/SharedCalendarView';
+import TeamAnnouncementBanner from '../components/collaboration/TeamAnnouncementBanner';
 
 export default function Collaboration() {
   const [user, setUser] = useState(null);
@@ -77,6 +78,13 @@ export default function Collaboration() {
 
         {selectedRecipient && (
           <>
+            {/* Team Announcements */}
+            <Card className="mb-6 bg-gradient-to-br from-blue-50 to-purple-50">
+              <CardContent className="pt-6">
+                <TeamAnnouncementBanner careRecipientId={selectedRecipientId} />
+              </CardContent>
+            </Card>
+
             {/* Team Members Info */}
             <Card className="mb-6">
               <CardHeader>

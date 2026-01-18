@@ -4,13 +4,16 @@ import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Circle, AlertCircle, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import TaskCommentsDialog from './TaskCommentsDialog';
 
 export default function TaskAssignmentList({ careRecipientId }) {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [commentsOpen, setCommentsOpen] = useState(false);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -24,6 +27,18 @@ export default function TaskAssignmentList({ careRecipientId }) {
     ),
     enabled: !!careRecipientId
   });
+
+  const { data: allComments = [] } = useQuery({
+    queryKey: ['allTaskComments', careRecipientId],
+    queryFn: () => base44.entities.TaskComment.filter(
+      { care_recipient_id: careRecipientId }
+    ),
+    enabled: !!careRecipientId
+  });
+
+  const getCommentCount = (taskId) => {
+    return allComments.filter(c => c.task_id === taskId).length;
+  };
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['teamMembers', careRecipientId],
@@ -113,14 +128,26 @@ export default function TaskAssignmentList({ careRecipientId }) {
                     </p>
                   )}
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleTaskComplete(task)}
-                  className="ml-4"
-                >
-                  Mark Done
-                </Button>
+                <div className="flex gap-2 ml-4">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setSelectedTask(task);
+                      setCommentsOpen(true);
+                    }}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-1" />
+                    {getCommentCount(task.id) || 0}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleTaskComplete(task)}
+                  >
+                    Mark Done
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -150,6 +177,18 @@ export default function TaskAssignmentList({ careRecipientId }) {
                     {task.due_date && (
                       <span>Due: {format(new Date(task.due_date), 'MMM d')}</span>
                     )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-xs"
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setCommentsOpen(true);
+                      }}
+                    >
+                      <MessageSquare className="w-3 h-3 mr-1" />
+                      {getCommentCount(task.id)} comments
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -157,6 +196,14 @@ export default function TaskAssignmentList({ careRecipientId }) {
           </div>
         )}
       </Card>
+
+      {selectedTask && (
+        <TaskCommentsDialog
+          task={selectedTask}
+          open={commentsOpen}
+          onOpenChange={setCommentsOpen}
+        />
+      )}
     </div>
   );
 }
