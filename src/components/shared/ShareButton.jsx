@@ -40,7 +40,7 @@ export default function ShareButton() {
       onClick={handleShare}
       variant="ghost"
       size="icon"
-      className="text-slate-600 hover:bg-slate-100 relative"
+      className="text-slate-600 hover:bg-slate-100 relative mt-2"
       title={copied ? 'Copied!' : 'Share'}
     >
       {copied ? (
