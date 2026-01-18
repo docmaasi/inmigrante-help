@@ -45,22 +45,15 @@ export default function Team() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const result = await base44.functions['add-team-member-with-limit-check']({ memberData: data });
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      return result;
+      return await base44.entities.TeamMember.create(data);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries(['teamMembers']);
-      const message = data.remainingSlots > 0 
-        ? `Team member added! You have ${data.remainingSlots} slot${data.remainingSlots > 1 ? 's' : ''} remaining.`
-        : 'Team member added! You have reached your member limit.';
-      toast.success(message);
+      toast.success('Team member added successfully!');
       handleCloseDialog();
     },
     onError: (error) => {
-      toast.error(error.message);
+      toast.error(error.message || 'Failed to add team member');
     }
   });
 
