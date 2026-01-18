@@ -399,7 +399,7 @@ export default function Documents() {
                 <Button type="button" variant="outline" onClick={handleCloseDialog} disabled={uploading}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={uploading}>
+                <Button type="submit" disabled={uploading} className="bg-blue-600 hover:bg-blue-700 text-white">
                   {uploading ? 'Uploading...' : 'Upload Document'}
                 </Button>
               </div>
