@@ -16,7 +16,9 @@ const typeColors = {
   doctor: 'bg-blue-100 text-blue-700 border-blue-200',
   specialist: 'bg-purple-100 text-purple-700 border-purple-200',
   therapy: 'bg-green-100 text-green-700 border-green-200',
-  test: 'bg-orange-100 text-orange-700 border-orange-200',
+  dentist: 'bg-teal-100 text-teal-700 border-teal-200',
+  lab_test: 'bg-orange-100 text-orange-700 border-orange-200',
+  hospital: 'bg-red-100 text-red-700 border-red-200',
   other: 'bg-slate-100 text-slate-700 border-slate-200'
 };
 
@@ -25,15 +27,14 @@ export default function Appointments() {
   const [formData, setFormData] = useState({
     care_recipient_id: '',
     title: '',
-    type: 'doctor',
-    custom_type: '',
+    appointment_type: 'doctor',
     date: '',
     time: '',
     location: '',
-    doctor_name: '',
-    assigned_to: '',
+    provider_name: '',
+    assigned_caregiver: '',
     notes: '',
-    completed: false
+    status: 'scheduled'
   });
 
   const queryClient = useQueryClient();
@@ -58,7 +59,7 @@ export default function Appointments() {
   });
 
   const toggleCompleteMutation = useMutation({
-    mutationFn: ({ id, completed }) => base44.entities.Appointment.update(id, { completed }),
+    mutationFn: ({ id, status }) => base44.entities.Appointment.update(id, { status }),
     onSuccess: () => queryClient.invalidateQueries(['appointments']),
   });
 
@@ -66,15 +67,14 @@ export default function Appointments() {
     setFormData({
       care_recipient_id: '',
       title: '',
-      type: 'doctor',
-      custom_type: '',
+      appointment_type: 'doctor',
       date: '',
       time: '',
       location: '',
-      doctor_name: '',
-      assigned_to: '',
+      provider_name: '',
+      assigned_caregiver: '',
       notes: '',
-      completed: false
+      status: 'scheduled'
     });
   };
 
@@ -146,8 +146,8 @@ export default function Appointments() {
                   <div className="space-y-2">
                     <Label>Type</Label>
                     <Select
-                      value={formData.type}
-                      onValueChange={(value) => setFormData({...formData, type: value})}
+                      value={formData.appointment_type}
+                      onValueChange={(value) => setFormData({...formData, appointment_type: value})}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -156,21 +156,23 @@ export default function Appointments() {
                         <SelectItem value="doctor">Doctor Visit</SelectItem>
                         <SelectItem value="specialist">Specialist</SelectItem>
                         <SelectItem value="therapy">Therapy</SelectItem>
-                        <SelectItem value="test">Test/Lab</SelectItem>
+                        <SelectItem value="dentist">Dentist</SelectItem>
+                        <SelectItem value="lab_test">Lab Test</SelectItem>
+                        <SelectItem value="hospital">Hospital</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                {formData.type === 'other' && (
+                {formData.appointment_type === 'other' && (
                   <div className="space-y-2">
-                    <Label htmlFor="custom_type">Specify Type *</Label>
+                    <Label htmlFor="title">Specify Appointment Type *</Label>
                     <Input
-                      id="custom_type"
-                      value={formData.custom_type}
-                      onChange={(e) => setFormData({...formData, custom_type: e.target.value})}
-                      placeholder="e.g., Physical Therapy, Vision Test"
+                      id="other_title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      placeholder="e.g., Physical Therapy, Vision Test, Social Worker"
                       required
                     />
                   </div>
@@ -208,23 +210,23 @@ export default function Appointments() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="doctor">Doctor Name</Label>
+                    <Label htmlFor="doctor">Provider Name</Label>
                     <Input
                       id="doctor"
-                      value={formData.doctor_name}
-                      onChange={(e) => setFormData({...formData, doctor_name: e.target.value})}
+                      value={formData.provider_name}
+                      onChange={(e) => setFormData({...formData, provider_name: e.target.value})}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="assigned">Assigned To (email)</Label>
+                  <Label htmlFor="assigned">Assigned Caregiver (email)</Label>
                   <Input
                     id="assigned"
                     type="email"
-                    value={formData.assigned_to}
-                    onChange={(e) => setFormData({...formData, assigned_to: e.target.value})}
-                    placeholder="family.member@email.com"
+                    value={formData.assigned_caregiver}
+                    onChange={(e) => setFormData({...formData, assigned_caregiver: e.target.value})}
+                    placeholder="caregiver@email.com"
                   />
                 </div>
 
@@ -291,8 +293,8 @@ export default function Appointments() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-lg font-medium text-slate-800">{apt.title}</h3>
-                      <Badge className={`${typeColors[apt.type]} border`}>
-                        {apt.type}
+                      <Badge className={`${typeColors[apt.appointment_type]} border`}>
+                        {apt.appointment_type?.replace('_', ' ')}
                       </Badge>
                     </div>
                     <p className="text-sm text-slate-600">
@@ -300,14 +302,17 @@ export default function Appointments() {
                     </p>
                   </div>
                   <button
-                    onClick={() => toggleCompleteMutation.mutate({ id: apt.id, completed: !apt.completed })}
+                    onClick={() => toggleCompleteMutation.mutate({ 
+                      id: apt.id, 
+                      status: apt.status === 'completed' ? 'scheduled' : 'completed' 
+                    })}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      apt.completed 
+                      apt.status === 'completed'
                         ? 'bg-green-100 text-green-700 hover:bg-green-200' 
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {apt.completed ? 'Completed' : 'Mark Complete'}
+                    {apt.status === 'completed' ? 'Completed' : 'Mark Complete'}
                   </button>
                 </div>
 
@@ -328,16 +333,16 @@ export default function Appointments() {
                       {apt.location}
                     </div>
                   )}
-                  {apt.doctor_name && (
+                  {apt.provider_name && (
                     <div className="flex items-center gap-2 text-slate-600">
                       <User className="w-4 h-4 text-slate-400" />
-                      Dr. {apt.doctor_name}
+                      {apt.provider_name}
                     </div>
                   )}
-                  {apt.assigned_to && (
+                  {apt.assigned_caregiver && (
                     <div className="mt-3 pt-3 border-t border-slate-100">
                       <span className="text-xs text-slate-500">Assigned to: </span>
-                      <span className="text-xs text-slate-700 font-medium">{apt.assigned_to}</span>
+                      <span className="text-xs text-slate-700 font-medium">{apt.assigned_caregiver}</span>
                     </div>
                   )}
                   {apt.notes && (
