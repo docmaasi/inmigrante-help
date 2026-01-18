@@ -76,20 +76,20 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex items-center justify-between gap-4">
-            <Link to={createPageUrl('Dashboard')} className="flex items-center gap-2 min-w-0 flex-shrink">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg" 
                 alt="FamilyCare.Help Logo" 
-                className="w-8 h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
+                className="w-10 h-10 object-contain"
               />
-              <div className="hidden sm:block min-w-0">
-                <h1 className="text-sm md:text-lg font-medium text-slate-800 truncate">www.FamilyCare<span className="text-orange-500">.Help</span></h1>
-                <p className="text-xs text-slate-500 hidden md:block">Coordinating care together</p>
+              <div>
+                <h1 className="text-xl font-medium text-slate-800">www.FamilyCare<span className="text-orange-500">.Help</span></h1>
+                <p className="text-xs text-slate-500">Coordinating care together</p>
               </div>
             </Link>
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2">
               <ShareButton />
               <NotificationBell />
               {user ? (
@@ -99,8 +99,8 @@ export default function Layout({ children, currentPageName }) {
                   size="sm"
                   className="text-slate-600 hover:bg-slate-100"
                 >
-                  <LogOut className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">Logout</span>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Logout</span>
                 </Button>
               ) : (
                 <Button
@@ -109,14 +109,14 @@ export default function Layout({ children, currentPageName }) {
                   size="sm"
                   className="text-slate-600 hover:bg-slate-100"
                 >
-                  <LogIn className="w-4 h-4 md:mr-2" />
-                  <span className="hidden md:inline">Login</span>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Login</span>
                 </Button>
               )}
             </div>
-          </div>
-        </div>
-      </header>
+            </div>
+            </div>
+            </header>
 
       <NotificationGenerator />
       <LegalAcceptanceModal />
