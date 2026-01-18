@@ -28,6 +28,7 @@ export default function Appointments() {
     care_recipient_id: '',
     title: '',
     appointment_type: 'doctor',
+    other_type: '',
     date: '',
     time: '',
     location: '',
@@ -68,6 +69,7 @@ export default function Appointments() {
       care_recipient_id: '',
       title: '',
       appointment_type: 'doctor',
+      other_type: '',
       date: '',
       time: '',
       location: '',
@@ -167,11 +169,11 @@ export default function Appointments() {
 
                 {formData.appointment_type === 'other' && (
                   <div className="space-y-2">
-                    <Label htmlFor="title">Specify Appointment Type *</Label>
+                    <Label htmlFor="other_type">Specify Appointment Type *</Label>
                     <Input
-                      id="other_title"
-                      value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      id="other_type"
+                      value={formData.other_type}
+                      onChange={(e) => setFormData({...formData, other_type: e.target.value})}
                       placeholder="e.g., Physical Therapy, Vision Test, Social Worker"
                       required
                     />
