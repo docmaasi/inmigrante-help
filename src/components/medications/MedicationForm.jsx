@@ -314,7 +314,7 @@ export default function MedicationForm({ medication, recipients, onClose }) {
             <Button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             >
               {saveMutation.isPending ? (
                 <>

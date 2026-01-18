@@ -445,6 +445,7 @@ export default function Tasks() {
                         setSelectedTask(task);
                         setShowForm(true);
                       }}
+                      className="text-slate-700"
                     >
                       <Edit2 className="w-3 h-3 mr-1" />
                       Edit

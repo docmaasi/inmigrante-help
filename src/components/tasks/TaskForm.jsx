@@ -253,7 +253,7 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
             <Button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
             >
               {saveMutation.isPending ? (
                 <>
