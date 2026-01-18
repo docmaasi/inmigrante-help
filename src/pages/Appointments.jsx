@@ -84,7 +84,7 @@ export default function Appointments() {
   };
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.name || 'Unknown';
+    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
   };
 
   return (
@@ -126,7 +126,7 @@ export default function Appointments() {
                     <SelectContent>
                       {recipients.map(recipient => (
                         <SelectItem key={recipient.id} value={recipient.id}>
-                          {recipient.name}
+                          {recipient.full_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
