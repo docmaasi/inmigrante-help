@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { X, Loader2, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
 
 export default function TaskForm({ task, recipients, teamMembers = [], onClose }) {
@@ -191,13 +191,13 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.due_date ? format(new Date(formData.due_date), 'PPP') : <span>Pick a date</span>}
+                    {formData.due_date ? format(parseISO(formData.due_date), 'PPP') : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={formData.due_date ? new Date(formData.due_date) : null}
+                    selected={formData.due_date ? parseISO(formData.due_date) : null}
                     onSelect={(date) => setFormData({ ...formData, due_date: date ? format(date, 'yyyy-MM-dd') : '' })}
                     initialFocus
                   />
