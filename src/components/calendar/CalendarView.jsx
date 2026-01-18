@@ -450,7 +450,7 @@ export default function CalendarView() {
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="flex gap-2 mt-3">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           {event.type === 'appointment' && (
                             <>
                               <Button
