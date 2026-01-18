@@ -124,26 +124,25 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="task_type">Task Type</Label>
-              <Select
+              <Input
+                id="task_type"
                 value={formData.task_type}
-                onValueChange={(value) => setFormData({ ...formData, task_type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="personal_care">Personal Care</SelectItem>
-                  <SelectItem value="meal_prep">Meal Prep</SelectItem>
-                  <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="medication">Medication</SelectItem>
-                  <SelectItem value="housekeeping">Housekeeping</SelectItem>
-                  <SelectItem value="companionship">Companionship</SelectItem>
-                  <SelectItem value="exercise">Exercise</SelectItem>
-                  <SelectItem value="shopping">Shopping</SelectItem>
-                  <SelectItem value="bill_payment">Bill Payment</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => setFormData({ ...formData, task_type: e.target.value })}
+                placeholder="e.g., personal_care, meal_prep, transportation"
+                list="task-type-suggestions"
+              />
+              <datalist id="task-type-suggestions">
+                <option value="personal_care">Personal Care</option>
+                <option value="meal_prep">Meal Prep</option>
+                <option value="transportation">Transportation</option>
+                <option value="medication">Medication</option>
+                <option value="housekeeping">Housekeeping</option>
+                <option value="companionship">Companionship</option>
+                <option value="exercise">Exercise</option>
+                <option value="shopping">Shopping</option>
+                <option value="bill_payment">Bill Payment</option>
+                <option value="other">Other</option>
+              </datalist>
             </div>
 
             <div className="space-y-2">
