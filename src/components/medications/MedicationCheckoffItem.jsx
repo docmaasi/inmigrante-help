@@ -59,6 +59,21 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
 
   const hasTakenToday = todayLogs.some(log => log.status === 'taken');
 
+  // Auto-save notes to localStorage
+  useEffect(() => {
+    const key = `med-notes-${medication.id}`;
+    localStorage.setItem(key, notes);
+  }, [notes, medication.id]);
+
+  // Load saved notes on mount
+  useEffect(() => {
+    const key = `med-notes-${medication.id}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      setNotes(saved);
+    }
+  }, [medication.id]);
+
   return (
     <Card className={`shadow-sm border-slate-200/60 ${hasTakenToday ? 'bg-green-50/50' : ''}`}>
       <CardContent className="p-5">
