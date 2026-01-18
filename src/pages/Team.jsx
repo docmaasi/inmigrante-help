@@ -45,14 +45,9 @@ export default function Team() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await fetch('/api/functions/add-team-member-with-limit-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberData: data })
-      });
-      const result = await response.json();
-      if (!response.ok || result.error) {
-        throw new Error(result.error || 'Failed to add team member');
+      const result = await base44.functions['add-team-member-with-limit-check']({ memberData: data });
+      if (result.error) {
+        throw new Error(result.error);
       }
       return result;
     },
