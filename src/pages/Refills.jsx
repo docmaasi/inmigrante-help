@@ -289,7 +289,7 @@ export default function Refills() {
               <Button type="button" variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createRefillMutation.isPending} className="text-white">
+              <Button type="submit" disabled={createRefillMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
                 {createRefillMutation.isPending ? 'Creating...' : 'Create Reminder'}
               </Button>
             </div>
