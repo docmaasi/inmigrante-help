@@ -126,7 +126,7 @@ export default function Appointments() {
                       <SelectValue placeholder="Select recipient" />
                     </SelectTrigger>
                     <SelectContent>
-                      {recipients.map(recipient => (
+                      {recipients?.map(recipient => (
                         <SelectItem key={recipient.id} value={recipient.id}>
                           {recipient.full_name}
                         </SelectItem>
@@ -286,7 +286,7 @@ export default function Appointments() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {appointments.map(apt => (
+            {appointments?.map(apt => (
               <div 
                 key={apt.id}
                 className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-shadow"
