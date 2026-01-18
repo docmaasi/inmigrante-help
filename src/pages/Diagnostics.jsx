@@ -71,32 +71,7 @@ export default function Diagnostics() {
       });
     }
 
-    // Test 3: Team Member Limits
-    try {
-      const teamMembers = await base44.entities.TeamMember.filter({ active: true });
-      const subscriptions = await base44.entities.Subscription.filter({ user_email: user.email });
-      const activeSubscription = subscriptions.find(s => s.status === 'active');
-      
-      const maxMembers = activeSubscription?.max_care_recipients || 1;
-      const currentCount = teamMembers.length;
-      const withinLimit = currentCount <= maxMembers;
-
-      results.push({
-        name: 'Team Member Limits',
-        status: withinLimit ? 'success' : 'warning',
-        message: `${currentCount}/${maxMembers} team members`,
-        details: { current: currentCount, max: maxMembers, withinLimit }
-      });
-    } catch (error) {
-      results.push({
-        name: 'Team Member Limits',
-        status: 'error',
-        message: 'Failed to verify limits',
-        details: { error: error.message }
-      });
-    }
-
-    // Test 4: Care Recipients
+    // Test 3: Care Recipients
     try {
       const recipients = await base44.entities.CareRecipient.list();
       results.push({
