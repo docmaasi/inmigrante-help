@@ -197,10 +197,8 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={formData.due_date ? new Date(formData.due_date) : undefined}
-                    onSelect={(date) => {
-                      setFormData({ ...formData, due_date: date ? format(date, 'yyyy-MM-dd') : '' });
-                    }}
+                    selected={formData.due_date ? new Date(formData.due_date) : null}
+                    onSelect={(date) => setFormData({ ...formData, due_date: date ? format(date, 'yyyy-MM-dd') : '' })}
                     initialFocus
                   />
                 </PopoverContent>
