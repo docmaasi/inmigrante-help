@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Pill, CheckSquare, User, Filter, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Pill, CheckSquare, User, Filter, CheckCircle2, AlertCircle, Clock, Edit } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Card, CardContent } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, parseISO, addMonths, subMonths, startOfWeek, endOfWeek, startOfDay, addDays, addWeeks, subWeeks } from 'date-fns';
 import { toast } from 'sonner';
+import AppointmentForm from '../appointments/AppointmentForm';
+import TaskForm from '../tasks/TaskForm';
 
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -16,6 +18,8 @@ export default function CalendarView() {
   const [filterRecipient, setFilterRecipient] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [draggedEvent, setDraggedEvent] = useState(null);
+  const [editingAppointment, setEditingAppointment] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: appointments = [] } = useQuery({
@@ -447,31 +451,30 @@ export default function CalendarView() {
 
                         {/* Quick Actions */}
                         <div className="flex gap-2 mt-3">
-                          {event.type === 'task' && event.data.status !== 'completed' && event.data.status !== 'cancelled' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateTaskMutation.mutate({ id: event.data.id, data: { ...event.data, status: 'completed' } })}
-                              className="text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              disabled={updateTaskMutation.isPending}
-                            >
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Complete
-                            </Button>
-                          )}
-                          {event.type === 'appointment' && event.data.status !== 'completed' && (
+                          {event.type === 'appointment' && (
                             <>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => updateAppointmentStatusMutation.mutate({ id: event.data.id, status: 'completed' })}
-                                className="text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                disabled={updateAppointmentStatusMutation.isPending}
+                                onClick={() => setEditingAppointment(event.data)}
+                                className="text-xs h-7"
                               >
-                                <CheckCircle2 className="w-3 h-3 mr-1" />
-                                Complete
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
                               </Button>
-                              {event.data.status !== 'cancelled' && (
+                              {event.data.status !== 'completed' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateAppointmentStatusMutation.mutate({ id: event.data.id, status: 'completed' })}
+                                  className="text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  disabled={updateAppointmentStatusMutation.isPending}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Complete
+                                </Button>
+                              )}
+                              {event.data.status !== 'cancelled' && event.data.status !== 'completed' && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -481,6 +484,31 @@ export default function CalendarView() {
                                 >
                                   <AlertCircle className="w-3 h-3 mr-1" />
                                   Cancel
+                                </Button>
+                              )}
+                            </>
+                          )}
+                          {event.type === 'task' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingTask(event.data)}
+                                className="text-xs h-7"
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
+                              {event.data.status !== 'completed' && event.data.status !== 'cancelled' && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateTaskMutation.mutate({ id: event.data.id, data: { ...event.data, status: 'completed' } })}
+                                  className="text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  disabled={updateTaskMutation.isPending}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Complete
                                 </Button>
                               )}
                             </>
@@ -498,6 +526,20 @@ export default function CalendarView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Dialogs */}
+      {editingAppointment && (
+        <AppointmentForm
+          appointment={editingAppointment}
+          onClose={() => setEditingAppointment(null)}
+        />
+      )}
+      {editingTask && (
+        <TaskForm
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
     </div>
   );
 }
