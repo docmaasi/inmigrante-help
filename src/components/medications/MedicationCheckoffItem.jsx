@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 export default function MedicationCheckoffItem({ medication, recipientName }) {
   const [showLogs, setShowLogs] = useState(false);
   const [notes, setNotes] = useState('');
+  const notesRef = useRef(null);
   const queryClient = useQueryClient();
 
   const today = new Date().toISOString().split('T')[0];
