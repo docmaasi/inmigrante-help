@@ -31,7 +31,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Medications', icon: Pill, path: 'Medications', bg: 'bg-rose-50' },
     { name: 'Refills', icon: Bell, path: 'Refills', bg: 'bg-indigo-50' },
     { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog', bg: 'bg-teal-50' },
-    { name: 'Team', icon: UserCheck, path: 'Team', bg: 'bg-lime-50' },
+    { name: 'Team/Family', icon: UserCheck, path: 'Team', bg: 'bg-lime-50' },
     { name: 'Emergency', icon: AlertCircle, path: 'EmergencyProfile', bg: 'bg-red-50' },
     { name: 'Tasks', icon: ListTodo, path: 'Tasks', bg: 'bg-sky-50' },
     { name: 'Shift Handoff', icon: Clock, path: 'ShiftHandoff', bg: 'bg-emerald-50' },
