@@ -165,6 +165,19 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
             </div>
           </div>
 
+          {formData.task_type === 'other' && (
+            <div className="space-y-2">
+              <Label htmlFor="custom_task_type">Specify Task Type *</Label>
+              <Input
+                id="custom_task_type"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="e.g., Garden maintenance, Pet care"
+                required
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="due_date">Due Date</Label>

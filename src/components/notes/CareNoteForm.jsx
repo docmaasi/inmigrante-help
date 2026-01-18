@@ -96,21 +96,37 @@ export default function CareNoteForm({ note, recipients, onClose }) {
                   <SelectItem value="behavior">Behavior</SelectItem>
                   <SelectItem value="mood">Mood</SelectItem>
                   <SelectItem value="vital_signs">Vital Signs</SelectItem>
+                  <SelectItem value="shift_handoff">Shift Handoff</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Brief summary (optional)"
-            />
-          </div>
+          {formData.note_type === 'other' && (
+            <div className="space-y-2">
+              <Label htmlFor="custom_note_type">Specify Note Type *</Label>
+              <Input
+                id="custom_note_type"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="e.g., Special event, Visitor note"
+                required
+              />
+            </div>
+          )}
+
+          {formData.note_type !== 'other' && (
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Brief summary (optional)"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="content">Note Content *</Label>
