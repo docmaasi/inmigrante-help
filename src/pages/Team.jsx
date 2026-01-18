@@ -412,7 +412,7 @@ export default function Team() {
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
                 {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingMember ? 'Update' : 'Add Member'}
               </Button>
             </div>
