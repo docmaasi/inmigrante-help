@@ -3,12 +3,11 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, FileText, RefreshCw, Mail, CreditCard } from 'lucide-react';
+import { Shield, FileText, RefreshCw, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from 'sonner';
 
 // Current document versions - increment these when legal docs are updated
 const CURRENT_VERSIONS = {
@@ -19,7 +18,6 @@ const CURRENT_VERSIONS = {
 export default function Settings() {
   const [showReacceptModal, setShowReacceptModal] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [loadingPortal, setLoadingPortal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -78,64 +76,12 @@ export default function Settings() {
     }
   };
 
-  const handleManageSubscription = async () => {
-    setLoadingPortal(true);
-    try {
-      const result = await base44.functions.createStripePortalSession();
-      
-      if (result.ok && result.url) {
-        // Redirect to Stripe Customer Portal
-        window.location.href = result.url;
-      } else if (result.code === 'NO_CUSTOMER') {
-        // User has no billing profile - direct to subscribe page
-        toast.error('No billing profile found. Please subscribe first.');
-        setTimeout(() => {
-          window.location.href = createPageUrl('Checkout');
-        }, 1500);
-      } else {
-        // Other errors
-        toast.error(result.message || 'Unable to open billing portal. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error opening billing portal:', error);
-      toast.error('Unable to open billing portal. Please try again.');
-    } finally {
-      setLoadingPortal(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-4xl mx-auto px-4 md:px-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-8">Settings</h1>
 
         <div className="space-y-6">
-          {/* Billing & Subscription Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                Billing & Subscription
-              </CardTitle>
-              <CardDescription>
-                Manage your subscription, payment methods, and billing history
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                onClick={handleManageSubscription}
-                disabled={loadingPortal}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                {loadingPortal ? 'Opening Portal...' : 'Manage Subscription'}
-              </Button>
-              <p className="text-xs text-slate-500 mt-3">
-                Update payment method, view invoices, or cancel subscription
-              </p>
-            </CardContent>
-          </Card>
-
           {/* Legal & Privacy Section */}
           <Card>
             <CardHeader>
