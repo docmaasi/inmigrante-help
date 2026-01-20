@@ -81,7 +81,7 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
             const slot = availability.find(a => a.day_of_week === index);
 
             return (
-              <div key={index} className="flex items-center gap-4 p-3 border border-slate-200 rounded-lg">
+              <div key={index} className="flex flex-wrap items-center gap-3 p-3 border border-slate-200 rounded-lg">
                 <div className="w-20">
                   <span className="font-medium text-sm text-slate-800">{day}</span>
                 </div>
@@ -89,7 +89,6 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
                 <Switch
                   checked={slot?.is_available ?? false}
                   onCheckedChange={() => handleToggleDay(index, slot)}
-                  className="ml-auto"
                 />
 
                 {slot?.is_available && (
@@ -98,14 +97,14 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
                       type="time"
                       value={slot.available_from}
                       onChange={(e) => handleUpdateTime(index, 'available_from', e.target.value)}
-                      className="w-28 text-sm font-medium"
+                      className="w-24 text-sm font-medium"
                     />
                     <span className="text-sm text-slate-600 font-medium">to</span>
                     <Input
                       type="time"
                       value={slot.available_until}
                       onChange={(e) => handleUpdateTime(index, 'available_until', e.target.value)}
-                      className="w-28 text-sm font-medium"
+                      className="w-24 text-sm font-medium"
                     />
                   </div>
                 )}
