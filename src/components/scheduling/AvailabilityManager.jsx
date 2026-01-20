@@ -93,19 +93,19 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
                 />
 
                 {slot?.is_available && (
-                  <div className="flex items-center gap-3 ml-4">
+                  <div className="flex items-center gap-2">
                     <Input
                       type="time"
                       value={slot.available_from}
                       onChange={(e) => handleUpdateTime(index, 'available_from', e.target.value)}
-                      className="w-32 text-sm font-medium"
+                      className="w-28 text-sm font-medium"
                     />
                     <span className="text-sm text-slate-600 font-medium">to</span>
                     <Input
                       type="time"
                       value={slot.available_until}
                       onChange={(e) => handleUpdateTime(index, 'available_until', e.target.value)}
-                      className="w-32 text-sm font-medium"
+                      className="w-28 text-sm font-medium"
                     />
                   </div>
                 )}
