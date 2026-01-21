@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAppointments, useCreateAppointment, useUpdateAppointment, useCareRecipients } from '@/hooks';
 import { Plus, Calendar, MapPin, User, Clock } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -28,53 +27,31 @@ export default function Appointments() {
     care_recipient_id: '',
     title: '',
     appointment_type: 'doctor',
-    other_type: '',
-    date: '',
-    time: '',
+    description: '',
+    start_time: '',
+    end_time: '',
     location: '',
     provider_name: '',
-    assigned_caregiver: '',
     notes: '',
     status: 'scheduled'
   });
 
-  const queryClient = useQueryClient();
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: appointments = [], isLoading } = useAppointments();
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['recipients'],
-    queryFn: () => base44.entities.CareRecipient.list(),
-  });
-
-  const { data: appointments = [], isLoading } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.list('-date'),
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Appointment.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['appointments']);
-      setIsDialogOpen(false);
-      resetForm();
-    },
-  });
-
-  const toggleCompleteMutation = useMutation({
-    mutationFn: ({ id, status }) => base44.entities.Appointment.update(id, { status }),
-    onSuccess: () => queryClient.invalidateQueries(['appointments']),
-  });
+  const createMutation = useCreateAppointment();
+  const updateMutation = useUpdateAppointment();
 
   const resetForm = () => {
     setFormData({
       care_recipient_id: '',
       title: '',
       appointment_type: 'doctor',
-      other_type: '',
-      date: '',
-      time: '',
+      description: '',
+      start_time: '',
+      end_time: '',
       location: '',
       provider_name: '',
-      assigned_caregiver: '',
       notes: '',
       status: 'scheduled'
     });
@@ -82,30 +59,67 @@ export default function Appointments() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    createMutation.mutate(formData);
+
+    const appointmentData = {
+      care_recipient_id: formData.care_recipient_id,
+      title: formData.title,
+      appointment_type: formData.appointment_type,
+      description: formData.description || null,
+      start_time: formData.start_time,
+      end_time: formData.end_time || null,
+      location: formData.location || null,
+      provider_name: formData.provider_name || null,
+      notes: formData.notes || null,
+      status: formData.status
+    };
+
+    createMutation.mutate(appointmentData, {
+      onSuccess: () => {
+        setIsDialogOpen(false);
+        resetForm();
+      }
+    });
   };
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+    const recipient = recipients.find(r => r.id === id);
+    if (recipient) {
+      return `${recipient.first_name} ${recipient.last_name}`;
+    }
+    return 'Unknown';
+  };
+
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return '';
+    try {
+      const date = parseISO(dateTimeString);
+      return format(date, 'MMMM d, yyyy');
+    } catch {
+      return '';
+    }
+  };
+
+  const formatTime = (dateTimeString) => {
+    if (!dateTimeString) return '';
+    try {
+      const date = parseISO(dateTimeString);
+      return format(date, 'h:mm a');
+    } catch {
+      return '';
+    }
   };
 
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/6ebff87ba_Untitleddesign17.png)'
-        }}
-      />
-      <div className="relative max-w-7xl mx-auto">
-        <div className="mb-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Appointments</h1>
-            <p className="text-sm md:text-base text-slate-700">Schedule and track medical visits</p>
+            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">Appointments</h1>
+            <p className="text-sm md:text-base text-slate-500 mt-1">Schedule and track medical visits</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="mt-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Appointment
               </Button>
@@ -128,7 +142,7 @@ export default function Appointments() {
                     <SelectContent>
                       {recipients?.map(recipient => (
                         <SelectItem key={recipient.id} value={recipient.id}>
-                          {recipient.full_name}
+                          {recipient.first_name} {recipient.last_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -167,37 +181,35 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                {formData.appointment_type === 'other' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="other_type">Specify Appointment Type *</Label>
-                    <Input
-                      id="other_type"
-                      value={formData.other_type}
-                      onChange={(e) => setFormData({...formData, other_type: e.target.value})}
-                      placeholder="e.g., Physical Therapy, Vision Test, Social Worker"
-                      required
-                    />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Brief description of the appointment"
+                    rows={2}
+                  />
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="date">Date *</Label>
+                    <Label htmlFor="start_time">Start Date & Time *</Label>
                     <Input
-                      id="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      id="start_time"
+                      type="datetime-local"
+                      value={formData.start_time}
+                      onChange={(e) => setFormData({...formData, start_time: e.target.value})}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="time">Time</Label>
+                    <Label htmlFor="end_time">End Date & Time</Label>
                     <Input
-                      id="time"
-                      type="time"
-                      value={formData.time}
-                      onChange={(e) => setFormData({...formData, time: e.target.value})}
+                      id="end_time"
+                      type="datetime-local"
+                      value={formData.end_time}
+                      onChange={(e) => setFormData({...formData, end_time: e.target.value})}
                     />
                   </div>
                 </div>
@@ -222,17 +234,6 @@ export default function Appointments() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="assigned">Assigned Caregiver (email)</Label>
-                  <Input
-                    id="assigned"
-                    type="email"
-                    value={formData.assigned_caregiver}
-                    onChange={(e) => setFormData({...formData, assigned_caregiver: e.target.value})}
-                    placeholder="caregiver@email.com"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="notes">Notes</Label>
                   <Textarea
                     id="notes"
@@ -242,11 +243,11 @@ export default function Appointments() {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-end gap-3 pt-2">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button type="submit" disabled={createMutation.isPending} className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
                     {createMutation.isPending ? 'Scheduling...' : 'Schedule Appointment'}
                   </Button>
                 </div>
@@ -256,9 +257,9 @@ export default function Appointments() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 border border-slate-200/60">
+              <div key={i} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <Skeleton className="h-6 w-3/4 mb-2" />
@@ -275,42 +276,44 @@ export default function Appointments() {
             ))}
           </div>
         ) : appointments.length === 0 ? (
-          <div className="text-center py-12 md:py-16">
-            <Calendar className="w-12 h-12 md:w-16 md:h-16 text-purple-300 mx-auto mb-4" />
-            <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No appointments scheduled</h3>
-            <p className="text-sm md:text-base text-slate-500 mb-6">Schedule your first appointment</p>
-            <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-12 md:p-16 text-center">
+            <div className="w-14 h-14 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-7 h-7 text-teal-600" />
+            </div>
+            <h3 className="text-lg md:text-xl font-medium text-slate-800 mb-2">No appointments scheduled</h3>
+            <p className="text-sm md:text-base text-slate-500 mb-6">Schedule your first appointment to get started</p>
+            <Button onClick={() => setIsDialogOpen(true)} className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
               <Plus className="w-4 h-4 mr-2" />
               Add Appointment
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {appointments?.map(apt => (
-              <div 
+              <div
                 key={apt.id}
-                className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-shadow"
+                className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-lg font-medium text-slate-800">{apt.title}</h3>
-                      <Badge className={`${typeColors[apt.appointment_type]} border`}>
+                      <Badge className={`${typeColors[apt.appointment_type] || typeColors.other} border`}>
                         {apt.appointment_type?.replace('_', ' ')}
                       </Badge>
                     </div>
                     <p className="text-sm text-slate-600">
-                      For: {getRecipientName(apt.care_recipient_id)}
+                      For: {apt.care_recipients ? `${apt.care_recipients.first_name} ${apt.care_recipients.last_name}` : getRecipientName(apt.care_recipient_id)}
                     </p>
                   </div>
                   <button
-                    onClick={() => toggleCompleteMutation.mutate({ 
-                      id: apt.id, 
-                      status: apt.status === 'completed' ? 'scheduled' : 'completed' 
+                    onClick={() => updateMutation.mutate({
+                      id: apt.id,
+                      status: apt.status === 'completed' ? 'scheduled' : 'completed'
                     })}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                       apt.status === 'completed'
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
@@ -318,38 +321,33 @@ export default function Appointments() {
                   </button>
                 </div>
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2.5 text-sm">
                   <div className="flex items-center gap-2 text-slate-600">
-                    <Calendar className="w-4 h-4 text-slate-400" />
-                    {format(parseISO(apt.date), 'MMMM d, yyyy')}
-                    {apt.time && (
+                    <Calendar className="w-4 h-4 text-teal-500" />
+                    <span>{formatDateTime(apt.start_time)}</span>
+                    {apt.start_time && (
                       <>
-                        <Clock className="w-4 h-4 text-slate-400 ml-2" />
-                        {apt.time}
+                        <span className="text-slate-300">|</span>
+                        <Clock className="w-4 h-4 text-teal-500" />
+                        <span>{formatTime(apt.start_time)}</span>
                       </>
                     )}
                   </div>
                   {apt.location && (
                     <div className="flex items-center gap-2 text-slate-600">
-                      <MapPin className="w-4 h-4 text-slate-400" />
-                      {apt.location}
+                      <MapPin className="w-4 h-4 text-teal-500" />
+                      <span>{apt.location}</span>
                     </div>
                   )}
                   {apt.provider_name && (
                     <div className="flex items-center gap-2 text-slate-600">
-                      <User className="w-4 h-4 text-slate-400" />
-                      {apt.provider_name}
-                    </div>
-                  )}
-                  {apt.assigned_caregiver && (
-                    <div className="mt-3 pt-3 border-t border-slate-100">
-                      <span className="text-xs text-slate-500">Assigned to: </span>
-                      <span className="text-xs text-slate-700 font-medium">{apt.assigned_caregiver}</span>
+                      <User className="w-4 h-4 text-teal-500" />
+                      <span>{apt.provider_name}</span>
                     </div>
                   )}
                   {apt.notes && (
                     <div className="mt-3 pt-3 border-t border-slate-100">
-                      <p className="text-xs text-slate-600">{apt.notes}</p>
+                      <p className="text-sm text-slate-500">{apt.notes}</p>
                     </div>
                   )}
                 </div>

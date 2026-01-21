@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCreateAppointment, useUpdateAppointment } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function AppointmentForm({ appointment, recipients, onClose }) {
-  const queryClient = useQueryClient();
+export function AppointmentForm({ appointment, recipients, onClose }) {
   const [formData, setFormData] = useState(appointment || {
     care_recipient_id: '',
     title: '',
@@ -26,27 +24,43 @@ export default function AppointmentForm({ appointment, recipients, onClose }) {
     status: 'scheduled'
   });
 
-  const saveMutation = useMutation({
-    mutationFn: (data) => {
-      if (appointment?.id) {
-        return base44.entities.Appointment.update(appointment.id, data);
-      }
-      return base44.entities.Appointment.create(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['appointments']);
-      toast.success(appointment ? 'Appointment updated' : 'Appointment added');
-      onClose();
-    }
-  });
+  const createMutation = useCreateAppointment();
+  const updateMutation = useUpdateAppointment();
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.care_recipient_id || !formData.title || !formData.date) {
       toast.error('Please fill in all required fields');
       return;
     }
-    saveMutation.mutate(formData);
+
+    // Build the data for Supabase schema
+    const dataToSave = {
+      care_recipient_id: formData.care_recipient_id,
+      title: formData.title,
+      appointment_type: formData.appointment_type,
+      start_time: formData.date && formData.time
+        ? `${formData.date}T${formData.time}:00`
+        : formData.date ? `${formData.date}T00:00:00` : null,
+      location: formData.location,
+      provider_name: formData.provider_name,
+      notes: formData.notes,
+      status: formData.status
+    };
+
+    try {
+      if (appointment?.id) {
+        await updateMutation.mutateAsync({ id: appointment.id, ...dataToSave });
+        toast.success('Appointment updated');
+      } else {
+        await createMutation.mutateAsync(dataToSave);
+        toast.success('Appointment added');
+      }
+      onClose();
+    } catch (error) {
+      toast.error(error.message || 'Failed to save appointment');
+    }
   };
 
   return (
@@ -74,7 +88,7 @@ export default function AppointmentForm({ appointment, recipients, onClose }) {
                 <SelectContent>
                   {recipients.map(recipient => (
                     <SelectItem key={recipient.id} value={recipient.id}>
-                      {recipient.full_name}
+                      {recipient.first_name} {recipient.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -186,10 +200,10 @@ export default function AppointmentForm({ appointment, recipients, onClose }) {
             </Button>
             <Button
               type="submit"
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {saveMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Saving...
@@ -202,3 +216,5 @@ export default function AppointmentForm({ appointment, recipients, onClose }) {
     </Card>
   );
 }
+
+export default AppointmentForm;

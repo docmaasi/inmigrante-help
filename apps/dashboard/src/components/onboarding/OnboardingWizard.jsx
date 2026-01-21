@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCareRecipients } from '@/hooks/use-care-recipients';
+import { useTeamMembers } from '@/hooks/use-team';
+import { useDocuments } from '@/hooks/use-documents';
+import { useAppointments } from '@/hooks/use-appointments';
+import { useMedications } from '@/hooks/use-medications';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,33 +11,14 @@ import { CheckCircle2, Users, FileText, Calendar, Pill, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 
-export default function OnboardingWizard({ onDismiss }) {
+export function OnboardingWizard({ onDismiss }) {
   const [dismissed, setDismissed] = useState(false);
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
-  });
-
-  const { data: documents = [] } = useQuery({
-    queryKey: ['documents'],
-    queryFn: () => base44.entities.Document.list()
-  });
-
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.list()
-  });
-
-  const { data: medications = [] } = useQuery({
-    queryKey: ['medications'],
-    queryFn: () => base44.entities.Medication.list()
-  });
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: teamMembers = [] } = useTeamMembers();
+  const { data: documents = [] } = useDocuments();
+  const { data: appointments = [] } = useAppointments();
+  const { data: medications = [] } = useMedications();
 
   useEffect(() => {
     const isDismissed = localStorage.getItem('onboarding_dismissed');
@@ -120,8 +104,8 @@ export default function OnboardingWizard({ onDismiss }) {
             return (
               <Link key={step.id} to={createPageUrl(step.link)}>
                 <div className={`p-3 rounded-lg border-2 transition-all hover:shadow-md ${
-                  step.completed 
-                    ? 'bg-green-50 border-green-300' 
+                  step.completed
+                    ? 'bg-green-50 border-green-300'
                     : 'bg-white border-slate-200 hover:border-blue-300'
                 }`}>
                   <div className="flex items-center gap-2 mb-2">
@@ -144,3 +128,5 @@ export default function OnboardingWizard({ onDismiss }) {
     </Card>
   );
 }
+
+export default OnboardingWizard;

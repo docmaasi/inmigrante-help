@@ -1,53 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import {
+  useCareRecipients,
+  useTeamMembers,
+} from '@/hooks';
 import TaskAssignmentList from '../components/collaboration/TaskAssignmentList';
 import CaregiverActivityLog from '../components/collaboration/CaregiverActivityLog';
 import SharedCalendarView from '../components/collaboration/SharedCalendarView';
 import TeamAnnouncementBanner from '../components/collaboration/TeamAnnouncementBanner';
 
 export default function Collaboration() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [selectedRecipientId, setSelectedRecipientId] = useState('');
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: allTeamMembers = [] } = useTeamMembers();
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['recipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
+  // Filter team members by selected recipient
+  const teamMembers = selectedRecipientId
+    ? allTeamMembers.filter(m => m.care_recipient_id === selectedRecipientId && m.status !== 'removed')
+    : [];
 
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers', selectedRecipientId],
-    queryFn: () => selectedRecipientId
-      ? base44.entities.TeamMember.filter({
-          care_recipient_id: selectedRecipientId,
-          active: true
-        })
-      : [],
-    enabled: !!selectedRecipientId
-  });
+  // Transform recipients to match expected format
+  const formattedRecipients = recipients.map(r => ({
+    ...r,
+    full_name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+  }));
 
   // Set first recipient as default
-  React.useEffect(() => {
-    if (recipients.length > 0 && !selectedRecipientId) {
-      setSelectedRecipientId(recipients[0].id);
+  useEffect(() => {
+    if (formattedRecipients.length > 0 && !selectedRecipientId) {
+      setSelectedRecipientId(formattedRecipients[0].id);
     }
-  }, [recipients, selectedRecipientId]);
+  }, [formattedRecipients, selectedRecipientId]);
 
-  const selectedRecipient = recipients.find(r => r.id === selectedRecipientId);
+  const selectedRecipient = formattedRecipients.find(r => r.id === selectedRecipientId);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-2">
-            <Users className="w-8 h-8 text-blue-600" />
+            <Users className="w-8 h-8 text-teal-600" />
             Team Collaboration
           </h1>
           <p className="text-slate-500">Coordinate care, assign tasks, and track team activity</p>
@@ -65,7 +62,7 @@ export default function Collaboration() {
                   <SelectValue placeholder="Select recipient" />
                 </SelectTrigger>
                 <SelectContent>
-                  {recipients.map(recipient => (
+                  {formattedRecipients.map(recipient => (
                     <SelectItem key={recipient.id} value={recipient.id}>
                       {recipient.full_name}
                     </SelectItem>
@@ -79,7 +76,7 @@ export default function Collaboration() {
         {selectedRecipient && (
           <>
             {/* Team Announcements */}
-            <Card className="mb-6 bg-gradient-to-br from-blue-50 to-purple-50">
+            <Card className="mb-6 border border-slate-200">
               <CardContent className="pt-6">
                 <TeamAnnouncementBanner careRecipientId={selectedRecipientId} />
               </CardContent>
@@ -96,9 +93,9 @@ export default function Collaboration() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {teamMembers.map(member => (
-                      <div key={member.id} className="p-4 border border-slate-200 rounded-lg">
+                      <div key={member.id} className="p-4 border border-slate-200 rounded-lg hover:border-teal-300 transition-colors">
                         <p className="font-medium text-slate-800">{member.full_name}</p>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-teal-600 font-medium mt-1">
                           {member.role === 'admin' ? 'Admin' : member.role === 'caregiver' ? 'Caregiver' : 'Viewer'}
                         </p>
                         {member.relationship && (

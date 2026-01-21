@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,15 +7,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2, UserX } from 'lucide-react';
+import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2 } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
+import {
+  useTeamMembers,
+  useInviteTeamMember,
+  useUpdateTeamMember,
+  useRemoveTeamMember,
+  useCareRecipients,
+} from '@/hooks';
 
 export default function Team() {
+  const { user } = useAuth();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [formData, setFormData] = useState({
-    user_email: '',
+    email: '',
     care_recipient_id: '',
     role: 'caregiver',
     full_name: '',
@@ -26,59 +33,18 @@ export default function Team() {
     specialties: ''
   });
 
-  const queryClient = useQueryClient();
+  const { data: teamMembers = [], isLoading } = useTeamMembers();
+  const { data: recipients = [] } = useCareRecipients();
 
-  const { data: teamMembers = [], isLoading } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list('-created_date')
-  });
-
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me()
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (data) => {
-      return await base44.entities.TeamMember.create(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['teamMembers']);
-      toast.success('Team member added successfully!');
-      handleCloseDialog();
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to add team member');
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.TeamMember.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['teamMembers']);
-      toast.success('Team member updated');
-      handleCloseDialog();
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.TeamMember.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['teamMembers']);
-      toast.success('Team member removed');
-    }
-  });
+  const inviteMutation = useInviteTeamMember();
+  const updateMutation = useUpdateTeamMember();
+  const removeMutation = useRemoveTeamMember();
 
   const handleCloseDialog = () => {
     setShowAddDialog(false);
     setEditingMember(null);
     setFormData({
-      user_email: '',
+      email: '',
       care_recipient_id: '',
       role: 'caregiver',
       full_name: '',
@@ -91,10 +57,10 @@ export default function Team() {
   const handleEdit = (member) => {
     setEditingMember(member);
     setFormData({
-      user_email: member.user_email,
-      care_recipient_id: member.care_recipient_id,
-      role: member.role,
-      full_name: member.full_name,
+      email: member.email || '',
+      care_recipient_id: member.care_recipient_id || '',
+      role: member.role || 'caregiver',
+      full_name: member.full_name || '',
       relationship: member.relationship || '',
       phone: member.phone || '',
       specialties: member.specialties || ''
@@ -105,14 +71,69 @@ export default function Team() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editingMember) {
-      updateMutation.mutate({ id: editingMember.id, data: formData });
+      updateMutation.mutate(
+        {
+          id: editingMember.id,
+          email: formData.email,
+          care_recipient_id: formData.care_recipient_id,
+          role: formData.role,
+          full_name: formData.full_name,
+          relationship: formData.relationship,
+          phone: formData.phone,
+          specialties: formData.specialties,
+        },
+        {
+          onSuccess: () => {
+            toast.success('Team member updated');
+            handleCloseDialog();
+          },
+          onError: (error) => {
+            toast.error(error.message || 'Failed to update team member');
+          },
+        }
+      );
     } else {
-      createMutation.mutate(formData);
+      inviteMutation.mutate(
+        {
+          email: formData.email,
+          care_recipient_id: formData.care_recipient_id,
+          role: formData.role,
+          full_name: formData.full_name,
+          relationship: formData.relationship,
+          phone: formData.phone,
+          specialties: formData.specialties,
+        },
+        {
+          onSuccess: () => {
+            toast.success('Team member added successfully!');
+            handleCloseDialog();
+          },
+          onError: (error) => {
+            toast.error(error.message || 'Failed to add team member');
+          },
+        }
+      );
     }
   };
 
+  const handleDelete = (member) => {
+    if (confirm(`Remove ${member.full_name} from the care team?`)) {
+      removeMutation.mutate(member.id, {
+        onSuccess: () => {
+          toast.success('Team member removed');
+        },
+      });
+    }
+  };
+
+  // Transform recipients to match expected format
+  const formattedRecipients = recipients.map(r => ({
+    ...r,
+    full_name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+  }));
+
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+    return formattedRecipients.find(r => r.id === id)?.full_name || 'Unknown';
   };
 
   const getRoleIcon = (role) => {
@@ -126,24 +147,18 @@ export default function Team() {
 
   const getRoleColor = (role) => {
     switch(role) {
-      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
-      case 'caregiver': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'viewer': return 'bg-slate-100 text-slate-800 border-slate-200';
-      default: return 'bg-slate-100 text-slate-800';
+      case 'admin': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'caregiver': return 'bg-teal-50 text-teal-700 border-teal-200';
+      case 'viewer': return 'bg-slate-100 text-slate-600 border-slate-200';
+      default: return 'bg-slate-100 text-slate-600';
     }
   };
 
-  const activeMembers = teamMembers.filter(m => m.active !== false);
+  const activeMembers = teamMembers.filter(m => m.status !== 'removed');
 
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/59e1069c0_Untitleddesign17.png)'
-        }}
-      />
-      <div className="max-w-7xl mx-auto relative">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <div className="mb-4">
@@ -152,7 +167,7 @@ export default function Team() {
         </div>
         <Button
           onClick={() => setShowAddDialog(true)}
-          className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+          className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Team Member
@@ -160,20 +175,20 @@ export default function Team() {
       </div>
 
       {/* Role Legend */}
-      <Card className="mb-6 shadow-sm border-slate-200/60">
+      <Card className="mb-6 bg-white shadow-sm border border-slate-200">
         <CardContent className="p-4 md:p-6">
           <p className="text-sm font-semibold text-slate-700 mb-3">Permission Levels:</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             <div className="flex items-start gap-2">
-              <Shield className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <Shield className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <span className="text-sm text-slate-600">Admin - Full access to all features</span>
             </div>
             <div className="flex items-start gap-2">
-              <UserCheck className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <UserCheck className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
               <span className="text-sm text-slate-600">Caregiver - Can create and edit records</span>
             </div>
             <div className="flex items-start gap-2">
-              <Eye className="w-4 h-4 text-slate-600 flex-shrink-0 mt-0.5" />
+              <Eye className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
               <span className="text-sm text-slate-600">Viewer - Read-only access</span>
             </div>
           </div>
@@ -184,10 +199,10 @@ export default function Team() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="shadow-sm border-slate-200/60">
+            <Card key={i} className="bg-white shadow-sm border border-slate-200">
               <CardContent className="p-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <Skeleton className="w-12 h-12 rounded-lg" />
+                  <Skeleton className="w-12 h-12 rounded-full" />
                   <div className="flex-1">
                     <Skeleton className="h-5 w-3/4 mb-2" />
                     <Skeleton className="h-4 w-1/2" />
@@ -203,14 +218,16 @@ export default function Team() {
           ))}
         </div>
       ) : activeMembers.length === 0 ? (
-        <Card className="border-slate-200/60">
+        <Card className="bg-white border border-slate-200 shadow-sm">
           <CardContent className="p-8 md:p-12 text-center">
-            <Users className="w-12 h-12 md:w-16 md:h-16 text-slate-300 mx-auto mb-4" />
+            <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 text-slate-400" />
+            </div>
             <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Team Members</h3>
             <p className="text-sm md:text-base text-slate-500 mb-6">Add team members to coordinate care</p>
-            <Button 
-              onClick={() => setShowAddDialog(true)} 
-              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+            <Button
+              onClick={() => setShowAddDialog(true)}
+              className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Team Member
@@ -222,15 +239,15 @@ export default function Team() {
           {activeMembers.map(member => {
             const RoleIcon = getRoleIcon(member.role);
             return (
-              <Card key={member.id} className="shadow-sm border-slate-200/60 hover:shadow-md transition-shadow">
+              <Card key={member.id} className="bg-white shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-start gap-3">
-                      <div className="p-3 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
-                        <RoleIcon className="w-5 h-5 text-white" />
+                      <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                        <RoleIcon className="w-5 h-5 text-teal-600" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-800">{member.full_name}</h3>
+                        <h3 className="font-semibold text-slate-800">{member.full_name}</h3>
                         {member.relationship && (
                           <p className="text-sm text-slate-500">{member.relationship}</p>
                         )}
@@ -240,13 +257,13 @@ export default function Team() {
 
                   <div className="space-y-3 mb-4">
                     <Badge className={`${getRoleColor(member.role)} border`}>
-                      {member.role.toUpperCase()}
+                      {(member.role || 'member').toUpperCase()}
                     </Badge>
-                    
+
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2 text-slate-600">
                         <Mail className="w-4 h-4 text-slate-400" />
-                        <span className="truncate">{member.user_email}</span>
+                        <span className="truncate">{member.email}</span>
                       </div>
                       {member.phone && (
                         <div className="flex items-center gap-2 text-slate-600">
@@ -281,11 +298,7 @@ export default function Team() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        if (confirm(`Remove ${member.full_name} from the care team?`)) {
-                          deleteMutation.mutate(member.id);
-                        }
-                      }}
+                      onClick={() => handleDelete(member)}
                       className="text-red-600 hover:bg-red-50"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -316,12 +329,12 @@ export default function Team() {
                 />
               </div>
               <div>
-                <Label htmlFor="user_email">Email *</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
-                  id="user_email"
+                  id="email"
                   type="email"
-                  value={formData.user_email}
-                  onChange={(e) => setFormData({...formData, user_email: e.target.value})}
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
                   required
                 />
               </div>
@@ -348,7 +361,7 @@ export default function Team() {
                     <SelectValue placeholder="Select recipient" />
                   </SelectTrigger>
                   <SelectContent>
-                    {recipients.map(recipient => (
+                    {formattedRecipients.map(recipient => (
                       <SelectItem key={recipient.id} value={recipient.id}>
                         {recipient.full_name}
                       </SelectItem>
@@ -394,8 +407,12 @@ export default function Team() {
               <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingMember ? 'Update' : 'Add Member'}
+              <Button
+                type="submit"
+                disabled={inviteMutation.isPending || updateMutation.isPending}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {inviteMutation.isPending || updateMutation.isPending ? 'Saving...' : editingMember ? 'Update' : 'Add Member'}
               </Button>
             </div>
           </form>

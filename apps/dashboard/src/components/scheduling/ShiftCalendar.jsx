@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCaregiverShifts } from '@/hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
@@ -8,12 +7,7 @@ import { format, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
 export default function ShiftCalendar({ careRecipientId }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const { data: shifts = [] } = useQuery({
-    queryKey: ['shifts', careRecipientId],
-    queryFn: () => careRecipientId
-      ? base44.entities.CaregiverShift.filter({ care_recipient_id: careRecipientId })
-      : []
-  });
+  const { data: shifts = [] } = useCaregiverShifts({ careRecipientId });
 
   const currentYear = selectedDate.getFullYear();
   const currentMonth = selectedDate.getMonth();
@@ -28,11 +22,30 @@ export default function ShiftCalendar({ careRecipientId }) {
   const getShiftsForDate = (date) => {
     if (!date) return [];
     const dateStr = format(date, 'yyyy-MM-dd');
-    return shifts.filter(shift => shift.start_date === dateStr && shift.status !== 'cancelled');
+    return shifts.filter(shift => {
+      const shiftDate = shift.start_time
+        ? format(new Date(shift.start_time), 'yyyy-MM-dd')
+        : shift.start_date;
+      return shiftDate === dateStr && shift.status !== 'cancelled';
+    });
   };
 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
   const selectedDateShifts = getShiftsForDate(selectedDate);
+
+  const formatShiftTime = (shift) => {
+    if (shift.start_time && shift.end_time) {
+      return `${format(new Date(shift.start_time), 'h:mm a')} - ${format(new Date(shift.end_time), 'h:mm a')}`;
+    }
+    return 'Time not specified';
+  };
+
+  const getCaregiverName = (shift) => {
+    if (shift.team_members?.full_name) {
+      return shift.team_members.full_name;
+    }
+    return shift.caregiver_name || 'Unknown';
+  };
 
   return (
     <div className="space-y-6">
@@ -45,19 +58,18 @@ export default function ShiftCalendar({ careRecipientId }) {
                 onClick={() => setSelectedDate(new Date(currentYear, currentMonth - 1))}
                 className="px-2 py-1 hover:bg-slate-100 rounded"
               >
-                ← Prev
+                &larr; Prev
               </button>
               <span className="px-3 py-1">{format(selectedDate, 'MMMM yyyy')}</span>
               <button
                 onClick={() => setSelectedDate(new Date(currentYear, currentMonth + 1))}
                 className="px-2 py-1 hover:bg-slate-100 rounded"
               >
-                Next →
+                Next &rarr;
               </button>
             </div>
           </div>
 
-          {/* Calendar Grid */}
           <div className="bg-slate-50 rounded-lg p-4 mb-4">
             <div className="grid grid-cols-7 gap-1 text-xs font-semibold text-slate-600 mb-2">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
@@ -99,7 +111,6 @@ export default function ShiftCalendar({ careRecipientId }) {
             </div>
           </div>
 
-          {/* Selected Date Shifts */}
           {selectedDateShifts.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-semibold text-slate-700">
@@ -109,9 +120,9 @@ export default function ShiftCalendar({ careRecipientId }) {
                 <div key={shift.id} className="p-3 bg-green-50 border border-green-200 rounded">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-medium text-slate-800">{shift.caregiver_name}</p>
+                      <p className="font-medium text-slate-800">{getCaregiverName(shift)}</p>
                       <p className="text-xs text-slate-600 mt-1">
-                        {shift.start_time} - {shift.end_time}
+                        {formatShiftTime(shift)}
                       </p>
                       {shift.notes && (
                         <p className="text-xs text-slate-500 mt-1">{shift.notes}</p>

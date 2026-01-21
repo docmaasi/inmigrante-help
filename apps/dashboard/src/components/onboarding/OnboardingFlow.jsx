@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 
 const tutorialSteps = [
   {
-    title: "Welcome to FamilyCare.Help! 🎉",
+    title: "Welcome to FamilyCare.Help!",
     description: "We're here to help you coordinate care for your loved ones with clarity and peace of mind.",
     icon: Heart,
     color: "text-blue-600"
@@ -49,83 +49,70 @@ const checklistItems = [
   { id: 'review_subscription', label: 'Review subscription options', page: 'Checkout' }
 ];
 
-export default function OnboardingFlow({ user }) {
+export function OnboardingFlow({ user }) {
   const [showTutorial, setShowTutorial] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const queryClient = useQueryClient();
 
   const { data: progress, isLoading } = useQuery({
-    queryKey: ['onboarding', user?.email],
+    queryKey: ['onboarding', user?.id],
     queryFn: async () => {
-      const results = await base44.entities.OnboardingProgress.filter({ user_email: user.email });
-      return results[0] || null;
+      const { data, error } = await supabase
+        .from('onboarding_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || null;
     },
-    enabled: !!user?.email
+    enabled: !!user?.id
   });
 
   const createProgressMutation = useMutation({
-    mutationFn: (data) => base44.entities.OnboardingProgress.create(data),
+    mutationFn: async (data) => {
+      const { data: result, error } = await supabase
+        .from('onboarding_progress')
+        .insert(data)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['onboarding'] })
   });
 
   const updateProgressMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.OnboardingProgress.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const { data: result, error } = await supabase
+        .from('onboarding_progress')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['onboarding'] })
   });
 
-  const sendWelcomeEmail = async () => {
-    try {
-      await base44.integrations.Core.SendEmail({
-        to: user.email,
-        subject: "Welcome to FamilyCare.Help! 🎉",
-        body: `
-          <h2>Welcome to FamilyCare.Help!</h2>
-          <p>Hi ${user.full_name || 'there'},</p>
-          <p>We're thrilled to have you join our community of caregivers dedicated to providing the best care for their loved ones.</p>
-          
-          <h3>Getting Started:</h3>
-          <ul>
-            <li><strong>Add Care Recipients:</strong> Create profiles for those you're caring for</li>
-            <li><strong>Build Your Team:</strong> Invite family members and caregivers to collaborate</li>
-            <li><strong>Stay Organized:</strong> Track medications, appointments, and daily tasks</li>
-            <li><strong>Communicate:</strong> Share updates and coordinate care in real-time</li>
-          </ul>
-          
-          <p>If you have any questions, our support team is here to help!</p>
-          <p>Best regards,<br>The FamilyCare.Help Team</p>
-        `
-      });
-    } catch (error) {
-      console.error('Failed to send welcome email:', error);
-    }
-  };
-
   useEffect(() => {
     if (user && !isLoading && !progress) {
-      // New user - create progress and show tutorial
       const checklist = checklistItems.map(item => ({ ...item, completed: false }));
       createProgressMutation.mutate({
-        user_email: user.email,
+        user_id: user.id,
         onboarding_completed: false,
         tutorial_completed: false,
         welcome_email_sent: false,
-        checklist_items: JSON.stringify(checklist),
+        checklist_items: checklist,
         current_step: 0
       });
       setShowTutorial(true);
-      sendWelcomeEmail();
     } else if (progress && !progress.tutorial_completed) {
       setShowTutorial(true);
       setCurrentStep(progress.current_step || 0);
-    }
-
-    // Send welcome email if not sent
-    if (progress && !progress.welcome_email_sent) {
-      sendWelcomeEmail();
-      updateProgressMutation.mutate({
-        id: progress.id,
-        data: { welcome_email_sent: true }
-      });
     }
   }, [user, progress, isLoading]);
 
@@ -173,17 +160,17 @@ export default function OnboardingFlow({ user }) {
 
   const toggleChecklistItem = (itemId) => {
     if (!progress) return;
-    const checklist = JSON.parse(progress.checklist_items || '[]');
+    const checklist = progress.checklist_items || [];
     const updatedChecklist = checklist.map(item =>
       item.id === itemId ? { ...item, completed: !item.completed } : item
     );
-    
+
     const allCompleted = updatedChecklist.every(item => item.completed);
-    
+
     updateProgressMutation.mutate({
       id: progress.id,
       data: {
-        checklist_items: JSON.stringify(updatedChecklist),
+        checklist_items: updatedChecklist,
         onboarding_completed: allCompleted
       }
     });
@@ -195,12 +182,11 @@ export default function OnboardingFlow({ user }) {
   const Icon = currentTutorialStep.icon;
   const progressPercent = ((currentStep + 1) / tutorialSteps.length) * 100;
 
-  const checklist = JSON.parse(progress.checklist_items || '[]');
+  const checklist = progress.checklist_items || [];
   const completedCount = checklist.filter(item => item.completed).length;
 
   return (
     <>
-      {/* Tutorial Dialog */}
       <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -253,7 +239,6 @@ export default function OnboardingFlow({ user }) {
         </DialogContent>
       </Dialog>
 
-      {/* Setup Checklist - Show if tutorial completed but not all items done */}
       {progress.tutorial_completed && !progress.onboarding_completed && (
         <Card className="mb-6 border-blue-200 bg-blue-50">
           <CardHeader>
@@ -288,3 +273,5 @@ export default function OnboardingFlow({ user }) {
     </>
   );
 }
+
+export default OnboardingFlow;

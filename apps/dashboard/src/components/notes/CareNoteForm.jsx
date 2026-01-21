@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCreateCareNote, useUpdateCareNote } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,40 +11,64 @@ import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CareNoteForm({ note, recipients, onClose }) {
-  const queryClient = useQueryClient();
-  const [formData, setFormData] = useState(note || {
+  const [formData, setFormData] = useState(note ? {
+    care_recipient_id: note.care_recipient_id || '',
+    category: note.category || 'daily_log',
+    title: note.title || '',
+    content: note.content || '',
+    mood: note.mood || '',
+    is_private: note.is_private || false
+  } : {
     care_recipient_id: '',
-    note_type: 'daily_log',
+    category: 'daily_log',
     title: '',
     content: '',
-    date: new Date().toISOString().split('T')[0],
-    time: '',
     mood: '',
-    flagged_important: false
+    is_private: false
   });
 
-  const saveMutation = useMutation({
-    mutationFn: (data) => {
-      if (note?.id) {
-        return base44.entities.CareNote.update(note.id, data);
-      }
-      return base44.entities.CareNote.create(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['careNotes']);
-      toast.success(note ? 'Note updated' : 'Note added');
-      onClose();
-    }
-  });
+  const createMutation = useCreateCareNote();
+  const updateMutation = useUpdateCareNote();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.care_recipient_id || !formData.content || !formData.date) {
+    if (!formData.care_recipient_id || !formData.content) {
       toast.error('Please fill in all required fields');
       return;
     }
-    saveMutation.mutate(formData);
+
+    const dataToSave = {
+      ...formData,
+      category: formData.category || 'daily_log',
+    };
+
+    if (note?.id) {
+      updateMutation.mutate(
+        { id: note.id, ...dataToSave },
+        {
+          onSuccess: () => {
+            toast.success('Note updated');
+            onClose();
+          },
+          onError: () => {
+            toast.error('Failed to update note');
+          },
+        }
+      );
+    } else {
+      createMutation.mutate(dataToSave, {
+        onSuccess: () => {
+          toast.success('Note added');
+          onClose();
+        },
+        onError: () => {
+          toast.error('Failed to add note');
+        },
+      });
+    }
   };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Card className="shadow-lg border-slate-200/60">
@@ -72,7 +95,7 @@ export default function CareNoteForm({ note, recipients, onClose }) {
                 <SelectContent>
                   {recipients.map(recipient => (
                     <SelectItem key={recipient.id} value={recipient.id}>
-                      {recipient.full_name}
+                      {recipient.first_name} {recipient.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -80,10 +103,10 @@ export default function CareNoteForm({ note, recipients, onClose }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="note_type">Note Type *</Label>
+              <Label htmlFor="category">Note Type *</Label>
               <Select
-                value={formData.note_type}
-                onValueChange={(value) => setFormData({ ...formData, note_type: value })}
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -103,7 +126,7 @@ export default function CareNoteForm({ note, recipients, onClose }) {
             </div>
           </div>
 
-          {formData.note_type === 'other' && (
+          {formData.category === 'other' && (
             <div className="space-y-2">
               <Label htmlFor="custom_note_type">Specify Note Type *</Label>
               <Input
@@ -116,7 +139,7 @@ export default function CareNoteForm({ note, recipients, onClose }) {
             </div>
           )}
 
-          {formData.note_type !== 'other' && (
+          {formData.category !== 'other' && (
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -140,53 +163,32 @@ export default function CareNoteForm({ note, recipients, onClose }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date *</Label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="time">Time</Label>
-              <Input
-                id="time"
-                type="time"
-                value={formData.time}
-                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="mood">Mood/Condition</Label>
-              <Select
-                value={formData.mood}
-                onValueChange={(value) => setFormData({ ...formData, mood: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select mood" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="great">Great</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="okay">Okay</SelectItem>
-                  <SelectItem value="difficult">Difficult</SelectItem>
-                  <SelectItem value="concerning">Concerning</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="mood">Mood/Condition</Label>
+            <Select
+              value={formData.mood}
+              onValueChange={(value) => setFormData({ ...formData, mood: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select mood" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="great">Great</SelectItem>
+                <SelectItem value="good">Good</SelectItem>
+                <SelectItem value="okay">Okay</SelectItem>
+                <SelectItem value="difficult">Difficult</SelectItem>
+                <SelectItem value="concerning">Concerning</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center space-x-2 p-4 bg-orange-50 rounded-lg border border-orange-200">
             <Checkbox
-              id="flagged_important"
-              checked={formData.flagged_important}
-              onCheckedChange={(checked) => setFormData({ ...formData, flagged_important: checked })}
+              id="is_private"
+              checked={formData.is_private}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_private: checked })}
             />
-            <Label htmlFor="flagged_important" className="text-sm font-medium cursor-pointer">
+            <Label htmlFor="is_private" className="text-sm font-medium cursor-pointer">
               Flag as important for family members to review
             </Label>
           </div>
@@ -197,10 +199,10 @@ export default function CareNoteForm({ note, recipients, onClose }) {
             </Button>
             <Button
               type="submit"
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {saveMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Saving...

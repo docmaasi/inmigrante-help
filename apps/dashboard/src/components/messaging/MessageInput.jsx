@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { Send, Share2, Image, X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
-export default function MessageInput({ onSend, onShareUpdate, disabled }) {
+export function MessageInput({ onSend, onShareUpdate, disabled }) {
   const [message, setMessage] = useState('');
   const [photos, setPhotos] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
 
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -16,15 +18,29 @@ export default function MessageInput({ onSend, onShareUpdate, disabled }) {
 
     setUploading(true);
     try {
-      const uploadPromises = files.map(file => 
-        base44.integrations.Core.UploadFile({ file })
-      );
-      const results = await Promise.all(uploadPromises);
-      const urls = results.map(r => r.file_url);
+      const uploadPromises = files.map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/messages/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('documents')
+          .getPublicUrl(fileName);
+
+        return publicUrl;
+      });
+
+      const urls = await Promise.all(uploadPromises);
       setPhotos([...photos, ...urls]);
       toast.success(`${files.length} photo(s) uploaded`);
     } catch (error) {
       toast.error('Failed to upload photos');
+      console.error(error);
     } finally {
       setUploading(false);
     }
@@ -119,3 +135,5 @@ export default function MessageInput({ onSend, onShareUpdate, disabled }) {
     </div>
   );
 }
+
+export default MessageInput;

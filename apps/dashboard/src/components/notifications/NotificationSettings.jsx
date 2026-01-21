@@ -1,39 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Bell, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
 
 export default function NotificationSettings() {
-  const [user, setUser] = useState(null);
+  const { user, profile, updateProfile } = useAuth();
   const [settings, setSettings] = useState({
     email_notifications_enabled: true,
     appointment_alerts: true,
     task_alerts: true,
-    medication_alerts: true
+    medication_alerts: true,
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      // Load notification preferences from user data
-      if (currentUser.notification_settings) {
-        setSettings(JSON.parse(currentUser.notification_settings));
+    if (profile?.notification_settings) {
+      try {
+        const parsed =
+          typeof profile.notification_settings === 'string'
+            ? JSON.parse(profile.notification_settings)
+            : profile.notification_settings;
+        setSettings(parsed);
+      } catch {
+        // Keep default settings if parsing fails
       }
-    };
-    loadUser().catch(() => {});
-  }, []);
+    }
+  }, [profile]);
 
   const handleSave = async () => {
     try {
       setLoading(true);
-      await base44.auth.updateMe({
-        notification_settings: JSON.stringify(settings)
+      await updateProfile({
+        notification_settings: JSON.stringify(settings),
       });
       toast.success('Notification settings saved');
     } catch (error) {
@@ -44,9 +46,9 @@ export default function NotificationSettings() {
   };
 
   const handleToggle = (key) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !prev[key],
     }));
   };
 
@@ -74,7 +76,9 @@ export default function NotificationSettings() {
           {settings.email_notifications_enabled && (
             <div className="space-y-3 ml-6 pt-3 border-t border-slate-100">
               <div className="flex items-center justify-between">
-                <Label className="cursor-pointer text-sm">Appointment Reminders</Label>
+                <Label className="cursor-pointer text-sm">
+                  Appointment Reminders
+                </Label>
                 <Switch
                   checked={settings.appointment_alerts}
                   onCheckedChange={() => handleToggle('appointment_alerts')}
@@ -88,7 +92,9 @@ export default function NotificationSettings() {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label className="cursor-pointer text-sm">Medication Refill Reminders</Label>
+                <Label className="cursor-pointer text-sm">
+                  Medication Refill Reminders
+                </Label>
                 <Switch
                   checked={settings.medication_alerts}
                   onCheckedChange={() => handleToggle('medication_alerts')}
@@ -98,11 +104,7 @@ export default function NotificationSettings() {
           )}
         </div>
 
-        <Button
-          onClick={handleSave}
-          disabled={loading}
-          className="w-full"
-        >
+        <Button onClick={handleSave} disabled={loading} className="w-full">
           {loading ? 'Saving...' : 'Save Settings'}
         </Button>
       </CardContent>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTeamAnnouncements, useCreateAnnouncement } from '@/hooks';
+import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,7 +15,7 @@ import { toast } from 'sonner';
 
 export default function TeamAnnouncementBanner({ careRecipientId }) {
   const [showDialog, setShowDialog] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user, profile } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     message: '',
@@ -21,66 +23,62 @@ export default function TeamAnnouncementBanner({ careRecipientId }) {
   });
   const queryClient = useQueryClient();
 
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { data: announcements = [] } = useTeamAnnouncements();
 
-  const { data: announcements = [] } = useQuery({
-    queryKey: ['announcements', careRecipientId],
-    queryFn: () => base44.entities.TeamAnnouncement.filter(
-      { care_recipient_id: careRecipientId },
-      '-created_date',
-      5
-    ),
-    enabled: !!careRecipientId
-  });
+  const createAnnouncementMutation = useCreateAnnouncement();
 
-  const createAnnouncementMutation = useMutation({
-    mutationFn: (data) => base44.entities.TeamAnnouncement.create(data),
+  const updateAnnouncementMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      const { error } = await supabase
+        .from('team_announcements')
+        .update(data)
+        .eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['announcements']);
-      setShowDialog(false);
-      setFormData({ title: '', message: '', priority: 'normal' });
-      toast.success('Announcement posted');
+      queryClient.invalidateQueries({ queryKey: ['team-announcements'] });
     }
   });
 
-  const markAsReadMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.TeamAnnouncement.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['announcements']);
-    }
-  });
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.title.trim() || !formData.message.trim()) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    createAnnouncementMutation.mutate({
-      care_recipient_id: careRecipientId,
-      author_email: user?.email,
-      author_name: user?.full_name,
-      ...formData,
-      read_by: JSON.stringify([user?.email])
-    });
+    try {
+      await createAnnouncementMutation.mutateAsync({
+        title: formData.title,
+        message: formData.message,
+        priority: formData.priority,
+        care_recipient_id: careRecipientId,
+        read_by: [user?.id]
+      });
+      setShowDialog(false);
+      setFormData({ title: '', message: '', priority: 'normal' });
+      toast.success('Announcement posted');
+    } catch (error) {
+      toast.error('Failed to post announcement');
+    }
   };
 
-  const handleMarkAsRead = (announcement) => {
-    const readBy = JSON.parse(announcement.read_by || '[]');
-    if (!readBy.includes(user?.email)) {
-      readBy.push(user?.email);
-      markAsReadMutation.mutate({
-        id: announcement.id,
-        data: { read_by: JSON.stringify(readBy) }
-      });
+  const handleMarkAsRead = async (announcement) => {
+    const readBy = announcement.read_by || [];
+    if (!readBy.includes(user?.id)) {
+      try {
+        await updateAnnouncementMutation.mutateAsync({
+          id: announcement.id,
+          data: { read_by: [...readBy, user.id] }
+        });
+      } catch (error) {
+        toast.error('Failed to mark as read');
+      }
     }
   };
 
   const unreadAnnouncements = announcements.filter(a => {
-    const readBy = JSON.parse(a.read_by || '[]');
-    return !readBy.includes(user?.email);
+    const readBy = a.read_by || [];
+    return !readBy.includes(user?.id);
   });
 
   const priorityColors = {
@@ -119,9 +117,10 @@ export default function TeamAnnouncementBanner({ careRecipientId }) {
         ) : (
           <div className="space-y-2">
             {announcements.map(announcement => {
-              const readBy = JSON.parse(announcement.read_by || '[]');
-              const isUnread = !readBy.includes(user?.email);
-              
+              const readBy = announcement.read_by || [];
+              const isUnread = !readBy.includes(user?.id);
+              const authorName = announcement.profiles?.full_name || 'Unknown';
+
               return (
                 <Card
                   key={announcement.id}
@@ -137,9 +136,9 @@ export default function TeamAnnouncementBanner({ careRecipientId }) {
                       </div>
                       <p className="text-xs mb-2">{announcement.message}</p>
                       <div className="flex items-center gap-3 text-xs text-slate-600">
-                        <span className="font-medium">{announcement.author_name}</span>
-                        <span>•</span>
-                        <span>{formatDistanceToNow(new Date(announcement.created_date), { addSuffix: true })}</span>
+                        <span className="font-medium">{authorName}</span>
+                        <span>&bull;</span>
+                        <span>{formatDistanceToNow(new Date(announcement.created_at), { addSuffix: true })}</span>
                       </div>
                     </div>
                     {isUnread && (
@@ -159,7 +158,6 @@ export default function TeamAnnouncementBanner({ careRecipientId }) {
         )}
       </div>
 
-      {/* Create Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent>
           <DialogHeader>
@@ -198,7 +196,7 @@ export default function TeamAnnouncementBanner({ careRecipientId }) {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowDialog(false)}>Cancel</Button>
-              <Button 
+              <Button
                 onClick={handleSubmit}
                 disabled={createAnnouncementMutation.isPending}
               >

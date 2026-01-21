@@ -1,28 +1,28 @@
 import React, { useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useMedicationRefills } from '@/hooks/use-refills';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { parseISO, format } from 'date-fns';
+import { parseISO, format, isWithinInterval } from 'date-fns';
 import ReportExporter from './ReportExporter';
 import { Bell, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
-export default function RefillHistoryReport({ recipientId, recipientName, dateRange }) {
+export function RefillHistoryReport({ recipientId, recipientName, dateRange }) {
   const contentRef = useRef(null);
-  const { data: refills = [] } = useQuery({
-    queryKey: ['refills', recipientId, dateRange],
-    queryFn: () => base44.entities.MedicationRefill.filter({
-      care_recipient_id: recipientId
-    })
-  });
 
-  // Filter by date range
+  const { data: refills = [] } = useMedicationRefills();
+
   const filteredRefills = refills.filter(refill => {
-    const refillDate = parseISO(refill.refill_date);
-    const startDate = parseISO(dateRange.startDate);
-    const endDate = parseISO(dateRange.endDate);
-    return refillDate >= startDate && refillDate <= endDate;
-  }).sort((a, b) => new Date(b.refill_date) - new Date(a.refill_date));
+    if (!refill.requested_date) return false;
+    try {
+      const refillDate = parseISO(refill.requested_date);
+      const startDate = parseISO(dateRange.startDate);
+      const endDate = parseISO(dateRange.endDate);
+      const matchesCareRecipient = refill.medications?.care_recipient_id === recipientId;
+      return matchesCareRecipient && isWithinInterval(refillDate, { start: startDate, end: endDate });
+    } catch {
+      return false;
+    }
+  }).sort((a, b) => new Date(b.requested_date) - new Date(a.requested_date));
 
   const completed = filteredRefills.filter(r => r.status === 'completed').length;
   const ordered = filteredRefills.filter(r => r.status === 'ordered').length;
@@ -34,18 +34,17 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
     pending: { icon: AlertCircle, color: 'bg-yellow-100 text-yellow-800', label: 'Pending' }
   };
 
-  // Medication refill frequency
   const medicationRefills = {};
   filteredRefills.forEach(refill => {
-    if (!medicationRefills[refill.medication_name]) {
-      medicationRefills[refill.medication_name] = [];
+    const medName = refill.medications?.name || 'Unknown';
+    if (!medicationRefills[medName]) {
+      medicationRefills[medName] = [];
     }
-    medicationRefills[refill.medication_name].push(refill);
+    medicationRefills[medName].push(refill);
   });
 
   const reportContent = (
     <div className="space-y-6">
-      {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -67,7 +66,6 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
         </Card>
       </div>
 
-      {/* Refill by Medication */}
       {Object.keys(medicationRefills).length > 0 && (
         <Card>
           <CardHeader className="border-b border-slate-100">
@@ -80,12 +78,16 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
                   <h4 className="font-semibold text-slate-800 mb-3">{medName}</h4>
                   <div className="space-y-2">
                     {medRefills.map((refill, idx) => {
-                      const config = statusConfig[refill.status];
+                      const config = statusConfig[refill.status] || statusConfig.pending;
                       return (
                         <div key={idx} className="flex items-center justify-between p-2 bg-white rounded">
                           <div className="flex-1">
-                            <p className="text-sm text-slate-700">{format(parseISO(refill.refill_date), 'MMM d, yyyy')}</p>
-                            {refill.pharmacy && <p className="text-xs text-slate-500">{refill.pharmacy}</p>}
+                            <p className="text-sm text-slate-700">
+                              {format(parseISO(refill.requested_date), 'MMM d, yyyy')}
+                            </p>
+                            {refill.pharmacy && (
+                              <p className="text-xs text-slate-500">{refill.pharmacy}</p>
+                            )}
                           </div>
                           <Badge className={config.color}>{config.label}</Badge>
                         </div>
@@ -99,7 +101,6 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
         </Card>
       )}
 
-      {/* Detailed Refill History */}
       {filteredRefills.length > 0 && (
         <Card>
           <CardHeader className="border-b border-slate-100">
@@ -111,13 +112,15 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
           <CardContent className="p-6">
             <div className="space-y-3">
               {filteredRefills.map((refill) => {
-                const config = statusConfig[refill.status];
+                const config = statusConfig[refill.status] || statusConfig.pending;
                 return (
                   <div key={refill.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-semibold text-slate-800">{refill.medication_name}</h4>
-                        <p className="text-sm text-slate-600">Refill Date: {format(parseISO(refill.refill_date), 'MMMM d, yyyy')}</p>
+                        <h4 className="font-semibold text-slate-800">{refill.medications?.name || 'Unknown'}</h4>
+                        <p className="text-sm text-slate-600">
+                          Requested: {format(parseISO(refill.requested_date), 'MMMM d, yyyy')}
+                        </p>
                       </div>
                       <Badge className={config.color}>{config.label}</Badge>
                     </div>
@@ -127,8 +130,10 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
                     {refill.assigned_to && (
                       <p className="text-sm text-slate-700">Assigned to: {refill.assigned_to}</p>
                     )}
-                    {refill.completed_date && (
-                      <p className="text-sm text-green-700">Completed: {format(parseISO(refill.completed_date), 'MMMM d, yyyy')}</p>
+                    {refill.completed_at && (
+                      <p className="text-sm text-green-700">
+                        Completed: {format(parseISO(refill.completed_at), 'MMMM d, yyyy')}
+                      </p>
                     )}
                     {refill.notes && (
                       <p className="text-sm text-slate-600 mt-2 italic">{refill.notes}</p>
@@ -164,3 +169,5 @@ export default function RefillHistoryReport({ recipientId, recipientName, dateRa
     </div>
   );
 }
+
+export default RefillHistoryReport;

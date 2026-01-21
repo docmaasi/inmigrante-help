@@ -1,28 +1,26 @@
 import React, { useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useAppointments } from '@/hooks/use-appointments';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { parseISO, format } from 'date-fns';
+import { parseISO, format, isWithinInterval } from 'date-fns';
 import ReportExporter from './ReportExporter';
 import { Calendar, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
-export default function AppointmentSummaryReport({ recipientId, recipientName, dateRange }) {
+export function AppointmentSummaryReport({ recipientId, recipientName, dateRange }) {
   const contentRef = useRef(null);
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments', recipientId, dateRange],
-    queryFn: () => base44.entities.Appointment.filter({
-      care_recipient_id: recipientId
-    })
-  });
 
-  // Filter by date range
+  const { data: appointments = [] } = useAppointments({ careRecipientId: recipientId });
+
   const filteredAppointments = appointments.filter(apt => {
-    const aptDate = parseISO(apt.date);
-    const startDate = parseISO(dateRange.startDate);
-    const endDate = parseISO(dateRange.endDate);
-    return aptDate >= startDate && aptDate <= endDate;
-  }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    try {
+      const aptDate = parseISO(apt.start_time ? apt.start_time.split('T')[0] : apt.date);
+      const startDate = parseISO(dateRange.startDate);
+      const endDate = parseISO(dateRange.endDate);
+      return isWithinInterval(aptDate, { start: startDate, end: endDate });
+    } catch {
+      return false;
+    }
+  }).sort((a, b) => new Date(b.start_time || b.date) - new Date(a.start_time || a.date));
 
   const completed = filteredAppointments.filter(a => a.status === 'completed').length;
   const scheduled = filteredAppointments.filter(a => a.status === 'scheduled').length;
@@ -44,7 +42,6 @@ export default function AppointmentSummaryReport({ recipientId, recipientName, d
 
   const reportContent = (
     <div className="space-y-6">
-      {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -72,7 +69,6 @@ export default function AppointmentSummaryReport({ recipientId, recipientName, d
         </Card>
       </div>
 
-      {/* Appointment Types */}
       {Object.keys(appointmentTypes).length > 0 && (
         <Card>
           <CardHeader className="border-b border-slate-100">
@@ -91,7 +87,6 @@ export default function AppointmentSummaryReport({ recipientId, recipientName, d
         </Card>
       )}
 
-      {/* Detailed List */}
       {filteredAppointments.length > 0 && (
         <Card>
           <CardHeader className="border-b border-slate-100">
@@ -104,12 +99,15 @@ export default function AppointmentSummaryReport({ recipientId, recipientName, d
             <div className="space-y-3">
               {filteredAppointments.map(apt => {
                 const config = statusConfig[apt.status] || statusConfig.scheduled;
+                const aptDate = apt.start_time ? parseISO(apt.start_time) : parseISO(apt.date);
                 return (
                   <div key={apt.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h4 className="font-semibold text-slate-800">{apt.title}</h4>
-                        <p className="text-sm text-slate-600">{format(parseISO(apt.date), 'MMMM d, yyyy')} at {apt.time}</p>
+                        <p className="text-sm text-slate-600">
+                          {format(aptDate, 'MMMM d, yyyy')} {apt.start_time && `at ${format(aptDate, 'h:mm a')}`}
+                        </p>
                       </div>
                       <Badge className={config.color}>{config.label}</Badge>
                     </div>
@@ -153,3 +151,5 @@ export default function AppointmentSummaryReport({ recipientId, recipientName, d
     </div>
   );
 }
+
+export default AppointmentSummaryReport;

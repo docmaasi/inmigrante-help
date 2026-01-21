@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import React, { useState, useEffect } from 'react';
+import { useMedicationLogs, useLogMedication } from '@/hooks';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -8,64 +7,51 @@ import { Pill, Check, X, Clock, User, AlertCircle, ChevronDown, ChevronUp } from
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function MedicationCheckoffItem({ medication, recipientName }) {
+export function MedicationCheckoffItem({ medication, recipientName }) {
   const [showLogs, setShowLogs] = useState(false);
   const [notes, setNotes] = useState('');
-  const notesRef = useRef(null);
-  const queryClient = useQueryClient();
 
   const today = new Date().toISOString().split('T')[0];
   const currentTime = format(new Date(), 'HH:mm');
 
-  const { data: todayLogs = [] } = useQuery({
-    queryKey: ['medicationLogs', medication.id, today],
-    queryFn: async () => {
-      const logs = await base44.entities.MedicationLog.list('-time_taken', 100);
-      return logs.filter(log => log.medication_id === medication.id && log.date_taken === today);
-    }
+  const { data: allLogs = [] } = useMedicationLogs(medication.id, medication.care_recipient_id);
+
+  const todayLogs = allLogs.filter(log => {
+    const logDate = log.scheduled_time?.split('T')[0] || log.taken_at?.split('T')[0];
+    return logDate === today;
   });
 
-  const { data: recentLogs = [] } = useQuery({
-    queryKey: ['medicationLogs', medication.id],
-    queryFn: async () => {
-      const logs = await base44.entities.MedicationLog.list('-date_taken', 10);
-      return logs.filter(log => log.medication_id === medication.id);
-    },
-    enabled: showLogs
-  });
+  const recentLogs = showLogs ? allLogs.slice(0, 10) : [];
 
-  const logMutation = useMutation({
-    mutationFn: (logData) => base44.entities.MedicationLog.create(logData),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['medicationLogs']);
-      toast.success('Medication logged');
-      setNotes('');
-    }
-  });
+  const logMutation = useLogMedication();
 
   const handleLog = (status) => {
     const logData = {
       medication_id: medication.id,
       care_recipient_id: medication.care_recipient_id,
-      medication_name: medication.medication_name,
-      dosage: medication.dosage,
-      date_taken: today,
-      time_taken: currentTime,
+      scheduled_time: `${today}T${currentTime}:00`,
       status: status,
       notes: notes || undefined
     };
-    logMutation.mutate(logData);
+
+    logMutation.mutate(logData, {
+      onSuccess: () => {
+        toast.success('Medication logged');
+        setNotes('');
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Failed to log medication');
+      }
+    });
   };
 
   const hasTakenToday = todayLogs.some(log => log.status === 'taken');
 
-  // Auto-save notes to localStorage
   useEffect(() => {
     const key = `med-notes-${medication.id}`;
     localStorage.setItem(key, notes);
   }, [notes, medication.id]);
 
-  // Load saved notes on mount
   useEffect(() => {
     const key = `med-notes-${medication.id}`;
     const saved = localStorage.getItem(key);
@@ -89,10 +75,10 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-bold text-slate-800 mb-1">{medication.medication_name}</h3>
+              <h3 className="text-lg font-bold text-slate-800 mb-1">{medication.name}</h3>
               <p className="text-sm text-slate-600 mb-2">
                 <span className="font-medium">{medication.dosage}</span>
-                {medication.frequency && ` • ${medication.frequency}`}
+                {medication.frequency && ` - ${medication.frequency}`}
               </p>
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="flex items-center gap-1 text-slate-600">
@@ -101,7 +87,7 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
                 </span>
                 {medication.time_of_day && (
                   <>
-                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-400">-</span>
                     <span className="flex items-center gap-1 text-slate-600">
                       <Clock className="w-4 h-4 text-slate-400" />
                       {medication.time_of_day}
@@ -125,7 +111,6 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
           </div>
         )}
 
-        {/* Today's Logs */}
         {todayLogs.length > 0 && (
           <div className="mb-3 space-y-2">
             {todayLogs.map(log => (
@@ -137,15 +122,15 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
                 }>
                   {log.status}
                 </Badge>
-                <span className="text-slate-600">{log.time_taken}</span>
-                {log.notes && <span className="text-slate-500">• {log.notes}</span>}
-                <span className="text-slate-400 text-xs ml-auto">by {log.created_by}</span>
+                <span className="text-slate-600">
+                  {log.scheduled_time && format(new Date(log.scheduled_time), 'HH:mm')}
+                </span>
+                {log.notes && <span className="text-slate-500">- {log.notes}</span>}
               </div>
             ))}
           </div>
         )}
 
-        {/* Quick Actions */}
         {!hasTakenToday && (
           <div className="space-y-3">
             <input
@@ -179,7 +164,6 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
           </div>
         )}
 
-        {/* View History */}
         <Button
           variant="ghost"
           size="sm"
@@ -190,7 +174,6 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
           {showLogs ? 'Hide' : 'View'} History
         </Button>
 
-        {/* History */}
         {showLogs && (
           <div className="mt-3 pt-3 border-t border-slate-200 space-y-2">
             {recentLogs.length === 0 ? (
@@ -206,8 +189,12 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
                     }>
                       {log.status}
                     </Badge>
-                    <span className="text-slate-600">{log.date_taken}</span>
-                    <span className="text-slate-600">{log.time_taken}</span>
+                    <span className="text-slate-600">
+                      {log.scheduled_time && format(new Date(log.scheduled_time), 'MMM d, yyyy')}
+                    </span>
+                    <span className="text-slate-600">
+                      {log.scheduled_time && format(new Date(log.scheduled_time), 'HH:mm')}
+                    </span>
                   </div>
                   {log.notes && (
                     <span className="text-slate-500 text-xs ml-2">{log.notes}</span>
@@ -221,3 +208,5 @@ export default function MedicationCheckoffItem({ medication, recipientName }) {
     </Card>
   );
 }
+
+export default MedicationCheckoffItem;

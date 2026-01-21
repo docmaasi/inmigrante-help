@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
-import { ListTodo, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ListTodo, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import ClientPortalNav from '../components/client/ClientPortalNav';
@@ -10,59 +11,71 @@ import { createPageUrl } from '../utils';
 
 export default function ClientTasks() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [recipientId, setRecipientId] = useState(null);
-  const [recipient, setRecipient] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => navigate(createPageUrl('Dashboard')));
-  }, [navigate]);
+    if (isAuthLoading) return;
+    if (!user) {
+      navigate(createPageUrl('Dashboard'));
+      return;
+    }
 
-  useEffect(() => {
-    if (!user) return;
-    
-    base44.entities.ClientAccess.filter({
-      client_email: user.email,
-      approved: true
-    }).then(accesses => {
-      if (accesses.length === 0) {
+    const fetchClientAccess = async () => {
+      const { data: accesses, error } = await supabase
+        .from('client_access')
+        .select('care_recipient_id')
+        .eq('is_active', true)
+        .limit(1);
+
+      if (error || !accesses || accesses.length === 0) {
         navigate(createPageUrl('Dashboard'));
-      } else {
-        setRecipientId(accesses[0].care_recipient_id);
+        return;
       }
-    });
-  }, [user, navigate]);
 
-  const { data: recipientData } = useQuery({
+      setRecipientId(accesses[0].care_recipient_id);
+    };
+
+    fetchClientAccess();
+  }, [user, isAuthLoading, navigate]);
+
+  const { data: recipient } = useQuery({
     queryKey: ['recipient', recipientId],
-    queryFn: () => recipientId ? base44.entities.CareRecipient.filter({ id: recipientId }).then(data => data[0]) : null,
+    queryFn: async () => {
+      if (!recipientId) return null;
+      const { data, error } = await supabase
+        .from('care_recipients')
+        .select('*')
+        .eq('id', recipientId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
     enabled: !!recipientId
   });
 
-  useEffect(() => {
-    if (recipientData) setRecipient(recipientData);
-  }, [recipientData]);
-
   const { data: tasks = [] } = useQuery({
     queryKey: ['clientTasks', recipientId],
-    queryFn: () => recipientId 
-      ? base44.entities.Task.filter({ care_recipient_id: recipientId }, '-due_date')
-      : [],
+    queryFn: async () => {
+      if (!recipientId) return [];
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('care_recipient_id', recipientId)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
     enabled: !!recipientId
   });
 
   const priorityColors = {
-    low: 'bg-blue-100 text-blue-800',
+    low: 'bg-teal-100 text-teal-800',
     medium: 'bg-yellow-100 text-yellow-800',
     high: 'bg-orange-100 text-orange-800',
     urgent: 'bg-red-100 text-red-800'
-  };
-
-  const statusColors = {
-    pending: 'text-slate-600',
-    in_progress: 'text-blue-600',
-    completed: 'text-green-600',
-    cancelled: 'text-slate-400'
   };
 
   if (!recipient) {
@@ -73,13 +86,14 @@ export default function ClientTasks() {
     );
   }
 
+  const recipientFullName = `${recipient.first_name} ${recipient.last_name}`;
   const pendingTasks = tasks.filter(t => t.status !== 'completed');
   const completedTasks = tasks.filter(t => t.status === 'completed');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <ClientPortalNav careRecipientName={recipient.full_name} currentPageName="ClientTasks" />
-      
+    <div className="min-h-screen bg-slate-50">
+      <ClientPortalNav careRecipientName={recipientFullName} currentPageName="ClientTasks" />
+
       <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Care Tasks</h1>
@@ -92,7 +106,7 @@ export default function ClientTasks() {
             <h2 className="text-xl font-semibold text-slate-800 mb-4">Active Tasks ({pendingTasks.length})</h2>
             <div className="space-y-3">
               {pendingTasks.map(task => (
-                <Card key={task.id}>
+                <Card key={task.id} className="border border-slate-200 shadow-sm">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -104,8 +118,8 @@ export default function ClientTasks() {
                           {task.due_date && (
                             <span>Due: {format(new Date(task.due_date), 'MMM d, yyyy')}</span>
                           )}
-                          {task.task_type && (
-                            <span className="capitalize">{task.task_type.replace(/_/g, ' ')}</span>
+                          {task.category && (
+                            <span className="capitalize">{task.category.replace(/_/g, ' ')}</span>
                           )}
                         </div>
                       </div>
@@ -113,7 +127,7 @@ export default function ClientTasks() {
                         <span className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${priorityColors[task.priority]}`}>
                           {task.priority}
                         </span>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-800 capitalize`}>
+                        <span className="px-2 py-1 rounded text-xs font-semibold whitespace-nowrap bg-slate-100 text-slate-800 capitalize">
                           {task.status}
                         </span>
                       </div>
@@ -131,14 +145,14 @@ export default function ClientTasks() {
             <h2 className="text-xl font-semibold text-slate-800 mb-4">Completed ({completedTasks.length})</h2>
             <div className="space-y-2">
               {completedTasks.map(task => (
-                <Card key={task.id}>
+                <Card key={task.id} className="border border-slate-200 shadow-sm">
                   <CardContent className="pt-4 pb-4">
                     <div className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0" />
                       <div className="flex-1">
                         <p className="font-medium text-slate-600 line-through">{task.title}</p>
-                        {task.completion_notes && (
-                          <p className="text-xs text-slate-500 mt-1">{task.completion_notes}</p>
+                        {task.notes && (
+                          <p className="text-xs text-slate-500 mt-1">{task.notes}</p>
                         )}
                       </div>
                     </div>
@@ -150,9 +164,9 @@ export default function ClientTasks() {
         )}
 
         {tasks.length === 0 && (
-          <Card>
+          <Card className="border border-slate-200 shadow-sm">
             <CardContent className="pt-12 pb-12 text-center">
-              <ListTodo className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <ListTodo className="w-12 h-12 text-teal-200 mx-auto mb-4" />
               <p className="text-slate-500">No tasks assigned</p>
             </CardContent>
           </Card>

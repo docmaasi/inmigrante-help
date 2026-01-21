@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Calendar, Pill, MessageSquare, FileText } from 'lucide-react';
@@ -28,15 +29,28 @@ const ACTION_COLORS = {
 };
 
 export default function CaregiverActivityLog({ careRecipientId, limit = 20 }) {
+  const { user } = useAuth();
+
   const { data: activities = [] } = useQuery({
-    queryKey: ['actionLog', careRecipientId],
-    queryFn: () => careRecipientId
-      ? base44.entities.ActionLog.filter(
-          { care_recipient_id: careRecipientId },
-          '-created_date',
-          limit
-        )
-      : []
+    queryKey: ['action-log', careRecipientId, limit],
+    queryFn: async () => {
+      if (!careRecipientId) return [];
+
+      const { data, error } = await supabase
+        .from('action_logs')
+        .select('*, profiles:actor_id(full_name)')
+        .eq('care_recipient_id', careRecipientId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+      return data.map(item => ({
+        ...item,
+        actor_name: item.profiles?.full_name || 'Unknown',
+        created_date: item.created_at
+      }));
+    },
+    enabled: !!user && !!careRecipientId
   });
 
   const groupedByDate = activities.reduce((groups, activity) => {

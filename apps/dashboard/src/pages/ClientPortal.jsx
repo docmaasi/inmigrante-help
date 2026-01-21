@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import React from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Pill, ListTodo, AlertCircle } from 'lucide-react';
@@ -8,68 +9,102 @@ import { useNavigate } from 'react-router-dom';
 import ClientPortalNav from '../components/client/ClientPortalNav';
 import { createPageUrl } from '../utils';
 
-export default function ClientPortal() {
+export function ClientPortal() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [recipientId, setRecipientId] = useState(null);
-  const [recipient, setRecipient] = useState(null);
-  const [access, setAccess] = useState(null);
+  const { user, isLoading: authLoading } = useAuth();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => navigate(createPageUrl('Dashboard')));
-  }, [navigate]);
+  const { data: access, isLoading: accessLoading } = useQuery({
+    queryKey: ['clientAccess', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const { data, error } = await supabase
+        .from('client_access')
+        .select('*')
+        .eq('client_email', user.email)
+        .eq('approved', true)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!user?.email
+  });
 
-  // Check if user has client access
-  useEffect(() => {
-    if (!user) return;
-    
-    base44.entities.ClientAccess.filter({
-      client_email: user.email,
-      approved: true
-    }).then(accesses => {
-      if (accesses.length === 0) {
-        navigate(createPageUrl('Dashboard'));
-      } else {
-        setAccess(accesses[0]);
-        setRecipientId(accesses[0].care_recipient_id);
-      }
-    });
-  }, [user, navigate]);
+  const recipientId = access?.care_recipient_id;
 
-  // Fetch recipient
-  const { data: recipientData } = useQuery({
+  const { data: recipient } = useQuery({
     queryKey: ['recipient', recipientId],
-    queryFn: () => recipientId ? base44.entities.CareRecipient.filter({ id: recipientId }).then(data => data[0]) : null,
+    queryFn: async () => {
+      if (!recipientId) return null;
+      const { data, error } = await supabase
+        .from('care_recipients')
+        .select('*')
+        .eq('id', recipientId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
     enabled: !!recipientId
   });
 
-  useEffect(() => {
-    if (recipientData) setRecipient(recipientData);
-  }, [recipientData]);
-
   const { data: appointments = [] } = useQuery({
     queryKey: ['clientAppointments', recipientId],
-    queryFn: () => recipientId 
-      ? base44.entities.Appointment.filter({ care_recipient_id: recipientId, status: 'scheduled' })
-      : [],
+    queryFn: async () => {
+      if (!recipientId) return [];
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('care_recipient_id', recipientId)
+        .eq('status', 'scheduled')
+        .order('date', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
     enabled: !!recipientId
   });
 
   const { data: medications = [] } = useQuery({
     queryKey: ['clientMedications', recipientId],
-    queryFn: () => recipientId 
-      ? base44.entities.Medication.filter({ care_recipient_id: recipientId, active: true })
-      : [],
+    queryFn: async () => {
+      if (!recipientId) return [];
+      const { data, error } = await supabase
+        .from('medications')
+        .select('*')
+        .eq('care_recipient_id', recipientId)
+        .eq('active', true)
+        .order('medication_name');
+      if (error) throw error;
+      return data;
+    },
     enabled: !!recipientId
   });
 
   const { data: tasks = [] } = useQuery({
     queryKey: ['clientTasks', recipientId],
-    queryFn: () => recipientId 
-      ? base44.entities.Task.filter({ care_recipient_id: recipientId, status: 'pending' })
-      : [],
+    queryFn: async () => {
+      if (!recipientId) return [];
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('care_recipient_id', recipientId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
     enabled: !!recipientId
   });
+
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      navigate(createPageUrl('Dashboard'));
+    }
+  }, [authLoading, user, navigate]);
+
+  React.useEffect(() => {
+    if (!accessLoading && user && !access) {
+      navigate(createPageUrl('Dashboard'));
+    }
+  }, [accessLoading, user, access, navigate]);
 
   const upcomingAppointments = appointments
     .filter(apt => isAfter(parseISO(apt.date), startOfToday()))
@@ -78,7 +113,7 @@ export default function ClientPortal() {
   const activeMedications = medications.slice(0, 3);
   const urgentTasks = tasks.filter(t => t.priority === 'high' || t.priority === 'urgent').slice(0, 3);
 
-  if (!recipient) {
+  if (authLoading || accessLoading || !recipient) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <p className="text-slate-600">Loading...</p>
@@ -87,73 +122,70 @@ export default function ClientPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-slate-50">
       <ClientPortalNav careRecipientName={recipient.full_name} currentPageName="ClientPortal" />
-      
+
       <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome to Your Care Portal</h1>
           <p className="text-slate-600">Stay updated on appointments, medications, and care activities</p>
         </div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
+          <Card className="border border-slate-200 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-500">Upcoming Appointments</p>
-                  <p className="text-3xl font-bold text-blue-600">{upcomingAppointments.length}</p>
+                  <p className="text-3xl font-bold text-teal-600">{upcomingAppointments.length}</p>
                 </div>
-                <Calendar className="w-8 h-8 text-blue-100" />
+                <Calendar className="w-8 h-8 text-teal-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-slate-200 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-500">Active Medications</p>
-                  <p className="text-3xl font-bold text-purple-600">{activeMedications.length}</p>
+                  <p className="text-3xl font-bold text-teal-600">{activeMedications.length}</p>
                 </div>
-                <Pill className="w-8 h-8 text-purple-100" />
+                <Pill className="w-8 h-8 text-teal-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-slate-200 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-500">Pending Tasks</p>
-                  <p className="text-3xl font-bold text-orange-600">{tasks.length}</p>
+                  <p className="text-3xl font-bold text-teal-600">{tasks.length}</p>
                 </div>
-                <ListTodo className="w-8 h-8 text-orange-100" />
+                <ListTodo className="w-8 h-8 text-teal-200" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border border-slate-200 shadow-sm">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-500">Access Level</p>
-                  <p className="text-lg font-bold text-slate-800 capitalize">{access?.access_level.replace(/_/g, ' ')}</p>
+                  <p className="text-lg font-bold text-slate-800 capitalize">{access?.access_level?.replace(/_/g, ' ')}</p>
                 </div>
-                <AlertCircle className="w-8 h-8 text-slate-100" />
+                <AlertCircle className="w-8 h-8 text-teal-200" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Upcoming Appointments */}
-          <Card>
+          <Card className="border border-slate-200 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-600" />
+                <Calendar className="w-5 h-5 text-teal-600" />
                 Upcoming Appointments
               </CardTitle>
             </CardHeader>
@@ -172,11 +204,10 @@ export default function ClientPortal() {
             </CardContent>
           </Card>
 
-          {/* Active Medications */}
-          <Card>
+          <Card className="border border-slate-200 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Pill className="w-5 h-5 text-purple-600" />
+                <Pill className="w-5 h-5 text-teal-600" />
                 Current Medications
               </CardTitle>
             </CardHeader>
@@ -187,7 +218,7 @@ export default function ClientPortal() {
                 activeMedications.map(med => (
                   <div key={med.id} className="p-3 border border-slate-200 rounded-lg">
                     <p className="font-medium text-slate-800">{med.medication_name}</p>
-                    <p className="text-xs text-slate-600 mt-1">{med.dosage} • {med.frequency}</p>
+                    <p className="text-xs text-slate-600 mt-1">{med.dosage} - {med.frequency}</p>
                     {med.purpose && <p className="text-xs text-slate-600">{med.purpose}</p>}
                   </div>
                 ))
@@ -195,11 +226,10 @@ export default function ClientPortal() {
             </CardContent>
           </Card>
 
-          {/* Urgent Tasks */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 border border-slate-200 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ListTodo className="w-5 h-5 text-orange-600" />
+                <ListTodo className="w-5 h-5 text-teal-600" />
                 Assigned Tasks
               </CardTitle>
             </CardHeader>

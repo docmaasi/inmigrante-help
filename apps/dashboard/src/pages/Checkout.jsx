@@ -1,91 +1,92 @@
 import React, { useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Shield, CheckCircle } from 'lucide-react';
 
-export default function Checkout() {
-  // Add subtle pulse animation style
+export function Checkout() {
+  const { user } = useAuth();
+
   useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes subtle-pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.95; transform: scale(1.02); }
-      }
-    `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
-  useEffect(() => {
-    // Load the Stripe pricing table script
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/pricing-table.js';
     script.async = true;
     document.body.appendChild(script);
 
-    // Prefill customer email if user is logged in
-    base44.auth.me().then(user => {
-      if (user && user.email) {
-        const pricingTable = document.querySelector('stripe-pricing-table');
-        if (pricingTable) {
-          pricingTable.setAttribute('customer-email', user.email);
-        }
+    if (user?.email) {
+      const pricingTable = document.querySelector('stripe-pricing-table');
+      if (pricingTable) {
+        pricingTable.setAttribute('customer-email', user.email);
       }
-    }).catch(() => {});
+    }
 
     return () => {
-      // Cleanup script on unmount
       document.body.removeChild(script);
     };
-  }, []);
+  }, [user]);
 
   return (
-    <div className="min-h-screen bg-cover bg-center p-4 md:p-8" style={{ backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/ef1338dd1_Untitleddesign18.png)' }}>
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
             Choose Your Plan
           </h1>
-          <p className="text-slate-600 mb-3">
+          <p className="text-slate-600 text-lg mb-6">
             Select the plan that best fits your caregiving needs
           </p>
-          <p className="text-sm text-blue-700 font-medium max-w-3xl mx-auto">
-            During checkout, you may add one additional family member to your FamilyCare.Help subscription. If you need to include more family members or care partners, additional members can be added at any time through Subscription Management. Each additional member is billed at $5 per month, allowing you to expand access as your care team grows.
-          </p>
+
+          <Card className="max-w-3xl mx-auto border border-teal-200 bg-teal-50/50 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex gap-3">
+                <CheckCircle className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-slate-700 text-left leading-relaxed">
+                  During checkout, you may add one additional family member to your FamilyCare.Help subscription. If you need to include more family members or care partners, additional members can be added at any time through Subscription Management. Each additional member is billed at $5 per month, allowing you to expand access as your care team grows.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="mt-6">
-            <a 
-              href="https://billing.stripe.com/p/login/aFaaEX04IcA44E1cjF4AU00" 
-              target="_blank" 
+            <a
+              href="https://billing.stripe.com/p/login/aFaaEX04IcA44E1cjF4AU00"
+              target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 px-8 py-5 text-lg font-bold text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 hover:brightness-110"
-              style={{ animation: 'subtle-pulse 3s ease-in-out infinite' }}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
             >
-              <span className="text-center">
-                Manage Your Subscription, Additional Members Can Be Added Here
-              </span>
+              Manage Your Subscription
             </a>
+            <p className="text-xs text-slate-500 mt-2">
+              Additional members can be added here
+            </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-          <stripe-pricing-table 
-            pricing-table-id="prctbl_1Sq0SNDw3DaD2xXnnwMDC51e"
-            publishable-key="pk_live_51SdEBaDw3DaD2xXn8j40oxVS5GTtf2y1CT0cN9TUc29BS2suu6jjAPjCAfNwj75XKVYV7oMvgGhSCCFx4C7Zgk6v00P0JBlsS3">
-          </stripe-pricing-table>
+        <Card className="border border-slate-200 shadow-sm overflow-hidden">
+          <CardContent className="p-0">
+            <stripe-pricing-table
+              pricing-table-id="prctbl_1Sq0SNDw3DaD2xXnnwMDC51e"
+              publishable-key="pk_live_51SdEBaDw3DaD2xXn8j40oxVS5GTtf2y1CT0cN9TUc29BS2suu6jjAPjCAfNwj75XKVYV7oMvgGhSCCFx4C7Zgk6v00P0JBlsS3">
+            </stripe-pricing-table>
+          </CardContent>
+        </Card>
+
+        <p className="text-xs text-slate-400 text-center mt-3">
+          Pricing table appearance is managed in your Stripe Dashboard
+        </p>
+
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500">
+          <Shield className="w-4 h-4 text-teal-600" />
+          <p>Secure payment powered by Stripe · Cancel anytime</p>
         </div>
 
-        <div className="mt-6 text-center text-sm text-slate-500">
-          <p>Secure payment powered by Stripe • Cancel anytime</p>
-        </div>
-
-        <Card className="mt-6 border-blue-200 bg-blue-50">
+        <Card className="mt-6 border border-slate-200 bg-white shadow-sm">
           <CardContent className="p-4">
             <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-blue-900 text-sm mb-1">Data Retention Notice</h3>
-                <p className="text-sm text-blue-800 leading-relaxed">
-                  After cancellation, FamilyCare.Help retains records for up to 90 days. Access is not guaranteed during this period. 
+                <h3 className="font-semibold text-slate-800 text-sm mb-1">Data Retention Notice</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  After cancellation, FamilyCare.Help retains records for up to 90 days. Access is not guaranteed during this period.
                   If you renew within 90 days, your data remains intact. After 90 days, records may be permanently deleted and cannot be recovered.
                 </p>
               </div>

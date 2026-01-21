@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,73 +13,87 @@ import { format } from 'date-fns';
 import FileUpload from '../components/shared/FileUpload';
 import ShareQRCode from '../components/shared/ShareQRCode';
 
-export default function ReceiptsPage() {
+export function ReceiptsPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState('all');
 
   const { data: receipts = [] } = useQuery({
     queryKey: ['receipts'],
-    queryFn: () => base44.entities.Receipt.list('-created_date')
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('receipts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    }
   });
 
   const { data: recipients = [] } = useQuery({
     queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('care_recipients')
+        .select('*')
+        .order('full_name');
+      if (error) throw error;
+      return data;
+    }
   });
 
-  const filteredReceipts = selectedRecipient === 'all' 
-    ? receipts 
+  const filteredReceipts = selectedRecipient === 'all'
+    ? receipts
     : receipts.filter(r => r.care_recipient_id === selectedRecipient);
 
   const totalAmount = filteredReceipts.reduce((sum, r) => sum + (r.amount || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Receipts & Expenses</h1>
-            <p className="text-slate-600 mt-1">Track and manage care-related expenses</p>
+            <p className="text-slate-500 mt-1">Track and manage care-related expenses</p>
           </div>
-          <Button onClick={() => setShowForm(true)} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => setShowForm(true)} className="bg-teal-600 hover:bg-teal-700">
             <Plus className="w-4 h-4 mr-2" />
             Add Receipt
           </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
+          <Card className="shadow-sm border border-slate-200 bg-white">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Receipt className="w-6 h-6 text-blue-600" />
+                <div className="p-3 bg-teal-50 rounded-full">
+                  <Receipt className="w-6 h-6 text-teal-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">Total Receipts</p>
+                  <p className="text-sm text-slate-500">Total Receipts</p>
                   <p className="text-2xl font-bold text-slate-900">{filteredReceipts.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
-          <Card>
+
+          <Card className="shadow-sm border border-slate-200 bg-white">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <DollarSign className="w-6 h-6 text-green-600" />
+                <div className="p-3 bg-emerald-50 rounded-full">
+                  <DollarSign className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">Total Amount</p>
+                  <p className="text-sm text-slate-500">Total Amount</p>
                   <p className="text-2xl font-bold text-slate-900">${totalAmount.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm border border-slate-200 bg-white">
             <CardContent className="p-4">
-              <Label className="text-sm text-slate-600 mb-2 block">Filter by Recipient</Label>
+              <Label className="text-sm text-slate-500 mb-2 block">Filter by Recipient</Label>
               <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
                 <SelectTrigger>
                   <SelectValue />
@@ -96,9 +110,9 @@ export default function ReceiptsPage() {
         </div>
 
         {showForm && (
-          <ReceiptForm 
-            recipients={recipients} 
-            onClose={() => setShowForm(false)} 
+          <ReceiptForm
+            recipients={recipients}
+            onClose={() => setShowForm(false)}
           />
         )}
 
@@ -109,8 +123,10 @@ export default function ReceiptsPage() {
         </div>
 
         {filteredReceipts.length === 0 && (
-          <Card className="p-12 text-center">
-            <Receipt className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <Card className="p-12 text-center shadow-sm border border-slate-200 bg-white">
+            <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Receipt className="w-10 h-10 text-teal-600" />
+            </div>
             <p className="text-slate-500">No receipts found. Add your first receipt to get started.</p>
           </Card>
         )}
@@ -137,17 +153,33 @@ function ReceiptForm({ recipients, receipt, onClose }) {
   });
 
   const saveMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       const dataToSave = { ...data, amount: parseFloat(data.amount) || 0 };
       if (receipt?.id) {
-        return base44.entities.Receipt.update(receipt.id, dataToSave);
+        const { data: updated, error } = await supabase
+          .from('receipts')
+          .update(dataToSave)
+          .eq('id', receipt.id)
+          .select()
+          .single();
+        if (error) throw error;
+        return updated;
       }
-      return base44.entities.Receipt.create(dataToSave);
+      const { data: created, error } = await supabase
+        .from('receipts')
+        .insert(dataToSave)
+        .select()
+        .single();
+      if (error) throw error;
+      return created;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['receipts']);
+      queryClient.invalidateQueries({ queryKey: ['receipts'] });
       toast.success(receipt ? 'Receipt updated' : 'Receipt added');
       onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to save receipt');
     }
   });
 
@@ -160,17 +192,9 @@ function ReceiptForm({ recipients, receipt, onClose }) {
     saveMutation.mutate(formData);
   };
 
-  const categoryColors = {
-    medical: 'bg-red-100 text-red-800',
-    pharmacy: 'bg-purple-100 text-purple-800',
-    equipment: 'bg-blue-100 text-blue-800',
-    transportation: 'bg-green-100 text-green-800',
-    other: 'bg-slate-100 text-slate-800'
-  };
-
   return (
-    <Card className="mb-6 shadow-lg">
-      <CardHeader className="border-b flex flex-row items-center justify-between">
+    <Card className="mb-6 shadow-sm border border-slate-200 bg-white">
+      <CardHeader className="border-b border-slate-200 flex flex-row items-center justify-between">
         <CardTitle>{receipt ? 'Edit Receipt' : 'Add Receipt'}</CardTitle>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="w-5 h-5" />
@@ -280,7 +304,7 @@ function ReceiptForm({ recipients, receipt, onClose }) {
             <Button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-teal-600 hover:bg-teal-700"
             >
               {saveMutation.isPending ? (
                 <>
@@ -303,10 +327,19 @@ function ReceiptCard({ receipt, recipients }) {
   const recipient = recipients.find(r => r.id === receipt.care_recipient_id);
 
   const deleteMutation = useMutation({
-    mutationFn: () => base44.entities.Receipt.delete(receipt.id),
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('receipts')
+        .delete()
+        .eq('id', receipt.id);
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['receipts']);
+      queryClient.invalidateQueries({ queryKey: ['receipts'] });
       toast.success('Receipt deleted');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete receipt');
     }
   });
 
@@ -323,12 +356,12 @@ function ReceiptCard({ receipt, recipients }) {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-md transition-shadow shadow-sm border border-slate-200 bg-white">
       <CardContent className="p-4">
         {receipt.photo_url && (
-          <img 
-            src={receipt.photo_url} 
-            alt="Receipt" 
+          <img
+            src={receipt.photo_url}
+            alt="Receipt"
             className="w-full h-40 object-cover rounded-lg mb-3 cursor-pointer"
             onClick={() => window.open(receipt.photo_url, '_blank')}
           />
@@ -360,9 +393,9 @@ function ReceiptCard({ receipt, recipients }) {
           <Button variant="outline" size="sm" onClick={() => setShowEdit(true)} className="flex-1">
             Edit
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => deleteMutation.mutate()}
             disabled={deleteMutation.isPending}
             className="text-red-600 hover:text-red-700"

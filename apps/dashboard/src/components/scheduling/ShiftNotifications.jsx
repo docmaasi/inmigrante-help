@@ -1,59 +1,87 @@
 import React, { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { differenceInMinutes, addHours, parseISO } from 'date-fns';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
+import { differenceInMinutes } from 'date-fns';
 
 export default function ShiftNotifications() {
-  const [user, setUser] = React.useState(null);
-
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: upcomingShifts = [] } = useQuery({
-    queryKey: ['upcomingShifts', user?.email],
-    queryFn: () => user?.email
-      ? base44.entities.CaregiverShift.filter({
-          caregiver_email: user.email,
-          status: 'scheduled',
-          notification_sent: false
-        })
-      : [],
-    enabled: !!user?.email,
-    refetchInterval: 60000 // Check every minute
+    queryKey: ['upcoming-shifts', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from('caregiver_shifts')
+        .select('*, team_members(user_id, full_name)')
+        .eq('team_members.user_id', user.id)
+        .eq('status', 'scheduled')
+        .eq('notification_sent', false)
+        .gte('start_time', new Date().toISOString());
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    refetchInterval: 60000
+  });
+
+  const createNotificationMutation = useMutation({
+    mutationFn: async (data) => {
+      const { error } = await supabase
+        .from('notifications')
+        .insert(data);
+      if (error) throw error;
+    }
+  });
+
+  const updateShiftMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      const { error } = await supabase
+        .from('caregiver_shifts')
+        .update(data)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['upcoming-shifts'] });
+    }
   });
 
   useEffect(() => {
-    if (upcomingShifts.length === 0) return;
+    if (upcomingShifts.length === 0 || !user?.id) return;
 
     const now = new Date();
-    
+
     upcomingShifts.forEach(async (shift) => {
-      const shiftDateTime = new Date(`${shift.start_date}T${shift.start_time}`);
+      const shiftDateTime = new Date(shift.start_time);
       const minutesUntilShift = differenceInMinutes(shiftDateTime, now);
 
-      // Send notification 1 hour before shift
       if (minutesUntilShift <= 60 && minutesUntilShift > 0) {
         try {
-          await base44.entities.Notification.create({
-            user_email: shift.caregiver_email,
-            type: 'general',
+          await createNotificationMutation.mutateAsync({
+            user_id: user.id,
+            type: 'shift_reminder',
             title: 'Upcoming Shift',
-            message: `Your shift with ${shift.care_recipient_id} starts at ${shift.start_time}. ${shift.notes ? `Notes: ${shift.notes}` : ''}`,
+            message: `Your shift starts at ${new Date(shift.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. ${shift.notes ? `Notes: ${shift.notes}` : ''}`,
             priority: minutesUntilShift <= 15 ? 'urgent' : 'high',
-            read: false
+            is_read: false,
+            related_entity_type: 'caregiver_shift',
+            related_entity_id: shift.id
           });
 
-          // Mark as notified
-          await base44.entities.CaregiverShift.update(shift.id, {
-            notification_sent: true
+          await updateShiftMutation.mutateAsync({
+            id: shift.id,
+            data: { notification_sent: true }
           });
         } catch (error) {
           console.error('Failed to send shift notification:', error);
         }
       }
     });
-  }, [upcomingShifts]);
+  }, [upcomingShifts, user?.id]);
 
   return null;
 }

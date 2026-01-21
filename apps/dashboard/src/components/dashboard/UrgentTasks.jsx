@@ -2,7 +2,7 @@ import React from 'react';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Badge } from '../ui/badge';
-import { base44 } from '@/api/base44Client';
+import { useUpdateTask } from '@/hooks';
 
 const priorityColors = {
   low: 'bg-slate-100 text-slate-700',
@@ -11,10 +11,18 @@ const priorityColors = {
 };
 
 export default function UrgentTasks({ tasks, onTaskUpdate }) {
+  const updateTaskMutation = useUpdateTask();
+
   const handleToggleComplete = async (task) => {
     const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-    await base44.entities.CareTask.update(task.id, { status: newStatus });
-    if (onTaskUpdate) onTaskUpdate();
+    await updateTaskMutation.mutateAsync({
+      id: task.id,
+      status: newStatus,
+      completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+    });
+    if (onTaskUpdate) {
+      onTaskUpdate();
+    }
   };
 
   if (!tasks || tasks.length === 0) {
@@ -29,8 +37,8 @@ export default function UrgentTasks({ tasks, onTaskUpdate }) {
   return (
     <div className="space-y-3">
       {tasks.map(task => (
-        <div 
-          key={task.id} 
+        <div
+          key={task.id}
           className="bg-white rounded-xl p-5 border border-slate-200 hover:border-orange-300 transition-colors"
         >
           <div className="flex items-start gap-3">
@@ -39,8 +47,8 @@ export default function UrgentTasks({ tasks, onTaskUpdate }) {
               className="mt-0.5 flex-shrink-0"
             >
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                task.status === 'completed' 
-                  ? 'bg-green-500 border-green-500' 
+                task.status === 'completed'
+                  ? 'bg-green-500 border-green-500'
                   : 'border-slate-300 hover:border-green-500'
               }`}>
                 {task.status === 'completed' && (
@@ -68,7 +76,7 @@ export default function UrgentTasks({ tasks, onTaskUpdate }) {
                   </span>
                 )}
                 {task.assigned_to && (
-                  <span>Assigned to {task.assigned_to}</span>
+                  <span>Assigned to {task.team_members?.full_name || task.assigned_to}</span>
                 )}
               </div>
             </div>

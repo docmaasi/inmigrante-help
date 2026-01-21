@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCareRecipients, useCareNotes, useDeleteCareNote } from '@/hooks';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,33 +11,20 @@ export default function CareNotes() {
   const [selectedNote, setSelectedNote] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [filterType, setFilterType] = useState('all');
-  const queryClient = useQueryClient();
 
-  const { data: notes = [], isLoading } = useQuery({
-    queryKey: ['careNotes'],
-    queryFn: () => base44.entities.CareNote.list('-date', 100)
-  });
-
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.CareNote.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['careNotes']);
-    }
-  });
+  const { data: notes = [], isLoading } = useCareNotes();
+  const { data: recipients = [] } = useCareRecipients();
+  const deleteMutation = useDeleteCareNote();
 
   const getRecipientName = (id) => {
     const recipient = recipients.find(r => r.id === id);
-    return recipient?.full_name || 'Unknown';
+    if (!recipient) return 'Unknown';
+    return `${recipient.first_name} ${recipient.last_name}`;
   };
 
-  const filteredNotes = filterType === 'all' 
-    ? notes 
-    : notes.filter(note => note.note_type === filterType);
+  const filteredNotes = filterType === 'all'
+    ? notes
+    : notes.filter(note => note.category === filterType);
 
   const noteTypeColors = {
     daily_log: 'bg-blue-100 text-blue-700',
@@ -79,7 +65,7 @@ export default function CareNotes() {
             setSelectedNote(null);
             setShowForm(true);
           }}
-          className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/30"
+          className="bg-teal-600 hover:bg-teal-700"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Note
@@ -94,7 +80,7 @@ export default function CareNotes() {
             variant={filterType === type ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilterType(type)}
-            className={filterType === type ? 'bg-blue-600' : ''}
+            className={filterType === type ? 'bg-teal-600 hover:bg-teal-700' : ''}
           >
             {type === 'all' ? 'All' : type.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
           </Button>
@@ -116,10 +102,10 @@ export default function CareNotes() {
       {/* Notes List */}
       {isLoading ? (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
         </div>
       ) : filteredNotes.length === 0 ? (
-        <Card className="border-slate-200/60">
+        <Card className="border-slate-200">
           <CardContent className="p-12 text-center">
             <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-800 mb-2">No Care Notes</h3>
@@ -127,7 +113,7 @@ export default function CareNotes() {
               {filterType === 'all' ? 'Add your first care note to get started' : `No ${filterType.replace(/_/g, ' ')} notes`}
             </p>
             {filterType === 'all' && (
-              <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => setShowForm(true)} className="bg-teal-600 hover:bg-teal-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Note
               </Button>
@@ -137,13 +123,13 @@ export default function CareNotes() {
       ) : (
         <div className="space-y-4">
           {filteredNotes.map(note => (
-            <Card key={note.id} className={`shadow-sm border-slate-200/60 hover:shadow-md transition-shadow ${
-              note.flagged_important ? 'border-l-4 border-l-orange-500' : ''
+            <Card key={note.id} className={`border-slate-200 hover:shadow-md transition-shadow ${
+              note.is_private ? 'border-l-4 border-l-orange-500' : ''
             }`}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-3 rounded-lg flex-shrink-0">
+                    <div className="bg-teal-600 p-3 rounded-lg flex-shrink-0">
                       <FileText className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -151,7 +137,7 @@ export default function CareNotes() {
                         {note.title && (
                           <h3 className="text-lg font-bold text-slate-800">{note.title}</h3>
                         )}
-                        {note.flagged_important && (
+                        {note.is_private && (
                           <Flag className="w-4 h-4 text-orange-600 fill-orange-600" />
                         )}
                       </div>
@@ -162,11 +148,14 @@ export default function CareNotes() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4 text-slate-400" />
-                          {format(parseISO(note.date), 'MMM d, yyyy')}
-                          {note.time && ` • ${note.time}`}
+                          {format(parseISO(note.created_at), 'MMM d, yyyy')}
                         </span>
-                        <span className="text-slate-400">•</span>
-                        <span className="text-slate-500">by {note.created_by}</span>
+                        {note.profiles?.full_name && (
+                          <>
+                            <span className="text-slate-400">-</span>
+                            <span className="text-slate-500">by {note.profiles.full_name}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -177,8 +166,8 @@ export default function CareNotes() {
                         {note.mood}
                       </Badge>
                     )}
-                    <Badge className={`${noteTypeColors[note.note_type]} border-0`}>
-                      {note.note_type.replace(/_/g, ' ')}
+                    <Badge className={`${noteTypeColors[note.category] || noteTypeColors.other} border-0`}>
+                      {(note.category || 'other').replace(/_/g, ' ')}
                     </Badge>
                   </div>
                 </div>

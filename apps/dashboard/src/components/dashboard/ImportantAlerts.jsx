@@ -70,44 +70,54 @@ export default function ImportantAlerts({ tasks, appointments, medications, reci
   }).slice(0, 8);
 
   const typeStyles = {
-    urgent: 'bg-red-50 border-red-200 text-red-700',
-    warning: 'bg-orange-50 border-orange-200 text-orange-700',
-    info: 'bg-blue-50 border-blue-200 text-blue-700'
+    urgent: 'bg-red-50/80 border-l-red-500 border-red-100',
+    warning: 'bg-amber-50/80 border-l-amber-500 border-amber-100',
+    info: 'bg-slate-50/80 border-l-teal-500 border-slate-100'
   };
 
   const iconStyles = {
-    urgent: 'text-red-600',
-    warning: 'text-orange-600',
-    info: 'text-blue-600'
+    urgent: 'text-red-500',
+    warning: 'text-amber-500',
+    info: 'text-teal-500'
+  };
+
+  const badgeStyles = {
+    urgent: 'bg-red-100 text-red-700 border-red-200',
+    warning: 'bg-amber-100 text-amber-700 border-amber-200',
+    info: 'bg-teal-100 text-teal-700 border-teal-200'
   };
 
   return (
     <div className="space-y-3">
       {sortedAlerts.length === 0 ? (
-        <div className="text-center py-8">
-          <Info className="w-12 h-12 text-green-300 mx-auto mb-3" />
-          <p className="text-slate-500 text-sm">No urgent alerts</p>
-          <p className="text-slate-400 text-xs">Everything is on track!</p>
+        <div className="text-center py-10">
+          <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+            <Info className="w-7 h-7 text-emerald-400" />
+          </div>
+          <p className="text-slate-600 text-sm font-medium">No urgent alerts</p>
+          <p className="text-slate-400 text-xs mt-1">Everything is on track!</p>
         </div>
       ) : (
-        <div className="space-y-2 max-h-80 overflow-y-auto">
+        <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
           {sortedAlerts.map(alert => {
             const Icon = alert.icon;
             return (
-              <div 
-                key={alert.id} 
-                className={`p-3 rounded-lg border ${typeStyles[alert.type]}`}
+              <div
+                key={alert.id}
+                className={`p-3.5 rounded-lg border border-l-4 ${typeStyles[alert.type]} transition-all duration-150 hover:shadow-sm`}
               >
                 <div className="flex items-start gap-3">
-                  <Icon className={`w-5 h-5 mt-0.5 ${iconStyles[alert.type]} flex-shrink-0`} />
+                  <div className="mt-0.5">
+                    <Icon className={`w-4 h-4 ${iconStyles[alert.type]} flex-shrink-0`} />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{alert.title}</div>
-                    <div className="text-sm">{alert.description}</div>
+                    <div className="font-medium text-sm text-slate-800">{alert.title}</div>
+                    <div className="text-sm text-slate-600 mt-0.5">{alert.description}</div>
                     {alert.details && (
-                      <div className="text-xs mt-1 opacity-75">{alert.details}</div>
+                      <div className="text-xs mt-1.5 text-slate-500">{alert.details}</div>
                     )}
                   </div>
-                  <Badge variant="outline" className="text-xs capitalize">
+                  <Badge variant="outline" className={`text-xs capitalize font-medium ${badgeStyles[alert.type]}`}>
                     {alert.type}
                   </Badge>
                 </div>

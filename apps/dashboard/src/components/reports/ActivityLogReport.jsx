@@ -1,41 +1,28 @@
 import React, { useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useAppointments } from '@/hooks/use-appointments';
+import { useMedicationLogs } from '@/hooks/use-medications';
+import { useTasks } from '@/hooks/use-tasks';
+import { useCareNotes } from '@/hooks/use-care-plans';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { parseISO, format } from 'date-fns';
+import { parseISO, format, isWithinInterval } from 'date-fns';
 import ReportExporter from './ReportExporter';
 import { Activity, CheckCircle, AlertCircle, FileText, Pill } from 'lucide-react';
 
-export default function ActivityLogReport({ recipientId, recipientName, dateRange }) {
+export function ActivityLogReport({ recipientId, recipientName, dateRange }) {
   const contentRef = useRef(null);
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments', recipientId],
-    queryFn: () => base44.entities.Appointment.filter({ care_recipient_id: recipientId })
-  });
 
-  const { data: medicationLogs = [] } = useQuery({
-    queryKey: ['medicationLogs', recipientId],
-    queryFn: () => base44.entities.MedicationLog.filter({ care_recipient_id: recipientId })
-  });
+  const { data: appointments = [] } = useAppointments({ careRecipientId: recipientId });
+  const { data: medicationLogs = [] } = useMedicationLogs(undefined, recipientId);
+  const { data: tasks = [] } = useTasks({ careRecipientId: recipientId });
+  const { data: careNotes = [] } = useCareNotes(recipientId);
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks', recipientId],
-    queryFn: () => base44.entities.Task.filter({ care_recipient_id: recipientId })
-  });
-
-  const { data: careNotes = [] } = useQuery({
-    queryKey: ['careNotes', recipientId],
-    queryFn: () => base44.entities.CareNote.filter({ care_recipient_id: recipientId })
-  });
-
-  // Combine and filter activities by date range
   const activities = [];
 
   appointments.forEach(apt => {
     activities.push({
       type: 'appointment',
-      date: apt.date,
+      date: apt.start_time ? apt.start_time.split('T')[0] : apt.date,
       title: apt.title,
       status: apt.status,
       details: apt.provider_name ? `with ${apt.provider_name}` : apt.location
@@ -45,10 +32,10 @@ export default function ActivityLogReport({ recipientId, recipientName, dateRang
   medicationLogs.forEach(log => {
     activities.push({
       type: 'medication',
-      date: log.date_taken,
-      title: log.medication_name,
+      date: log.scheduled_time ? log.scheduled_time.split('T')[0] : log.date_taken,
+      title: log.medications?.name || 'Medication',
       status: log.status,
-      details: `${log.dosage} at ${log.time_taken || 'unknown time'}`
+      details: `${log.medications?.dosage || ''} at ${log.taken_at || 'unknown time'}`
     });
   });
 
@@ -65,8 +52,8 @@ export default function ActivityLogReport({ recipientId, recipientName, dateRang
   careNotes.forEach(note => {
     activities.push({
       type: 'note',
-      date: note.date,
-      title: note.title,
+      date: note.created_at?.split('T')[0] || note.date,
+      title: note.title || note.note_type || 'Care Note',
       status: note.mood,
       details: note.content
     });
@@ -74,10 +61,15 @@ export default function ActivityLogReport({ recipientId, recipientName, dateRang
 
   const filteredActivities = activities
     .filter(act => {
-      const actDate = parseISO(act.date);
-      const startDate = parseISO(dateRange.startDate);
-      const endDate = parseISO(dateRange.endDate);
-      return actDate >= startDate && actDate <= endDate;
+      if (!act.date) return false;
+      try {
+        const actDate = parseISO(act.date);
+        const startDate = parseISO(dateRange.startDate);
+        const endDate = parseISO(dateRange.endDate);
+        return isWithinInterval(actDate, { start: startDate, end: endDate });
+      } catch {
+        return false;
+      }
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -120,7 +112,6 @@ export default function ActivityLogReport({ recipientId, recipientName, dateRang
 
   const reportContent = (
     <div className="space-y-6">
-      {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -148,7 +139,6 @@ export default function ActivityLogReport({ recipientId, recipientName, dateRang
         </Card>
       </div>
 
-      {/* Activity Timeline */}
       {filteredActivities.length > 0 && (
         <Card>
           <CardHeader className="border-b border-slate-100">
@@ -211,3 +201,5 @@ export default function ActivityLogReport({ recipientId, recipientName, dateRang
     </div>
   );
 }
+
+export default ActivityLogReport;

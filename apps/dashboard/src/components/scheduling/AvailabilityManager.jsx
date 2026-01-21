@@ -1,44 +1,83 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
-export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
+export default function AvailabilityManager({ caregiverEmail, caregiverName, teamMemberId }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   const { data: availability = [] } = useQuery({
-    queryKey: ['availability', caregiverEmail],
-    queryFn: () => caregiverEmail
-      ? base44.entities.CaregiverAvailability.filter({ caregiver_email: caregiverEmail })
-      : []
+    queryKey: ['caregiver-availability', teamMemberId || caregiverEmail],
+    queryFn: async () => {
+      let query = supabase
+        .from('caregiver_availability')
+        .select('*');
+
+      if (teamMemberId) {
+        query = query.eq('team_member_id', teamMemberId);
+      } else if (caregiverEmail) {
+        query = query.eq('caregiver_email', caregiverEmail);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && (!!teamMemberId || !!caregiverEmail)
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.CaregiverAvailability.create(data),
+    mutationFn: async (data) => {
+      const { data: result, error } = await supabase
+        .from('caregiver_availability')
+        .insert({
+          ...data,
+          user_id: user.id,
+          team_member_id: teamMemberId,
+          caregiver_email: caregiverEmail
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return result;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['availability']);
+      queryClient.invalidateQueries({ queryKey: ['caregiver-availability'] });
       toast.success('Availability saved');
     }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.CaregiverAvailability.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const { error } = await supabase
+        .from('caregiver_availability')
+        .update(data)
+        .eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['availability']);
+      queryClient.invalidateQueries({ queryKey: ['caregiver-availability'] });
       toast.success('Availability updated');
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.CaregiverAvailability.delete(id),
+    mutationFn: async (id) => {
+      const { error } = await supabase
+        .from('caregiver_availability')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['availability']);
+      queryClient.invalidateQueries({ queryKey: ['caregiver-availability'] });
       toast.success('Availability removed');
     }
   });
@@ -51,7 +90,6 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName }) {
       });
     } else {
       await createMutation.mutateAsync({
-        caregiver_email: caregiverEmail,
         day_of_week: dayIndex,
         available_from: '09:00',
         available_until: '17:00',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, X, ExternalLink } from 'lucide-react';
@@ -8,16 +8,24 @@ import { differenceInDays, parseISO, format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 
-export default function CancellationReminder({ userEmail }) {
+export function CancellationReminder({ userId }) {
   const [dismissed, setDismissed] = useState(false);
 
   const { data: subscriptions = [] } = useQuery({
-    queryKey: ['subscription', userEmail],
-    queryFn: () => base44.entities.Subscription.filter({ user_email: userEmail }),
-    enabled: !!userEmail
+    queryKey: ['subscription', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId
   });
 
-  if (!userEmail || dismissed || subscriptions.length === 0) {
+  if (!userId || dismissed || subscriptions.length === 0) {
     return null;
   }
 
@@ -30,7 +38,6 @@ export default function CancellationReminder({ userEmail }) {
   const deletionDate = parseISO(canceledSubscription.deletion_scheduled_at);
   const daysRemaining = differenceInDays(deletionDate, new Date());
 
-  // Don't show if already past deletion date
   if (daysRemaining < 0) {
     return null;
   }
@@ -38,7 +45,7 @@ export default function CancellationReminder({ userEmail }) {
   const urgencyLevel = daysRemaining <= 7 ? 'critical' : daysRemaining <= 30 ? 'warning' : 'info';
 
   return (
-    <Alert 
+    <Alert
       className={`
         border-l-4 mb-6 relative
         ${urgencyLevel === 'critical' ? 'bg-red-50 border-red-600' : ''}
@@ -48,17 +55,17 @@ export default function CancellationReminder({ userEmail }) {
     >
       <div className="flex items-start gap-3">
         <AlertTriangle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-          urgencyLevel === 'critical' ? 'text-red-600' : 
-          urgencyLevel === 'warning' ? 'text-orange-600' : 
+          urgencyLevel === 'critical' ? 'text-red-600' :
+          urgencyLevel === 'warning' ? 'text-orange-600' :
           'text-blue-600'
         }`} />
         <div className="flex-1">
           <AlertDescription>
             <p className="font-semibold mb-2">
-              {urgencyLevel === 'critical' 
-                ? '⚠️ URGENT: Your account data will be deleted soon!' 
+              {urgencyLevel === 'critical'
+                ? 'URGENT: Your account data will be deleted soon!'
                 : urgencyLevel === 'warning'
-                ? '⚠️ Warning: Subscription Canceled - Data Will Be Deleted'
+                ? 'Warning: Subscription Canceled - Data Will Be Deleted'
                 : 'Subscription Canceled - Data Retention Notice'}
             </p>
             <p className="text-sm mb-3">
@@ -66,10 +73,10 @@ export default function CancellationReminder({ userEmail }) {
               <strong>{format(deletionDate, 'MMMM d, yyyy')}</strong> ({daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining).
             </p>
             <div className="text-sm space-y-2 mb-4">
-              <p>• Access to your account is not guaranteed during this period</p>
-              <p>• If you renew within {daysRemaining} days, all data will be restored</p>
-              <p>• After the deletion date, data cannot be recovered</p>
-              <p>• Export any records you need for personal, medical, or legal purposes</p>
+              <p>- Access to your account is not guaranteed during this period</p>
+              <p>- If you renew within {daysRemaining} days, all data will be restored</p>
+              <p>- After the deletion date, data cannot be recovered</p>
+              <p>- Export any records you need for personal, medical, or legal purposes</p>
             </div>
             <div className="flex gap-3 flex-wrap">
               <Link to={createPageUrl('Checkout')}>
@@ -98,3 +105,5 @@ export default function CancellationReminder({ userEmail }) {
     </Alert>
   );
 }
+
+export default CancellationReminder;

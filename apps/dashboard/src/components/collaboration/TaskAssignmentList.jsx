@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTasks, useTeamMembers, useCompleteTask, useTaskComments } from '@/hooks';
+import { useAuth } from '@/lib/auth-context';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,78 +12,29 @@ import TaskCommentsDialog from './TaskCommentsDialog';
 
 export default function TaskAssignmentList({ careRecipientId }) {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState(null);
+  const { user, profile } = useAuth();
   const [selectedTask, setSelectedTask] = useState(null);
   const [commentsOpen, setCommentsOpen] = useState(false);
 
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { data: tasks = [] } = useTasks({ careRecipientId });
+  const { data: teamMembers = [] } = useTeamMembers();
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['assignedTasks', careRecipientId],
-    queryFn: () => base44.entities.Task.filter(
-      { care_recipient_id: careRecipientId },
-      '-due_date'
-    ),
-    enabled: !!careRecipientId
-  });
+  const completeTaskMutation = useCompleteTask();
 
-  const { data: allComments = [] } = useQuery({
-    queryKey: ['allTaskComments', careRecipientId],
-    queryFn: () => base44.entities.TaskComment.filter(
-      { care_recipient_id: careRecipientId }
-    ),
-    enabled: !!careRecipientId
-  });
-
-  const getCommentCount = (taskId) => {
-    return allComments.filter(c => c.task_id === taskId).length;
-  };
-
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers', careRecipientId],
-    queryFn: () => base44.entities.TeamMember.filter({
-      care_recipient_id: careRecipientId,
-      active: true
-    })
-  });
-
-  const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['assignedTasks']);
-    }
-  });
-
-  const createActionLogMutation = useMutation({
-    mutationFn: (data) => base44.entities.ActionLog.create(data)
-  });
+  const taskIds = useMemo(() => tasks.map(t => t.id), [tasks]);
 
   const handleTaskComplete = async (task) => {
     try {
-      await updateTaskMutation.mutateAsync({
-        id: task.id,
-        data: { status: 'completed' }
-      });
-
-      await createActionLogMutation.mutateAsync({
-        care_recipient_id: careRecipientId,
-        actor_email: user?.email,
-        actor_name: user?.full_name,
-        action_type: 'task_completed',
-        entity_type: 'task',
-        entity_id: task.id,
-        description: `Completed task: ${task.title}`
-      });
-
+      await completeTaskMutation.mutateAsync(task.id);
       toast.success('Task completed');
     } catch (error) {
       toast.error('Failed to complete task');
     }
   };
 
-  const myTasks = tasks.filter(t => t.assigned_to === user?.email && t.status !== 'completed');
+  const myTasks = tasks.filter(t =>
+    (t.assigned_to === user?.id || t.assigned_to === user?.email) && t.status !== 'completed'
+  );
   const allTasks = tasks.filter(t => t.status !== 'completed');
 
   const priorityColors = {
@@ -98,14 +50,18 @@ export default function TaskAssignmentList({ careRecipientId }) {
     completed: <CheckCircle2 className="w-4 h-4 text-green-500" />
   };
 
-  const getAssignedMemberName = (email) => {
-    const member = teamMembers.find(m => m.user_email === email);
-    return member?.full_name || email.split('@')[0];
+  const getAssignedMemberName = (assignedTo) => {
+    if (!assignedTo) return 'Unassigned';
+    const member = teamMembers.find(m => m.id === assignedTo || m.user_email === assignedTo);
+    return member?.full_name || assignedTo;
+  };
+
+  const getCommentCount = (task) => {
+    return task.comment_count || 0;
   };
 
   return (
     <div className="space-y-6">
-      {/* My Tasks */}
       <Card className="p-6">
         <h3 className="font-semibold text-slate-800 mb-4">My Tasks ({myTasks.length})</h3>
         {myTasks.length === 0 ? (
@@ -138,12 +94,13 @@ export default function TaskAssignmentList({ careRecipientId }) {
                     }}
                   >
                     <MessageSquare className="w-4 h-4 mr-1" />
-                    {getCommentCount(task.id) || 0}
+                    {getCommentCount(task)}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleTaskComplete(task)}
+                    disabled={completeTaskMutation.isPending}
                   >
                     Mark Done
                   </Button>
@@ -154,7 +111,6 @@ export default function TaskAssignmentList({ careRecipientId }) {
         )}
       </Card>
 
-      {/* All Pending Tasks */}
       <Card className="p-6">
         <h3 className="font-semibold text-slate-800 mb-4">All Pending Tasks ({allTasks.length})</h3>
         {allTasks.length === 0 ? (
@@ -187,7 +143,7 @@ export default function TaskAssignmentList({ careRecipientId }) {
                       }}
                     >
                       <MessageSquare className="w-3 h-3 mr-1" />
-                      {getCommentCount(task.id)} comments
+                      {getCommentCount(task)} comments
                     </Button>
                   </div>
                 </div>

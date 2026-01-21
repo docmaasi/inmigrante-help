@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCreateTask, useUpdateTask } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,49 +14,32 @@ import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
 
 export default function TaskForm({ task, recipients, teamMembers = [], onClose }) {
-  const queryClient = useQueryClient();
-  const [formData, setFormData] = useState(task || {
+  const [formData, setFormData] = useState(task ? {
+    care_recipient_id: task.care_recipient_id || '',
+    title: task.title || '',
+    description: task.description || '',
+    category: task.category || 'other',
+    assigned_to: task.assigned_to || '',
+    due_date: task.due_date || '',
+    priority: task.priority || 'medium',
+    status: task.status || 'pending',
+    recurring: task.recurring || false,
+    recurrence_pattern: task.recurrence_pattern || ''
+  } : {
     care_recipient_id: '',
     title: '',
     description: '',
-    task_type: 'other',
+    category: 'other',
     assigned_to: '',
     due_date: '',
     priority: 'medium',
     status: 'pending',
-    recurring: 'none'
+    recurring: false,
+    recurrence_pattern: ''
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (data) => {
-      if (task?.id) {
-        return base44.entities.Task.update(task.id, data);
-      }
-      const created = await base44.entities.Task.create(data);
-      
-      // Log action
-      if (created && data.care_recipient_id) {
-        const user = await base44.auth.me();
-        await base44.entities.ActionLog.create({
-          care_recipient_id: data.care_recipient_id,
-          actor_email: user.email,
-          actor_name: user.full_name,
-          action_type: 'task_created',
-          entity_type: 'task',
-          entity_id: created.id,
-          description: `Created task: ${data.title}`,
-          details: JSON.stringify({ priority: data.priority, due_date: data.due_date })
-        });
-      }
-      
-      return created;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      toast.success(task ? 'Task updated' : 'Task created');
-      onClose();
-    }
-  });
+  const createMutation = useCreateTask();
+  const updateMutation = useUpdateTask();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -65,8 +47,47 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
       toast.error('Please fill in all required fields');
       return;
     }
-    saveMutation.mutate(formData);
+
+    const taskData = {
+      care_recipient_id: formData.care_recipient_id,
+      title: formData.title,
+      description: formData.description || null,
+      category: formData.category,
+      assigned_to: formData.assigned_to || null,
+      due_date: formData.due_date || null,
+      priority: formData.priority,
+      status: formData.status,
+      recurring: formData.recurring,
+      recurrence_pattern: formData.recurrence_pattern || null
+    };
+
+    if (task?.id) {
+      updateMutation.mutate(
+        { id: task.id, ...taskData },
+        {
+          onSuccess: () => {
+            toast.success('Task updated');
+            onClose();
+          },
+          onError: (error) => {
+            toast.error('Failed to update task');
+          }
+        }
+      );
+    } else {
+      createMutation.mutate(taskData, {
+        onSuccess: () => {
+          toast.success('Task created');
+          onClose();
+        },
+        onError: (error) => {
+          toast.error('Failed to create task');
+        }
+      });
+    }
   };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Card className="shadow-lg border-slate-200/60">
@@ -92,7 +113,7 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
               <SelectContent>
                 {recipients.map(recipient => (
                   <SelectItem key={recipient.id} value={recipient.id}>
-                    {recipient.full_name}
+                    {recipient.first_name} {recipient.last_name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -123,10 +144,10 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="task_type">Task Type</Label>
+              <Label htmlFor="category">Task Type</Label>
               <Select
-                value={formData.task_type}
-                onValueChange={(value) => setFormData({ ...formData, task_type: value })}
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -165,19 +186,6 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
             </div>
           </div>
 
-          {formData.task_type === 'other' && (
-            <div className="space-y-2">
-              <Label htmlFor="custom_task_type">Specify Task Type *</Label>
-              <Input
-                id="custom_task_type"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="e.g., Garden maintenance, Pet care"
-                required
-              />
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="due_date">Due Date</Label>
@@ -206,10 +214,14 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="recurring">Recurring</Label>
+              <Label htmlFor="recurrence_pattern">Recurring</Label>
               <Select
-                value={formData.recurring}
-                onValueChange={(value) => setFormData({ ...formData, recurring: value })}
+                value={formData.recurrence_pattern || 'none'}
+                onValueChange={(value) => setFormData({
+                  ...formData,
+                  recurrence_pattern: value === 'none' ? '' : value,
+                  recurring: value !== 'none'
+                })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -227,18 +239,20 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
           <div className="space-y-2">
             <Label htmlFor="assigned_to">Assign To</Label>
             <Select
-              value={formData.assigned_to || ''}
-              onValueChange={(value) => setFormData({ ...formData, assigned_to: value })}
+              value={formData.assigned_to || 'unassigned'}
+              onValueChange={(value) => setFormData({ ...formData, assigned_to: value === 'unassigned' ? '' : value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select team member" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>Unassigned</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
                 {teamMembers
-                  .filter(member => !formData.care_recipient_id || member.care_recipient_id === formData.care_recipient_id)
+                  .filter(member => !formData.care_recipient_id ||
+                    !member.care_recipient_ids ||
+                    member.care_recipient_ids.includes(formData.care_recipient_id))
                   .map(member => (
-                    <SelectItem key={member.id} value={member.user_email}>
+                    <SelectItem key={member.id} value={member.id}>
                       {member.full_name} ({member.role})
                     </SelectItem>
                   ))}
@@ -252,10 +266,10 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
             </Button>
             <Button
               type="submit"
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
             >
-              {saveMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Saving...

@@ -1,13 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import React, { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Pill, ListTodo, Clock, CheckCircle2, AlertCircle, Settings, Eye, UserCheck, Bell } from 'lucide-react';
 import { format, isToday, parseISO, isPast } from 'date-fns';
 import { toast } from 'sonner';
-import { Skeleton } from '../components/ui/skeleton';
+import { useAuth } from '@/lib/auth-context';
+import {
+  useAppointments,
+  useMedications,
+  useTasks,
+  useCareRecipients,
+  useNotifications,
+  useUpdateTask
+} from '@/hooks';
 import CaregiverDashboardWidget from '../components/dashboard/CaregiverDashboardWidget';
 import AssignedTasksSummary from '../components/dashboard/AssignedTasksSummary';
 import ImportantAlerts from '../components/dashboard/ImportantAlerts';
@@ -17,66 +24,45 @@ import useWidgetManager from '../components/dashboard/WidgetManager';
 import TaskCompletionModal from '../components/tasks/TaskCompletionModal';
 
 export default function Today() {
-  const [user, setUser] = useState(null);
   const [showCustomize, setShowCustomize] = useState(false);
   const [completingTask, setCompletingTask] = useState(null);
   const queryClient = useQueryClient();
-  const widgetManager = useWidgetManager(user);
+  const { user, profile } = useAuth();
+  const widgetManager = useWidgetManager(user ? { ...user, ...profile } : null);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { data: appointments = [] } = useAppointments();
+  const { data: medications = [] } = useMedications();
+  const { data: tasks = [] } = useTasks();
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: notifications = [] } = useNotifications();
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.list('-date')
-  });
+  const updateTaskMutation = useUpdateTask();
 
-  const { data: medications = [] } = useQuery({
-    queryKey: ['medications'],
-    queryFn: () => base44.entities.Medication.list()
-  });
+  const todayAppointments = useMemo(() =>
+    appointments.filter(apt =>
+      apt.date && isToday(parseISO(apt.date)) && apt.status !== 'completed'
+    ), [appointments]);
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-due_date')
-  });
+  const todayTasks = useMemo(() =>
+    tasks.filter(task =>
+      task.due_date && isToday(parseISO(task.due_date)) && task.status !== 'completed'
+    ), [tasks]);
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
+  const overdueTasks = useMemo(() =>
+    tasks.filter(task =>
+      task.due_date && isPast(parseISO(task.due_date)) && !isToday(parseISO(task.due_date)) && task.status !== 'completed'
+    ), [tasks]);
 
-  const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications', user?.email],
-    queryFn: () => user ? base44.entities.Notification.filter({ user_email: user.email, read: false }) : [],
-    enabled: !!user
-  });
+  const activeMedications = useMemo(() =>
+    medications.filter(med => med.active), [medications]);
 
-  const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-      toast.success('Task updated');
-    }
-  });
-
-  const todayAppointments = appointments.filter(apt => 
-    apt.date && isToday(parseISO(apt.date)) && apt.status !== 'completed'
-  );
-
-  const todayTasks = tasks.filter(task => 
-    task.due_date && isToday(parseISO(task.due_date)) && task.status !== 'completed'
-  );
-
-  const overdueTasks = tasks.filter(task =>
-    task.due_date && isPast(parseISO(task.due_date)) && !isToday(parseISO(task.due_date)) && task.status !== 'completed'
-  );
-
-  const activeMedications = medications.filter(med => med.active);
+  const unreadNotifications = useMemo(() =>
+    notifications.filter(n => !n.is_read), [notifications]);
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+    const recipient = recipients.find(r => r.id === id);
+    if (!recipient) return 'Unknown';
+    return `${recipient.first_name} ${recipient.last_name}`.trim() || 'Unknown';
   };
 
   const completeTask = (notes) => {
@@ -84,10 +70,12 @@ export default function Today() {
       updateTaskMutation.mutate(
         {
           id: completingTask.id,
-          data: { status: 'completed', completion_notes: notes }
+          status: 'completed',
+          completion_notes: notes
         },
         {
           onSuccess: () => {
+            toast.success('Task updated');
             setCompletingTask(null);
           }
         }
@@ -119,28 +107,24 @@ export default function Today() {
   ].filter(w => widgetManager.config[w.id]?.visible !== false)
    .sort((a, b) => (widgetManager.config[a.id]?.order || 999) - (widgetManager.config[b.id]?.order || 999));
 
+  const userName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
+
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/2b8d6ca55_Untitleddesign18.png)'
-        }}
-      />
-      <div className="max-w-6xl mx-auto relative">
+    <div className="p-4 md:p-6">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-              {greeting()}, {user?.full_name?.split(' ')[0] || 'there'}
+              {greeting()}, {userName}
             </h1>
             <p className="text-slate-700 mt-1">Here's what needs attention today</p>
             <p className="text-sm text-slate-600">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setShowCustomize(!showCustomize)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 focus:ring-teal-500 focus:ring-offset-2"
           >
             {showCustomize ? <Eye className="w-4 h-4" /> : <Settings className="w-4 h-4" />}
             {showCustomize ? 'Done' : 'Customize'}
@@ -148,9 +132,9 @@ export default function Today() {
         </div>
 
         {showCustomize && (
-          <Card className="mb-6 bg-blue-50 border-blue-200">
+          <Card className="mb-6 bg-teal-50 border-teal-200">
             <CardContent className="p-4">
-              <HiddenWidgets 
+              <HiddenWidgets
                 config={widgetManager.config}
                 onShow={widgetManager.showWidget}
               />
@@ -160,28 +144,28 @@ export default function Today() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="shadow-sm border-slate-200/60">
+          <Card className="shadow-sm border-slate-200">
             <CardContent className="p-4 text-center">
-              <Calendar className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+              <Calendar className="w-6 h-6 text-teal-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{todayAppointments.length}</div>
               <div className="text-xs text-slate-500">Appointments</div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-slate-200/60">
+          <Card className="shadow-sm border-slate-200">
             <CardContent className="p-4 text-center">
               <ListTodo className="w-6 h-6 text-blue-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{todayTasks.length}</div>
               <div className="text-xs text-slate-500">Tasks Due</div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-slate-200/60">
+          <Card className="shadow-sm border-slate-200">
             <CardContent className="p-4 text-center">
-              <AlertCircle className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+              <AlertCircle className="w-6 h-6 text-amber-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{overdueTasks.length}</div>
               <div className="text-xs text-slate-500">Overdue</div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-slate-200/60">
+          <Card className="shadow-sm border-slate-200">
             <CardContent className="p-4 text-center">
               <Pill className="w-6 h-6 text-green-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{activeMedications.length}</div>
@@ -198,17 +182,17 @@ export default function Today() {
                 <CaregiverDashboardWidget
                   key={widget.id}
                   widgetId={widget.id}
-                  title={`${widget.title} (${notifications.length})`}
+                  title={`${widget.title} (${unreadNotifications.length})`}
                   icon={widget.icon}
                   isPinned={widgetManager.config[widget.id]?.pinned}
                   onPin={() => widgetManager.pinWidget(widget.id)}
                   onHide={() => widgetManager.hideWidget(widget.id)}
                 >
-                  <NotificationsWidget notifications={notifications} />
+                  <NotificationsWidget notifications={unreadNotifications} />
                 </CaregiverDashboardWidget>
               );
             }
-            
+
             if (widget.id === 'todaySchedule') {
               return (
                 <CaregiverDashboardWidget
@@ -226,8 +210,8 @@ export default function Today() {
                     ) : (
                       <>
                         {todayAppointments.map(apt => (
-                          <div key={`apt-${apt.id}`} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                            <Clock className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                          <div key={`apt-${apt.id}`} className="flex items-center gap-3 p-3 bg-teal-50 rounded-lg">
+                            <Clock className="w-5 h-5 text-teal-600 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-slate-800">{apt.title}</div>
                               <div className="text-sm text-slate-600">
@@ -235,7 +219,7 @@ export default function Today() {
                                 {apt.time && ` • ${apt.time}`}
                               </div>
                             </div>
-                            <Badge className="bg-purple-100 text-purple-700 text-xs">{apt.appointment_type}</Badge>
+                            <Badge className="bg-teal-100 text-teal-700 text-xs">{apt.appointment_type}</Badge>
                           </div>
                         ))}
                         {todayTasks.map(task => (
@@ -261,7 +245,7 @@ export default function Today() {
                 </CaregiverDashboardWidget>
               );
             }
-            
+
             if (widget.id === 'urgentTasks') {
               return (
                 <CaregiverDashboardWidget
@@ -306,7 +290,7 @@ export default function Today() {
                   onPin={() => widgetManager.pinWidget(widget.id)}
                   onHide={() => widgetManager.hideWidget(widget.id)}
                 >
-                  <ImportantAlerts 
+                  <ImportantAlerts
                     tasks={tasks}
                     appointments={appointments}
                     medications={medications}
@@ -327,7 +311,7 @@ export default function Today() {
                   onPin={() => widgetManager.pinWidget(widget.id)}
                   onHide={() => widgetManager.hideWidget(widget.id)}
                 >
-                  <AssignedTasksSummary 
+                  <AssignedTasksSummary
                     tasks={tasks}
                     userEmail={user?.email}
                     recipients={recipients}

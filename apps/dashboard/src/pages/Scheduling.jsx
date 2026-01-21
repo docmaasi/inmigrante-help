@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,6 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
+import {
+  useCareRecipients,
+  useTeamMembers,
+  useCaregiverShifts,
+  useUpdateShift,
+} from '@/hooks';
+import { supabase } from '@/lib/supabase';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import ShiftForm from '../components/scheduling/ShiftForm';
 import ShiftCalendar from '../components/scheduling/ShiftCalendar';
 import AvailabilityManager from '../components/scheduling/AvailabilityManager';
@@ -15,77 +22,88 @@ import ShiftNotifications from '../components/scheduling/ShiftNotifications';
 
 export default function Scheduling() {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [selectedRecipientId, setSelectedRecipientId] = useState('');
   const [showShiftForm, setShowShiftForm] = useState(false);
   const [editingShift, setEditingShift] = useState(null);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['recipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
-  });
-
-  const { data: shifts = [] } = useQuery({
-    queryKey: ['shifts', selectedRecipientId],
-    queryFn: () => selectedRecipientId
-      ? base44.entities.CaregiverShift.filter({ care_recipient_id: selectedRecipientId }, '-start_date')
-      : [],
-    enabled: !!selectedRecipientId
-  });
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: teamMembers = [] } = useTeamMembers();
+  const { data: shifts = [] } = useCaregiverShifts(
+    selectedRecipientId ? { careRecipientId: selectedRecipientId } : undefined
+  );
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.CaregiverShift.delete(id),
+    mutationFn: async (id) => {
+      const { error } = await supabase.from('caregiver_shifts').delete().eq('id', id);
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['shifts']);
+      queryClient.invalidateQueries({ queryKey: ['caregiver-shifts'] });
       toast.success('Shift deleted');
-    }
+    },
   });
 
+  // Transform recipients to match expected format
+  const formattedRecipients = recipients.map(r => ({
+    ...r,
+    full_name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+  }));
+
   // Set first recipient as default
-  React.useEffect(() => {
-    if (recipients.length > 0 && !selectedRecipientId) {
-      setSelectedRecipientId(recipients[0].id);
+  useEffect(() => {
+    if (formattedRecipients.length > 0 && !selectedRecipientId) {
+      setSelectedRecipientId(formattedRecipients[0].id);
     }
-  }, [recipients, selectedRecipientId]);
+  }, [formattedRecipients, selectedRecipientId]);
 
   const upcomingShifts = shifts
     .filter(s => s.status === 'scheduled')
-    .sort((a, b) => new Date(`${a.start_date}T${a.start_time}`) - new Date(`${b.start_date}T${b.start_time}`))
+    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
     .slice(0, 10);
 
   const statusColors = {
-    scheduled: 'bg-blue-100 text-blue-800',
+    scheduled: 'bg-teal-100 text-teal-800',
     in_progress: 'bg-green-100 text-green-800',
     completed: 'bg-slate-100 text-slate-800',
     cancelled: 'bg-red-100 text-red-800'
   };
 
+  const getShiftDate = (shift) => {
+    if (shift.start_time) {
+      return format(new Date(shift.start_time), 'MMM d, yyyy');
+    }
+    return 'No date';
+  };
+
+  const getShiftTimeRange = (shift) => {
+    if (shift.start_time && shift.end_time) {
+      const start = format(new Date(shift.start_time), 'h:mm a');
+      const end = format(new Date(shift.end_time), 'h:mm a');
+      return `${start} - ${end}`;
+    }
+    return '';
+  };
+
+  const getCaregiverName = (shift) => {
+    if (shift.team_members?.full_name) {
+      return shift.team_members.full_name;
+    }
+    const member = teamMembers.find(m => m.id === shift.team_member_id);
+    return member?.full_name || 'Unassigned';
+  };
+
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/52ada0314_Untitleddesign15.png)'
-        }}
-      />
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <ShiftNotifications />
 
-      <div className="max-w-7xl mx-auto relative">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2 mb-2">
-            <Calendar className="w-8 h-8 text-blue-600" />
+          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-2">
+            <Calendar className="w-8 h-8 text-teal-600" />
             Shift Scheduling
           </h1>
-          <p className="text-slate-700">Manage caregiver shifts and availability</p>
+          <p className="text-slate-500">Manage caregiver shifts and availability</p>
         </div>
 
         {/* Recipient & Actions */}
@@ -101,7 +119,7 @@ export default function Scheduling() {
                     <SelectValue placeholder="Select recipient" />
                   </SelectTrigger>
                   <SelectContent>
-                    {recipients.map(r => (
+                    {formattedRecipients.map(r => (
                       <SelectItem key={r.id} value={r.id}>
                         {r.full_name}
                       </SelectItem>
@@ -114,7 +132,7 @@ export default function Scheduling() {
                   setEditingShift(null);
                   setShowShiftForm(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 gap-2"
+                className="bg-teal-600 hover:bg-teal-700 gap-2"
                 disabled={!selectedRecipientId}
               >
                 <Plus className="w-4 h-4" />
@@ -131,7 +149,7 @@ export default function Scheduling() {
               {showShiftForm ? (
                 <ShiftForm
                   shift={editingShift}
-                  careRecipients={recipients}
+                  careRecipients={formattedRecipients}
                   teamMembers={teamMembers}
                   onClose={() => {
                     setShowShiftForm(false);
@@ -149,24 +167,24 @@ export default function Scheduling() {
                         <p className="text-sm text-slate-500 py-4">No upcoming shifts</p>
                       ) : (
                         upcomingShifts.map(shift => (
-                          <div key={shift.id} className="p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
+                          <div key={shift.id} className="p-3 border border-slate-200 rounded-lg hover:border-teal-300 transition-colors">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <h3 className="font-medium text-slate-800">{shift.caregiver_name}</h3>
+                                <h3 className="font-medium text-slate-800">{getCaregiverName(shift)}</h3>
                                 <p className="text-xs text-slate-600 mt-1">
-                                  {format(new Date(shift.start_date), 'MMM d, yyyy')} • {shift.start_time} - {shift.end_time}
+                                  {getShiftDate(shift)} - {getShiftTimeRange(shift)}
                                 </p>
                                 {shift.notes && (
                                   <p className="text-xs text-slate-500 mt-1">{shift.notes}</p>
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge className={statusColors[shift.status]}>
-                                  {shift.status}
+                                <Badge className={statusColors[shift.status] || statusColors.scheduled}>
+                                  {shift.status || 'scheduled'}
                                 </Badge>
-                                {shift.recurring !== 'none' && (
+                                {shift.is_recurring && (
                                   <Badge variant="outline" className="text-xs">
-                                    {shift.recurring}
+                                    Recurring
                                   </Badge>
                                 )}
                               </div>
@@ -207,7 +225,7 @@ export default function Scheduling() {
               {teamMembers.map(member => (
                 <AvailabilityManager
                   key={member.id}
-                  caregiverEmail={member.user_email}
+                  caregiverEmail={member.email}
                   caregiverName={member.full_name}
                 />
               ))}

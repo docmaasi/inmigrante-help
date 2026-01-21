@@ -1,49 +1,38 @@
 import React, { useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useMedications, useMedicationLogs } from '@/hooks/use-medications';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { parseISO, startOfDay } from 'date-fns';
+import { parseISO, isWithinInterval } from 'date-fns';
 import ReportExporter from './ReportExporter';
-import { Pill, TrendingUp } from 'lucide-react';
+import { Pill } from 'lucide-react';
 
-export default function MedicationAdherenceReport({ recipientId, recipientName, dateRange }) {
+export function MedicationAdherenceReport({ recipientId, recipientName, dateRange }) {
   const contentRef = useRef(null);
-  const { data: medicationLogs = [] } = useQuery({
-    queryKey: ['medicationLogs', recipientId, dateRange],
-    queryFn: () => base44.entities.MedicationLog.filter({
-      care_recipient_id: recipientId
-    })
-  });
 
-  const { data: medications = [] } = useQuery({
-    queryKey: ['medications', recipientId],
-    queryFn: () => base44.entities.Medication.filter({
-      care_recipient_id: recipientId,
-      active: true
-    })
-  });
+  const { data: medicationLogs = [] } = useMedicationLogs(undefined, recipientId);
+  const { data: medications = [] } = useMedications(recipientId);
 
-  // Filter logs by date range
   const filteredLogs = medicationLogs.filter(log => {
-    const logDate = parseISO(log.date_taken);
-    const startDate = parseISO(dateRange.startDate);
-    const endDate = parseISO(dateRange.endDate);
-    return logDate >= startDate && logDate <= endDate;
+    try {
+      const logDate = parseISO(log.scheduled_time ? log.scheduled_time.split('T')[0] : log.date_taken);
+      const startDate = parseISO(dateRange.startDate);
+      const endDate = parseISO(dateRange.endDate);
+      return isWithinInterval(logDate, { start: startDate, end: endDate });
+    } catch {
+      return false;
+    }
   });
 
-  // Calculate adherence metrics
   const totalDoses = filteredLogs.length;
   const takenDoses = filteredLogs.filter(log => log.status === 'taken').length;
   const skippedDoses = filteredLogs.filter(log => log.status === 'skipped').length;
   const missedDoses = filteredLogs.filter(log => log.status === 'missed').length;
   const adherenceRate = totalDoses > 0 ? Math.round((takenDoses / totalDoses) * 100) : 0;
 
-  // Prepare chart data by date
   const chartData = {};
   filteredLogs.forEach(log => {
-    const date = log.date_taken;
+    const date = log.scheduled_time ? log.scheduled_time.split('T')[0] : log.date_taken;
     if (!chartData[date]) {
       chartData[date] = { date, taken: 0, skipped: 0, missed: 0, total: 0 };
     }
@@ -53,13 +42,12 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
 
   const chartDataArray = Object.values(chartData).sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  // Medication-specific adherence
   const medicationAdherence = {};
   medications.forEach(med => {
     const medLogs = filteredLogs.filter(log => log.medication_id === med.id);
     const medTaken = medLogs.filter(log => log.status === 'taken').length;
     const medRate = medLogs.length > 0 ? Math.round((medTaken / medLogs.length) * 100) : 0;
-    medicationAdherence[med.medication_name] = {
+    medicationAdherence[med.name] = {
       total: medLogs.length,
       taken: medTaken,
       rate: medRate
@@ -68,7 +56,6 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
 
   const reportContent = (
     <div className="space-y-6">
-      {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -96,7 +83,6 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
         </Card>
       </div>
 
-      {/* Trend Chart */}
       {chartDataArray.length > 0 && (
         <Card>
           <CardHeader className="border-b border-slate-100">
@@ -119,7 +105,6 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
         </Card>
       )}
 
-      {/* Medication-Specific Adherence */}
       {Object.keys(medicationAdherence).length > 0 && (
         <Card>
           <CardHeader className="border-b border-slate-100">
@@ -164,3 +149,5 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
     </div>
   );
 }
+
+export default MedicationAdherenceReport;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCreateShift, useUpdateShift } from '@/hooks';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,71 +10,54 @@ import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ShiftForm({ shift, careRecipients, teamMembers, onClose }) {
-  const queryClient = useQueryClient();
+  const { user, profile } = useAuth();
   const [formData, setFormData] = useState(shift || {
-    caregiver_email: '',
+    team_member_id: '',
     care_recipient_id: '',
     shift_type: 'full_day',
-    start_time: '09:00',
-    end_time: '17:00',
-    start_date: new Date().toISOString().split('T')[0],
+    start_time: new Date().toISOString().split('T')[0] + 'T09:00',
+    end_time: new Date().toISOString().split('T')[0] + 'T17:00',
     recurring: 'none',
-    recurring_days: '[]',
+    recurring_days: [],
     notes: ''
   });
 
   const [selectedDays, setSelectedDays] = useState(() => {
-    try {
-      return shift ? JSON.parse(shift.recurring_days || '[]') : [];
-    } catch {
-      return [];
+    if (shift?.recurring_days) {
+      return Array.isArray(shift.recurring_days)
+        ? shift.recurring_days
+        : JSON.parse(shift.recurring_days || '[]');
     }
+    return [];
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (data) => {
-      const payload = {
-        ...data,
-        recurring_days: JSON.stringify(selectedDays)
-      };
+  const createShiftMutation = useCreateShift();
+  const updateShiftMutation = useUpdateShift();
 
-      if (shift?.id) {
-        return base44.entities.CaregiverShift.update(shift.id, payload);
-      }
-      
-      const caregiver = teamMembers.find(t => t.user_email === data.caregiver_email);
-      return base44.entities.CaregiverShift.create({
-        ...payload,
-        caregiver_name: caregiver?.full_name || data.caregiver_email
-      });
-    },
-    onSuccess: async (result) => {
-      queryClient.invalidateQueries(['shifts']);
-      
-      if (!shift?.id) {
-        await base44.entities.ActionLog.create({
-          care_recipient_id: formData.care_recipient_id,
-          actor_email: (await base44.auth.me()).email,
-          actor_name: (await base44.auth.me()).full_name,
-          action_type: 'task_created',
-          entity_type: 'task',
-          entity_id: result.id,
-          description: `Created shift for ${result.caregiver_name} on ${result.start_date}`
-        }).catch(() => {});
-      }
-
-      toast.success(shift ? 'Shift updated' : 'Shift created');
-      onClose();
-    }
-  });
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.caregiver_email || !formData.care_recipient_id || !formData.start_date) {
+    if (!formData.team_member_id || !formData.care_recipient_id) {
       toast.error('Please fill in required fields');
       return;
     }
-    saveMutation.mutate(formData);
+
+    const payload = {
+      ...formData,
+      recurring_days: selectedDays
+    };
+
+    try {
+      if (shift?.id) {
+        await updateShiftMutation.mutateAsync({ id: shift.id, ...payload });
+        toast.success('Shift updated');
+      } else {
+        await createShiftMutation.mutateAsync(payload);
+        toast.success('Shift created');
+      }
+      onClose();
+    } catch (error) {
+      toast.error(shift ? 'Failed to update shift' : 'Failed to create shift');
+    }
   };
 
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -84,6 +67,8 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day].sort()
     );
   };
+
+  const isPending = createShiftMutation.isPending || updateShiftMutation.isPending;
 
   return (
     <Card className="shadow-lg border-slate-200/60">
@@ -99,15 +84,15 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
             <div className="space-y-2">
               <Label>Caregiver *</Label>
               <Select
-                value={formData.caregiver_email}
-                onValueChange={(value) => setFormData({ ...formData, caregiver_email: value })}
+                value={formData.team_member_id}
+                onValueChange={(value) => setFormData({ ...formData, team_member_id: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select caregiver" />
                 </SelectTrigger>
                 <SelectContent>
                   {teamMembers.map(tm => (
-                    <SelectItem key={tm.id} value={tm.user_email}>
+                    <SelectItem key={tm.id} value={tm.id}>
                       {tm.full_name}
                     </SelectItem>
                   ))}
@@ -127,7 +112,7 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
                 <SelectContent>
                   {careRecipients.map(cr => (
                     <SelectItem key={cr.id} value={cr.id}>
-                      {cr.full_name}
+                      {cr.first_name} {cr.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -137,11 +122,11 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Start Date *</Label>
+              <Label>Start Date & Time *</Label>
               <Input
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                type="datetime-local"
+                value={formData.start_time?.slice(0, 16) || ''}
+                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
               />
             </div>
 
@@ -168,19 +153,10 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Start Time *</Label>
+              <Label>End Date & Time *</Label>
               <Input
-                type="time"
-                value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>End Time *</Label>
-              <Input
-                type="time"
-                value={formData.end_time}
+                type="datetime-local"
+                value={formData.end_time?.slice(0, 16) || ''}
                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
               />
             </div>
@@ -227,13 +203,13 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
             </div>
           )}
 
-          {(formData.recurring !== 'none') && (
+          {formData.recurring !== 'none' && (
             <div className="space-y-2">
               <Label>End Date (leave empty for ongoing)</Label>
               <Input
                 type="date"
-                value={formData.end_date || ''}
-                onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                value={formData.recurring_end_date || ''}
+                onChange={(e) => setFormData({ ...formData, recurring_end_date: e.target.value })}
               />
             </div>
           )}
@@ -253,10 +229,10 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
             </Button>
             <Button
               type="submit"
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               className="flex-1 bg-blue-600 hover:bg-blue-700"
             >
-              {saveMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Saving...

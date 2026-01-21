@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments';
+import { useTasks, useUpdateTask } from '@/hooks/use-tasks';
+import { useMedications, useMedicationLogs } from '@/hooks/use-medications';
+import { useCareRecipients } from '@/hooks/use-care-recipients';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Pill, CheckSquare, User, Filter, CheckCircle2, AlertCircle, Clock, Edit } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Card, CardContent } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, parseISO, addMonths, subMonths, startOfWeek, endOfWeek, startOfDay, addDays, addWeeks, subWeeks } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, addDays, addWeeks, subWeeks } from 'date-fns';
 import { toast } from 'sonner';
 import AppointmentForm from '../appointments/AppointmentForm';
 import TaskForm from '../tasks/TaskForm';
 
-export default function CalendarView() {
+export function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('month'); // 'day', 'week', 'month'
+  const [viewMode, setViewMode] = useState('month');
   const [filterRecipient, setFilterRecipient] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [draggedEvent, setDraggedEvent] = useState(null);
@@ -22,60 +25,17 @@ export default function CalendarView() {
   const [editingTask, setEditingTask] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.list()
-  });
+  const { data: appointments = [] } = useAppointments();
+  const { data: tasks = [] } = useTasks();
+  const { data: medications = [] } = useMedications();
+  const { data: medicationLogs = [] } = useMedicationLogs();
+  const { data: recipients = [] } = useCareRecipients();
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list()
-  });
-
-  const { data: medications = [] } = useQuery({
-    queryKey: ['medications'],
-    queryFn: () => base44.entities.Medication.list()
-  });
-
-  const { data: medicationLogs = [] } = useQuery({
-    queryKey: ['medicationLogs'],
-    queryFn: () => base44.entities.MedicationLog.list('-date_taken', 1000)
-  });
-
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const updateAppointmentMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Appointment.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success('Appointment rescheduled successfully');
-    },
-    onError: () => toast.error('Failed to reschedule appointment')
-  });
-
-  const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast.success('Task updated successfully');
-    },
-    onError: () => toast.error('Failed to update task')
-  });
-
-  const updateAppointmentStatusMutation = useMutation({
-    mutationFn: ({ id, status }) => base44.entities.Appointment.update(id, { status }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success('Appointment status updated');
-    },
-    onError: () => toast.error('Failed to update appointment status')
-  });
+  const updateAppointmentMutation = useUpdateAppointment();
+  const updateTaskMutation = useUpdateTask();
 
   const recipientColors = [
-    'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 
+    'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500',
     'bg-cyan-500', 'bg-teal-500', 'bg-emerald-500', 'bg-lime-500',
     'bg-amber-500', 'bg-orange-500', 'bg-rose-500', 'bg-fuchsia-500'
   ];
@@ -86,24 +46,24 @@ export default function CalendarView() {
   };
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+    const recipient = recipients.find(r => r.id === id);
+    return recipient ? `${recipient.first_name} ${recipient.last_name}` : 'Unknown';
   };
 
   const getEventsForDate = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    let events = [];
+    const events = [];
 
-    // Add appointments
     appointments.forEach(apt => {
-      if (apt.date === dateStr) {
-        // Apply filters
+      const aptDate = apt.start_time ? format(new Date(apt.start_time), 'yyyy-MM-dd') : apt.date;
+      if (aptDate === dateStr) {
         if (filterRecipient !== 'all' && apt.care_recipient_id !== filterRecipient) return;
         if (filterType !== 'all' && filterType !== 'appointment') return;
 
         events.push({
           type: 'appointment',
           title: apt.title,
-          time: apt.time,
+          time: apt.start_time ? format(new Date(apt.start_time), 'HH:mm') : apt.time,
           color: getRecipientColor(apt.care_recipient_id),
           data: apt,
           draggable: true
@@ -111,12 +71,11 @@ export default function CalendarView() {
       }
     });
 
-    // Add tasks (only if not filtered out)
     if (filterType === 'all' || filterType === 'task') {
       tasks.forEach(task => {
         if (task.due_date === dateStr && task.status !== 'completed') {
           if (filterRecipient !== 'all' && task.care_recipient_id !== filterRecipient) return;
-          
+
           events.push({
             type: 'task',
             title: task.title,
@@ -128,16 +87,16 @@ export default function CalendarView() {
       });
     }
 
-    // Add medication logs (only if not filtered out)
     if (filterType === 'all' || filterType === 'medication') {
       medicationLogs.forEach(log => {
-        if (log.date_taken === dateStr) {
+        const logDate = log.scheduled_time ? format(new Date(log.scheduled_time), 'yyyy-MM-dd') : log.date_taken;
+        if (logDate === dateStr) {
           if (filterRecipient !== 'all' && log.care_recipient_id !== filterRecipient) return;
-          
+
           events.push({
             type: 'medication',
-            title: log.medication_name,
-            time: log.time_taken,
+            title: log.medications?.name || 'Medication',
+            time: log.scheduled_time ? format(new Date(log.scheduled_time), 'HH:mm') : log.time_taken,
             color: log.status === 'taken' ? 'bg-green-500' : log.status === 'skipped' ? 'bg-yellow-500' : 'bg-slate-400',
             data: log,
             draggable: false
@@ -166,11 +125,14 @@ export default function CalendarView() {
 
     const newDateStr = format(newDate, 'yyyy-MM-dd');
     const appointment = draggedEvent.event.data;
-    
-    updateAppointmentMutation.mutate({
-      id: appointment.id,
-      data: { ...appointment, date: newDateStr }
-    });
+
+    updateAppointmentMutation.mutate(
+      { id: appointment.id, start_time: `${newDateStr}T${appointment.start_time?.split('T')[1] || '09:00:00'}` },
+      {
+        onSuccess: () => toast.success('Appointment rescheduled successfully'),
+        onError: () => toast.error('Failed to reschedule appointment')
+      }
+    );
 
     setDraggedEvent(null);
   };
@@ -178,16 +140,16 @@ export default function CalendarView() {
   const getViewDays = () => {
     if (viewMode === 'day') {
       return [currentDate];
-    } else if (viewMode === 'week') {
+    }
+    if (viewMode === 'week') {
       const weekStart = startOfWeek(currentDate);
       return eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) });
-    } else {
-      const monthStart = startOfMonth(currentDate);
-      const monthEnd = endOfMonth(currentDate);
-      const calendarStart = startOfWeek(monthStart);
-      const calendarEnd = endOfWeek(monthEnd);
-      return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
     }
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const calendarStart = startOfWeek(monthStart);
+    const calendarEnd = endOfWeek(monthEnd);
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   };
 
   const navigateDate = (direction) => {
@@ -200,13 +162,31 @@ export default function CalendarView() {
     }
   };
 
-  const calendarDays = getViewDays();
+  const handleAppointmentStatusUpdate = (appointmentId, status) => {
+    updateAppointmentMutation.mutate(
+      { id: appointmentId, status },
+      {
+        onSuccess: () => toast.success('Appointment status updated'),
+        onError: () => toast.error('Failed to update appointment status')
+      }
+    );
+  };
 
+  const handleTaskComplete = (task) => {
+    updateTaskMutation.mutate(
+      { id: task.id, status: 'completed', completed_at: new Date().toISOString() },
+      {
+        onSuccess: () => toast.success('Task completed'),
+        onError: () => toast.error('Failed to complete task')
+      }
+    );
+  };
+
+  const calendarDays = getViewDays();
   const selectedDateEvents = getEventsForDate(selectedDate);
 
   return (
     <div className="space-y-6">
-      {/* Filters & View Controls */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center gap-4">
@@ -227,7 +207,7 @@ export default function CalendarView() {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-slate-700">Care Recipient:</span>
               <Select value={filterRecipient} onValueChange={setFilterRecipient}>
@@ -240,7 +220,7 @@ export default function CalendarView() {
                     <SelectItem key={recipient.id} value={recipient.id}>
                       <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${getRecipientColor(recipient.id)}`} />
-                        {recipient.full_name}
+                        {recipient.first_name} {recipient.last_name}
                       </div>
                     </SelectItem>
                   ))}
@@ -264,7 +244,6 @@ export default function CalendarView() {
             </div>
           </div>
 
-          {/* Color Legend */}
           {recipients.length > 0 && (
             <div className="mt-4 pt-4 border-t border-slate-200">
               <p className="text-xs font-medium text-slate-600 mb-2">Care Recipients:</p>
@@ -272,7 +251,7 @@ export default function CalendarView() {
                 {recipients.map(recipient => (
                   <div key={recipient.id} className="flex items-center gap-2">
                     <div className={`w-4 h-4 rounded ${getRecipientColor(recipient.id)}`} />
-                    <span className="text-xs text-slate-600">{recipient.full_name}</span>
+                    <span className="text-xs text-slate-600">{recipient.first_name} {recipient.last_name}</span>
                   </div>
                 ))}
               </div>
@@ -282,10 +261,8 @@ export default function CalendarView() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar */}
         <Card className="lg:col-span-2">
           <CardContent className="p-6">
-            {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-slate-800">
                 {viewMode === 'day' && format(currentDate, 'MMMM d, yyyy')}
@@ -293,31 +270,18 @@ export default function CalendarView() {
                 {viewMode === 'month' && format(currentDate, 'MMMM yyyy')}
               </h2>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateDate('prev')}
-                >
+                <Button variant="outline" size="sm" onClick={() => navigateDate('prev')}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentDate(new Date())}
-                >
+                <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
                   Today
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateDate('next')}
-                >
+                <Button variant="outline" size="sm" onClick={() => navigateDate('next')}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Weekday Headers */}
             {viewMode !== 'day' && (
               <div className={`grid gap-2 mb-2 ${viewMode === 'week' ? 'grid-cols-7' : 'grid-cols-7'}`}>
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
@@ -328,7 +292,6 @@ export default function CalendarView() {
               </div>
             )}
 
-            {/* Calendar Grid */}
             <div className={`grid gap-2 ${viewMode === 'day' ? 'grid-cols-1' : viewMode === 'week' ? 'grid-cols-7' : 'grid-cols-7'}`}>
               {calendarDays.map(day => {
                 const events = getEventsForDate(day);
@@ -384,7 +347,6 @@ export default function CalendarView() {
           </CardContent>
         </Card>
 
-        {/* Selected Date Details */}
         <Card>
           <CardContent className="p-6">
             <div className="mb-4">
@@ -449,7 +411,6 @@ export default function CalendarView() {
                           )}
                         </div>
 
-                        {/* Quick Actions */}
                         <div className="flex flex-wrap gap-2 mt-3">
                           {event.type === 'appointment' && (
                             <>
@@ -466,9 +427,9 @@ export default function CalendarView() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => updateAppointmentStatusMutation.mutate({ id: event.data.id, status: 'completed' })}
+                                  onClick={() => handleAppointmentStatusUpdate(event.data.id, 'completed')}
                                   className="text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  disabled={updateAppointmentStatusMutation.isPending}
+                                  disabled={updateAppointmentMutation.isPending}
                                 >
                                   <CheckCircle2 className="w-3 h-3 mr-1" />
                                   Complete
@@ -478,9 +439,9 @@ export default function CalendarView() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => updateAppointmentStatusMutation.mutate({ id: event.data.id, status: 'cancelled' })}
+                                  onClick={() => handleAppointmentStatusUpdate(event.data.id, 'cancelled')}
                                   className="text-xs h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  disabled={updateAppointmentStatusMutation.isPending}
+                                  disabled={updateAppointmentMutation.isPending}
                                 >
                                   <AlertCircle className="w-3 h-3 mr-1" />
                                   Cancel
@@ -503,7 +464,7 @@ export default function CalendarView() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => updateTaskMutation.mutate({ id: event.data.id, data: { ...event.data, status: 'completed' } })}
+                                  onClick={() => handleTaskComplete(event.data)}
                                   className="text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
                                   disabled={updateTaskMutation.isPending}
                                 >
@@ -527,7 +488,6 @@ export default function CalendarView() {
         </Card>
       </div>
 
-      {/* Edit Dialogs */}
       {editingAppointment && (
         <AppointmentForm
           appointment={editingAppointment}
@@ -543,3 +503,5 @@ export default function CalendarView() {
     </div>
   );
 }
+
+export default CalendarView;

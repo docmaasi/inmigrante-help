@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useMedications, useCareRecipients, useTeamMembers } from '@/hooks';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -8,68 +8,50 @@ import { Bell, Mail, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseISO, differenceInDays, startOfToday, format } from 'date-fns';
 
-export default function RefillReminders() {
+export function RefillReminders() {
   const [isSending, setIsSending] = useState(false);
 
-  const { data: refills = [] } = useQuery({
-    queryKey: ['medicationRefills'],
-    queryFn: () => base44.entities.MedicationRefill.list('refill_date')
+  const { data: medications = [] } = useMedications();
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: teamMembers = [] } = useTeamMembers();
+
+  const refillsNeedingAttention = medications.filter(med => {
+    if (!med.is_active || !med.refill_date) return false;
+    const refillDate = parseISO(med.refill_date);
+    const today = startOfToday();
+    const daysUntil = differenceInDays(refillDate, today);
+    return daysUntil <= 7;
   });
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
+  const handleSendReminders = async () => {
+    if (refillsNeedingAttention.length === 0) {
+      toast.error('No upcoming refills to remind about');
+      return;
+    }
 
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
-  });
-
-  const sendRemindersMutation = useMutation({
-    mutationFn: async () => {
+    setIsSending(true);
+    try {
       const today = startOfToday();
-      const upcomingRefills = refills.filter(r => {
-        if (r.status === 'completed') return false;
-        const refillDate = parseISO(r.refill_date);
-        const daysUntil = differenceInDays(refillDate, today);
-        return daysUntil <= 7; // Upcoming in next 7 days or overdue
-      });
-
-      if (upcomingRefills.length === 0) {
-        throw new Error('No upcoming refills to remind about');
-      }
-
-      // Group refills by assigned user or send to all admins
       const remindersByUser = {};
-      
-      upcomingRefills.forEach(refill => {
-        const recipient = recipients.find(r => r.id === refill.care_recipient_id);
+
+      refillsNeedingAttention.forEach(med => {
+        const recipient = recipients.find(r => r.id === med.care_recipient_id);
         const recipientName = recipient?.full_name || 'Unknown';
-        
-        if (refill.assigned_to) {
-          if (!remindersByUser[refill.assigned_to]) {
-            remindersByUser[refill.assigned_to] = [];
+
+        const admins = teamMembers.filter(tm => tm.role === 'admin');
+        admins.forEach(admin => {
+          if (!remindersByUser[admin.email]) {
+            remindersByUser[admin.email] = [];
           }
-          remindersByUser[refill.assigned_to].push({ ...refill, recipientName });
-        } else {
-          // Send to all admins if not assigned
-          const admins = teamMembers.filter(tm => tm.role === 'admin');
-          admins.forEach(admin => {
-            if (!remindersByUser[admin.user_email]) {
-              remindersByUser[admin.user_email] = [];
-            }
-            remindersByUser[admin.user_email].push({ ...refill, recipientName });
-          });
-        }
+          remindersByUser[admin.email].push({ ...med, recipientName });
+        });
       });
 
-      // Send emails to each user
-      const emailPromises = Object.entries(remindersByUser).map(([email, userRefills]) => {
+      const emailPromises = Object.entries(remindersByUser).map(async ([email, userRefills]) => {
         const refillList = userRefills.map(r => {
           const daysUntil = differenceInDays(parseISO(r.refill_date), today);
           const urgency = daysUntil < 0 ? `OVERDUE by ${Math.abs(daysUntil)} days` : `Due in ${daysUntil} days`;
-          return `• ${r.medication_name} for ${r.recipientName} - ${urgency} (${format(parseISO(r.refill_date), 'MMM d, yyyy')})`;
+          return `- ${r.name} for ${r.recipientName} - ${urgency} (${format(parseISO(r.refill_date), 'MMM d, yyyy')})`;
         }).join('\n');
 
         const subject = `Medication Refill Reminder - ${userRefills.length} refill${userRefills.length > 1 ? 's' : ''} need attention`;
@@ -84,41 +66,29 @@ Please ensure these medications are refilled on time. You can manage refills in 
 Thank you,
 FamilyCare.Help Team`;
 
-        return base44.integrations.Core.SendEmail({
-          to: email,
-          subject: subject,
-          body: body,
-          from_name: 'FamilyCare Reminders'
+        const { error } = await supabase.functions.invoke('send-email', {
+          body: {
+            to: email,
+            subject: subject,
+            text: body,
+            from_name: 'FamilyCare Reminders'
+          }
         });
+
+        if (error) throw error;
       });
 
       await Promise.all(emailPromises);
-      return Object.keys(remindersByUser).length;
-    },
-    onSuccess: (count) => {
+      const count = Object.keys(remindersByUser).length;
       toast.success(`Reminders sent to ${count} team member${count > 1 ? 's' : ''}`);
-    },
-    onError: (error) => {
+    } catch (error) {
       toast.error(error.message || 'Failed to send reminders');
-    }
-  });
-
-  const handleSendReminders = async () => {
-    setIsSending(true);
-    try {
-      await sendRemindersMutation.mutateAsync();
     } finally {
       setIsSending(false);
     }
   };
 
-  const today = startOfToday();
-  const upcomingCount = refills.filter(r => {
-    if (r.status === 'completed') return false;
-    const refillDate = parseISO(r.refill_date);
-    const daysUntil = differenceInDays(refillDate, today);
-    return daysUntil <= 7;
-  }).length;
+  const upcomingCount = refillsNeedingAttention.length;
 
   return (
     <Card className="border-blue-200 bg-blue-50/50">
@@ -149,7 +119,7 @@ FamilyCare.Help Team`;
             <ul className="list-disc list-inside space-y-1">
               <li>Reminders sent to assigned team members or all admins</li>
               <li>Includes refill urgency and recipient information</li>
-              <li>Only sends for pending and ordered refills</li>
+              <li>Only sends for active medications with refill dates</li>
             </ul>
           </div>
 
@@ -166,3 +136,5 @@ FamilyCare.Help Team`;
     </Card>
   );
 }
+
+export default RefillReminders;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCreateMedication, useUpdateMedication } from '@/hooks';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,23 @@ import { X, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import FileUpload from '../shared/FileUpload';
 
-export default function MedicationForm({ medication, recipients, onClose }) {
-  const queryClient = useQueryClient();
+const searchMedications = async (query) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('search-medications', {
+      body: { query }
+    });
+    if (error) throw error;
+    return data?.results || [];
+  } catch (error) {
+    console.error('Medication search error:', error);
+    return [];
+  }
+};
+
+export function MedicationForm({ medication, recipients, onClose }) {
   const [formData, setFormData] = useState(medication || {
     care_recipient_id: '',
-    medication_name: '',
+    name: '',
     dosage: '',
     frequency: '',
     time_of_day: '',
@@ -26,9 +38,9 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     pharmacy: '',
     special_instructions: '',
     photo_url: '',
-    active: true
+    is_active: true
   });
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -36,21 +48,10 @@ export default function MedicationForm({ medication, recipients, onClose }) {
   const searchTimeoutRef = useRef(null);
   const suggestionsRef = useRef(null);
 
-  const saveMutation = useMutation({
-    mutationFn: (data) => {
-      if (medication?.id) {
-        return base44.entities.Medication.update(medication.id, data);
-      }
-      return base44.entities.Medication.create(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['medications']);
-      toast.success(medication ? 'Medication updated' : 'Medication added');
-      onClose();
-    }
-  });
+  const createMutation = useCreateMedication();
+  const updateMutation = useUpdateMedication();
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
-  // Search medications with debouncing
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -65,11 +66,10 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     setIsSearching(true);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const result = await base44.functions.invoke('search-medications', { query: searchQuery });
-        setSuggestions(result.results || []);
+        const results = await searchMedications(searchQuery);
+        setSuggestions(results);
         setShowSuggestions(true);
       } catch (error) {
-        console.error('Error searching medications:', error);
         toast.error('Failed to search medications');
       } finally {
         setIsSearching(false);
@@ -83,7 +83,6 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     };
   }, [searchQuery]);
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
@@ -98,7 +97,7 @@ export default function MedicationForm({ medication, recipients, onClose }) {
   const handleMedicationSelect = (med) => {
     setFormData({
       ...formData,
-      medication_name: med.name,
+      name: med.name,
       dosage: med.dosage || formData.dosage
     });
     setSearchQuery(med.name);
@@ -106,13 +105,41 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     setSuggestions([]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.care_recipient_id || !formData.medication_name || !formData.dosage) {
+    if (!formData.care_recipient_id || !formData.name || !formData.dosage) {
       toast.error('Please fill in all required fields');
       return;
     }
-    saveMutation.mutate(formData);
+
+    const dataToSave = {
+      care_recipient_id: formData.care_recipient_id,
+      name: formData.name,
+      dosage: formData.dosage,
+      frequency: formData.frequency,
+      time_of_day: formData.time_of_day,
+      purpose: formData.purpose,
+      prescribing_doctor: formData.prescribing_doctor,
+      start_date: formData.start_date || null,
+      refill_date: formData.refill_date || null,
+      pharmacy: formData.pharmacy,
+      special_instructions: formData.special_instructions,
+      photo_url: formData.photo_url,
+      is_active: formData.is_active
+    };
+
+    try {
+      if (medication?.id) {
+        await updateMutation.mutateAsync({ id: medication.id, ...dataToSave });
+        toast.success('Medication updated');
+      } else {
+        await createMutation.mutateAsync(dataToSave);
+        toast.success('Medication added');
+      }
+      onClose();
+    } catch (error) {
+      toast.error(error.message || 'Failed to save medication');
+    }
   };
 
   return (
@@ -147,14 +174,14 @@ export default function MedicationForm({ medication, recipients, onClose }) {
           </div>
 
           <div className="space-y-2 relative" ref={suggestionsRef}>
-            <Label htmlFor="medication_name">Medication Name *</Label>
+            <Label htmlFor="name">Medication Name *</Label>
             <div className="relative">
               <Input
-                id="medication_name"
-                value={searchQuery || formData.medication_name}
+                id="name"
+                value={searchQuery || formData.name}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  setFormData({ ...formData, medication_name: e.target.value });
+                  setFormData({ ...formData, name: e.target.value });
                 }}
                 onFocus={() => {
                   if (suggestions.length > 0) setShowSuggestions(true);
@@ -173,7 +200,7 @@ export default function MedicationForm({ medication, recipients, onClose }) {
                 </div>
               )}
             </div>
-            
+
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {suggestions.map((med, index) => (
@@ -188,14 +215,14 @@ export default function MedicationForm({ medication, recipients, onClose }) {
                       {med.generic_name && med.generic_name !== med.name && (
                         <span>Generic: {med.generic_name}</span>
                       )}
-                      {med.dosage && <span>• {med.dosage}</span>}
-                      {med.form && <span>• {med.form}</span>}
+                      {med.dosage && <span>- {med.dosage}</span>}
+                      {med.form && <span>- {med.form}</span>}
                     </div>
                   </button>
                 ))}
               </div>
             )}
-            
+
             {showSuggestions && searchQuery.length >= 2 && suggestions.length === 0 && !isSearching && (
               <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg px-4 py-3 text-sm text-slate-500">
                 No medications found. You can still enter manually.
@@ -313,10 +340,10 @@ export default function MedicationForm({ medication, recipients, onClose }) {
             </Button>
             <Button
               type="submit"
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             >
-              {saveMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Saving...
@@ -329,3 +356,5 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     </Card>
   );
 }
+
+export default MedicationForm;

@@ -1,9 +1,21 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowRight, Mail } from "lucide-react";
+import {
+  Heart,
+  ArrowRight,
+  Mail,
+  Calendar,
+  Users,
+  Shield,
+  MessageCircle,
+  FileText,
+  Bell,
+} from "lucide-react";
+import MarketingLayout from "../components/MarketingLayout";
 
-const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || "https://app.familycare.help";
+const DASHBOARD_URL =
+  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5174";
 
 const QUOTES = [
   "Care is access, dignity, and inclusion.",
@@ -27,14 +39,79 @@ const IMAGES = [
   "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/ea2eeb23c_1503eda1-d290-4f17-9e36-03a0cac224a6.png",
 ];
 
-const footerNavItems = [
-  { name: "FAQ", path: "/faq" },
-  { name: "Privacy Policy", path: "/privacy" },
-  { name: "Terms of Service", path: "/terms" },
-  { name: "Cookie Policy", path: "/cookies" },
-  { name: "Legal Disclosure", path: "/legal" },
-  { name: "Record Retention", path: "/retention-policy" },
+const FEATURES = [
+  {
+    icon: Calendar,
+    title: "Appointment Tracking",
+    description:
+      "Never miss important medical visits with shared calendars and reminders.",
+  },
+  {
+    icon: FileText,
+    title: "Health Records",
+    description:
+      "Secure storage for medications, diagnoses, and care documentation.",
+  },
+  {
+    icon: Users,
+    title: "Care Team Coordination",
+    description:
+      "Invite family members and caregivers to collaborate seamlessly.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Real-Time Updates",
+    description:
+      "Keep everyone informed with instant messaging and activity feeds.",
+  },
+  {
+    icon: Bell,
+    title: "Smart Reminders",
+    description:
+      "Automated alerts for medications, tasks, and upcoming appointments.",
+  },
+  {
+    icon: Shield,
+    title: "Privacy First",
+    description:
+      "HIPAA-aligned security to protect sensitive health information.",
+  },
 ];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
+const floatVariants = {
+  initial: { y: 0 },
+  animate: {
+    y: [-10, 10, -10],
+    transition: {
+      duration: 6,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  },
+};
 
 export default function Landing() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -59,212 +136,455 @@ export default function Landing() {
   }, [shuffledImages]);
 
   return (
-    <div className="min-h-screen relative">
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{
-          backgroundImage:
-            "url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/71320b283_Untitleddesign11.png)",
-        }}
-      />
-      {/* Header */}
-      <header className="relative sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
-                alt="FamilyCare.Help Logo"
-                className="w-10 h-10 object-contain"
-              />
-              <div>
-                <h1 className="text-xl font-bold text-slate-800">
-                  FamilyCare<span className="text-orange-500">.Help</span>
-                </h1>
-                <p className="text-xs text-slate-500">Coordinating care together</p>
-              </div>
-            </div>
-            <a
-              href={DASHBOARD_URL}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium"
+    <MarketingLayout fullWidth>
+      {/* Hero Section */}
+      <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-[#FAF7F2]">
+        {/* Decorative Blobs */}
+        <div
+          className="blob w-[500px] h-[500px] -top-32 -left-32"
+          style={{ background: "rgba(79, 70, 229, 0.15)" }}
+        />
+        <div
+          className="blob w-[400px] h-[400px] top-1/2 -right-20"
+          style={{
+            background: "rgba(224, 122, 95, 0.12)",
+            animationDelay: "-5s",
+          }}
+        />
+        <div
+          className="blob w-[300px] h-[300px] bottom-20 left-1/4"
+          style={{
+            background: "rgba(132, 169, 140, 0.15)",
+            animationDelay: "-10s",
+          }}
+        />
+
+        <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left Column - Text Content */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-8"
             >
-              Enter App <ArrowRight className="w-4 h-4" />
-            </a>
+              <motion.div variants={itemVariants} className="space-y-4">
+                <h2
+                  className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#1F2937] leading-[1.1] tracking-tight"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Care Coordinated.
+                </h2>
+                <h2
+                  className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight gradient-text"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Families Connected.
+                </h2>
+              </motion.div>
+
+              <motion.p
+                variants={itemVariants}
+                className="text-lg md:text-xl text-[#4B5563] leading-relaxed max-w-xl"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                Bring clarity, coordination, and peace of mind to family
+                caregiving. Manage medications, appointments, tasks, and
+                communication all in one place.
+              </motion.p>
+
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href={`${DASHBOARD_URL}/signup`}
+                  className="btn-primary text-lg px-8 py-4"
+                >
+                  Get Started Free <ArrowRight className="w-5 h-5" />
+                </a>
+                <Link
+                  to="/faq"
+                  className="btn-secondary text-lg px-8 py-4"
+                >
+                  Learn More
+                </Link>
+              </motion.div>
+
+              <motion.div
+                variants={itemVariants}
+                className="flex items-center gap-6 pt-4"
+              >
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4F46E5] to-[#E07A5F] border-2 border-[#FAF7F2] flex items-center justify-center"
+                    >
+                      <Heart className="w-4 h-4 text-white" fill="white" />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-[#6B7280]">
+                  <span className="font-semibold text-[#1F2937]">500+</span>{" "}
+                  families already coordinating care
+                </p>
+              </motion.div>
+            </motion.div>
+
+            {/* Right Column - Hero Image */}
+            <motion.div
+              initial={{ opacity: 0, x: 60, rotate: 3 }}
+              animate={{ opacity: 1, x: 0, rotate: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+              className="relative"
+            >
+              <motion.div
+                variants={floatVariants}
+                initial="initial"
+                animate="animate"
+                className="relative z-10"
+              >
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                  <img
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f31f440e3_38059b21-9019-49c9-a815-4248f853af8f.png"
+                    alt="Family care"
+                    className="w-full h-[500px] object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1F2937]/20 to-transparent" />
+                </div>
+
+                {/* Floating Card Accent */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
+                  className="absolute -bottom-6 -left-6 card-glass p-4 rounded-2xl shadow-xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#84A98C]/20 flex items-center justify-center">
+                      <Shield className="w-6 h-6 text-[#84A98C]" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#1F2937] text-sm">
+                        HIPAA Aligned
+                      </p>
+                      <p className="text-xs text-[#6B7280]">Secure & Private</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Another Floating Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1, duration: 0.5 }}
+                  className="absolute -top-4 -right-4 card-glass p-4 rounded-2xl shadow-xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#E07A5F]/20 flex items-center justify-center">
+                      <Users className="w-6 h-6 text-[#E07A5F]" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#1F2937] text-sm">
+                        Care Teams
+                      </p>
+                      <p className="text-xs text-[#6B7280]">Collaborate easily</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Background Decorative Shape */}
+              <div className="absolute -z-10 top-10 right-10 w-full h-full rounded-3xl bg-gradient-to-br from-[#4F46E5]/10 to-[#E07A5F]/10" />
+            </motion.div>
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* Main Content */}
-      <main className="relative max-w-7xl mx-auto px-4 md:px-8 py-16">
-        {/* Hero Section */}
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
+      {/* Features Section */}
+      <section className="section bg-white relative">
+        <div
+          className="blob w-[600px] h-[600px] -bottom-32 -right-32"
+          style={{ background: "rgba(132, 169, 140, 0.1)" }}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-6"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
           >
-            <div>
-              <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 leading-tight">
-                Care Coordinated.
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                  Families Connected.
-                </span>
-              </h2>
-              <p className="text-xl text-slate-600 leading-relaxed">
-                Bring clarity, coordination, and peace of mind to family caregiving.
-                Manage medications, appointments, tasks, and communication all in one
-                place.
-              </p>
-            </div>
-
-            <div className="space-y-3 flex flex-col">
-              <div className="flex items-center gap-3">
-                <Heart className="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" />
-                <span className="text-slate-700">Centralized care management</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Heart className="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" />
-                <span className="text-slate-700">Real-time team communication</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Heart className="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" />
-                <span className="text-slate-700">Secure health records & documents</span>
-              </div>
-            </div>
-
-            <a
-              href={DASHBOARD_URL}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all font-semibold text-lg w-fit"
+            <span
+              className="inline-block px-4 py-2 rounded-full bg-[#4F46E5]/10 text-[#4F46E5] font-medium text-sm mb-4"
+              style={{ fontFamily: "var(--font-body)" }}
             >
-              Get Started <ArrowRight className="w-5 h-5" />
-            </a>
+              Everything You Need
+            </span>
+            <h3
+              className="text-4xl md:text-5xl font-bold text-[#1F2937] mb-4"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Caregiving Made{" "}
+              <span className="underline-accent">Simple</span>
+            </h3>
+            <p
+              className="text-lg text-[#6B7280] max-w-2xl mx-auto"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              All the tools your family needs to coordinate care with clarity
+              and compassion.
+            </p>
           </motion.div>
 
-          {/* Featured Image */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="rounded-2xl overflow-hidden shadow-2xl"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f31f440e3_38059b21-9019-49c9-a815-4248f853af8f.png"
-              alt="Family care"
-              className="w-full h-96 object-cover"
-            />
+            {FEATURES.map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                variants={itemVariants}
+                className="feature-card group"
+              >
+                <div
+                  className="w-14 h-14 rounded-2xl mb-6 flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                  style={{
+                    background:
+                      index % 3 === 0
+                        ? "linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)"
+                        : index % 3 === 1
+                        ? "linear-gradient(135deg, #E07A5F 0%, #F4A261 100%)"
+                        : "linear-gradient(135deg, #84A98C 0%, #A3B18A 100%)",
+                  }}
+                >
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <h4
+                  className="text-xl font-bold text-[#1F2937] mb-3"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {feature.title}
+                </h4>
+                <p
+                  className="text-[#6B7280] leading-relaxed"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
+      </section>
 
-        {/* Quote Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white text-center mb-16 shadow-lg">
+      {/* Quote Section */}
+      <section className="section relative overflow-hidden">
+        {/* Organic Shape Background */}
+        <div className="absolute inset-0">
+          <svg
+            className="absolute w-full h-full"
+            viewBox="0 0 1440 400"
+            fill="none"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,100 C320,200 420,0 720,100 C1020,200 1120,0 1440,100 L1440,400 L0,400 Z"
+              fill="url(#gradient-organic)"
+            />
+            <defs>
+              <linearGradient
+                id="gradient-organic"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop offset="0%" stopColor="#4F46E5" />
+                <stop offset="100%" stopColor="#E07A5F" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-8 py-20 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <Heart className="w-12 h-12 text-white/80 mx-auto" fill="currentColor" />
+          </motion.div>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={currentQuoteIndex}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.6 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-              <p className="text-2xl md:text-3xl font-semibold leading-relaxed">
+              <p
+                className="text-2xl md:text-4xl lg:text-5xl font-semibold text-white leading-relaxed"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
                 &ldquo;{QUOTES[currentQuoteIndex]}&rdquo;
               </p>
             </motion.div>
           </AnimatePresence>
-        </div>
 
-        {/* Rotating Image Carousel */}
-        <div className="space-y-6">
-          <h3 className="text-2xl font-bold text-slate-900 text-center">
-            Family Care in Action
-          </h3>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <AnimatePresence mode="wait">
-              {shuffledImages.map((img, idx) => (
-                <motion.div
-                  key={`${idx}-${img}`}
-                  initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-                  animate={{
-                    opacity: idx === currentImageIndex ? 1 : 0.4,
-                    scale: idx === currentImageIndex ? 1 : 0.9,
-                    rotate: idx === currentImageIndex ? 0 : -10,
-                  }}
-                  transition={{ duration: 0.6 }}
-                  className={`rounded-xl overflow-hidden shadow-lg cursor-pointer transition-all ${
-                    idx === currentImageIndex ? "ring-4 ring-blue-500" : ""
-                  }`}
-                >
-                  <img
-                    src={img}
-                    alt={`Care moment ${idx + 1}`}
-                    className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          {/* Progress Indicators */}
-          <div className="flex justify-center gap-2 mt-8">
-            {shuffledImages.map((_, idx) => (
-              <motion.div
+          {/* Quote Navigation Dots */}
+          <div className="flex justify-center gap-2 mt-10">
+            {QUOTES.map((_, idx) => (
+              <motion.button
                 key={idx}
+                onClick={() => setCurrentQuoteIndex(idx)}
                 className={`h-2 rounded-full transition-all ${
-                  idx === currentImageIndex ? "bg-blue-600 w-8" : "bg-slate-300 w-2"
+                  idx === currentQuoteIndex
+                    ? "bg-white w-8"
+                    : "bg-white/40 w-2 hover:bg-white/60"
                 }`}
-                animate={{ width: idx === currentImageIndex ? 32 : 8 }}
+                animate={{ width: idx === currentQuoteIndex ? 32 : 8 }}
+                aria-label={`View quote ${idx + 1}`}
               />
             ))}
           </div>
         </div>
-      </main>
+      </section>
 
-      {/* Footer CTA */}
-      <footer className="relative bg-slate-900 text-white py-12 mt-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div>
-              <h4 className="text-lg font-bold mb-2">Ready to Transform Care?</h4>
-              <p className="text-slate-300">
-                Join families and care teams who are simplifying caregiving coordination.
-              </p>
-            </div>
-            <div className="flex items-center justify-start md:justify-end">
-              <a
-                href={DASHBOARD_URL}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold inline-flex items-center gap-2"
-              >
-                Start Now <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
+      {/* Image Gallery Section */}
+      <section className="section bg-[#FAF7F2] relative">
+        <div
+          className="blob w-[400px] h-[400px] top-0 left-1/4"
+          style={{ background: "rgba(79, 70, 229, 0.08)" }}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h3
+              className="text-4xl md:text-5xl font-bold text-[#1F2937] mb-4"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Family Care in{" "}
+              <span className="gradient-text">Action</span>
+            </h3>
+            <p
+              className="text-lg text-[#6B7280]"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              Real moments of connection and coordinated care
+            </p>
+          </motion.div>
+
+          {/* Masonry-style Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {shuffledImages.map((img, idx) => {
+              const isLarge = idx === 0 || idx === 3;
+              const isMedium = idx === 2 || idx === 5;
+
+              return (
+                <motion.div
+                  key={`${idx}-${img}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  className={`relative rounded-2xl overflow-hidden shadow-lg cursor-pointer group ${
+                    isLarge
+                      ? "md:row-span-2 h-64 md:h-auto"
+                      : isMedium
+                      ? "h-48 md:h-64"
+                      : "h-48"
+                  } ${idx === currentImageIndex ? "ring-4 ring-[#4F46E5] ring-offset-4 ring-offset-[#FAF7F2]" : ""}`}
+                >
+                  <img
+                    src={img}
+                    alt={`Care moment ${idx + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1F2937]/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </motion.div>
+              );
+            })}
           </div>
 
-          <div className="border-t border-slate-700 pt-8">
-            <div className="flex items-center justify-center gap-4 text-sm text-slate-400 flex-wrap mb-4">
-              {footerNavItems.map((item, index) => (
-                <span key={item.path}>
-                  {index > 0 && <span className="text-slate-600 mr-4">|</span>}
-                  <Link to={item.path} className="hover:text-white transition-colors">
-                    {item.name}
-                  </Link>
-                </span>
-              ))}
-              <span className="text-slate-600">|</span>
-              <a
-                href="mailto:familycarehelp@mail.com"
-                className="flex items-center gap-1 hover:text-white transition-colors"
-              >
-                <Mail className="w-4 h-4" />
-                Contact
-              </a>
-            </div>
-            <p className="text-center text-slate-400 text-sm">
-              FamilyCare.Help — Giving caregivers clarity, accountability, and peace of mind
-            </p>
+          {/* Progress Indicators */}
+          <div className="flex justify-center gap-2 mt-10">
+            {shuffledImages.map((_, idx) => (
+              <motion.button
+                key={idx}
+                onClick={() => setCurrentImageIndex(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === currentImageIndex
+                    ? "bg-[#4F46E5] w-8"
+                    : "bg-[#D1D5DB] w-2 hover:bg-[#9CA3AF]"
+                }`}
+                animate={{ width: idx === currentImageIndex ? 32 : 8 }}
+                aria-label={`View image ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
-      </footer>
-    </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="section bg-white relative overflow-hidden">
+        <div
+          className="blob w-[500px] h-[500px] -bottom-20 -left-20"
+          style={{ background: "rgba(224, 122, 95, 0.1)" }}
+        />
+        <div
+          className="blob w-[400px] h-[400px] -top-20 -right-20"
+          style={{ background: "rgba(79, 70, 229, 0.08)", animationDelay: "-7s" }}
+        />
+
+        <div className="max-w-4xl mx-auto px-4 md:px-8 relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="card-glass p-12 md:p-16 rounded-3xl"
+          >
+            <h3
+              className="text-3xl md:text-5xl font-bold text-[#1F2937] mb-6"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Ready to Transform{" "}
+              <span className="gradient-text">Family Care?</span>
+            </h3>
+            <p
+              className="text-lg text-[#6B7280] mb-8 max-w-2xl mx-auto"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              Join families and care teams who are simplifying caregiving
+              coordination. Start your journey to peace of mind today.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href={`${DASHBOARD_URL}/signup`} className="btn-warm text-lg px-8 py-4">
+                Start Free Today <ArrowRight className="w-5 h-5" />
+              </a>
+              <a
+                href="mailto:familycarehelp@mail.com"
+                className="btn-secondary text-lg px-8 py-4"
+              >
+                <Mail className="w-5 h-5" /> Contact Us
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    </MarketingLayout>
   );
 }

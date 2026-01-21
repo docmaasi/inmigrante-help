@@ -1,33 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, AlertCircle, RefreshCw, User, Users, Heart, Calendar, Pill, ListTodo, FileText, CreditCard } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, RefreshCw, User, Users, Heart, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function Diagnostics() {
   const [runningTests, setRunningTests] = useState(false);
   const [testResults, setTestResults] = useState([]);
+  const { user, profile } = useAuth();
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-    retry: false
-  });
+  const runDiagnostics = useCallback(async () => {
+    if (!user) return;
 
-  const runDiagnostics = async () => {
     setRunningTests(true);
     const results = [];
 
     // Test 1: User Authentication
     try {
-      const currentUser = await base44.auth.me();
       results.push({
         name: 'User Authentication',
         status: 'success',
-        message: `Logged in as ${currentUser.email}`,
-        details: { role: currentUser.role, name: currentUser.full_name }
+        message: `Logged in as ${user.email}`,
+        details: { role: profile?.role, name: profile?.full_name }
       });
     } catch (error) {
       results.push({
@@ -40,14 +36,20 @@ export default function Diagnostics() {
 
     // Test 2: Subscription Status
     try {
-      const subscriptions = await base44.entities.Subscription.filter({ user_email: user.email });
-      const activeSubscription = subscriptions.find(s => s.status === 'active');
-      
+      const { data: subscriptions, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const activeSubscription = subscriptions?.find(s => s.status === 'active');
+
       if (activeSubscription) {
         results.push({
           name: 'Subscription Status',
           status: 'success',
-          message: `Active subscription found`,
+          message: 'Active subscription found',
           details: {
             status: activeSubscription.status,
             max_care_recipients: activeSubscription.max_care_recipients,
@@ -59,7 +61,7 @@ export default function Diagnostics() {
           name: 'Subscription Status',
           status: 'warning',
           message: 'No active subscription',
-          details: { found: subscriptions.length, statuses: subscriptions.map(s => s.status) }
+          details: { found: subscriptions?.length || 0, statuses: subscriptions?.map(s => s.status) || [] }
         });
       }
     } catch (error) {
@@ -73,12 +75,17 @@ export default function Diagnostics() {
 
     // Test 3: Care Recipients
     try {
-      const recipients = await base44.entities.CareRecipient.list();
+      const { data: recipients, error } = await supabase
+        .from('care_recipients')
+        .select('id');
+
+      if (error) throw error;
+
       results.push({
         name: 'Care Recipients',
         status: 'success',
-        message: `${recipients.length} care recipients`,
-        details: { count: recipients.length }
+        message: `${recipients?.length || 0} care recipients`,
+        details: { count: recipients?.length || 0 }
       });
     } catch (error) {
       results.push({
@@ -89,14 +96,19 @@ export default function Diagnostics() {
       });
     }
 
-    // Test 5: Appointments
+    // Test 4: Appointments
     try {
-      const appointments = await base44.entities.Appointment.list();
+      const { data: appointments, error } = await supabase
+        .from('appointments')
+        .select('id');
+
+      if (error) throw error;
+
       results.push({
         name: 'Appointments',
         status: 'success',
-        message: `${appointments.length} appointments`,
-        details: { count: appointments.length }
+        message: `${appointments?.length || 0} appointments`,
+        details: { count: appointments?.length || 0 }
       });
     } catch (error) {
       results.push({
@@ -107,14 +119,19 @@ export default function Diagnostics() {
       });
     }
 
-    // Test 6: Medications
+    // Test 5: Medications
     try {
-      const medications = await base44.entities.Medication.list();
+      const { data: medications, error } = await supabase
+        .from('medications')
+        .select('id');
+
+      if (error) throw error;
+
       results.push({
         name: 'Medications',
         status: 'success',
-        message: `${medications.length} medications`,
-        details: { count: medications.length }
+        message: `${medications?.length || 0} medications`,
+        details: { count: medications?.length || 0 }
       });
     } catch (error) {
       results.push({
@@ -125,14 +142,19 @@ export default function Diagnostics() {
       });
     }
 
-    // Test 7: Tasks
+    // Test 6: Tasks
     try {
-      const tasks = await base44.entities.Task.list();
+      const { data: tasks, error } = await supabase
+        .from('tasks')
+        .select('id');
+
+      if (error) throw error;
+
       results.push({
         name: 'Tasks',
         status: 'success',
-        message: `${tasks.length} tasks`,
-        details: { count: tasks.length }
+        message: `${tasks?.length || 0} tasks`,
+        details: { count: tasks?.length || 0 }
       });
     } catch (error) {
       results.push({
@@ -143,14 +165,19 @@ export default function Diagnostics() {
       });
     }
 
-    // Test 8: Documents
+    // Test 7: Documents
     try {
-      const documents = await base44.entities.Document.list();
+      const { data: documents, error } = await supabase
+        .from('documents')
+        .select('id');
+
+      if (error) throw error;
+
       results.push({
         name: 'Documents',
         status: 'success',
-        message: `${documents.length} documents`,
-        details: { count: documents.length }
+        message: `${documents?.length || 0} documents`,
+        details: { count: documents?.length || 0 }
       });
     } catch (error) {
       results.push({
@@ -161,15 +188,21 @@ export default function Diagnostics() {
       });
     }
 
-    // Test 9: Notifications
+    // Test 8: Notifications
     try {
-      const notifications = await base44.entities.Notification.filter({ user_email: user.email });
-      const unread = notifications.filter(n => !n.read).length;
+      const { data: notifications, error } = await supabase
+        .from('notifications')
+        .select('id, is_read')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const unread = notifications?.filter(n => !n.is_read).length || 0;
       results.push({
         name: 'Notifications',
         status: 'success',
-        message: `${notifications.length} total, ${unread} unread`,
-        details: { total: notifications.length, unread }
+        message: `${notifications?.length || 0} total, ${unread} unread`,
+        details: { total: notifications?.length || 0, unread }
       });
     } catch (error) {
       results.push({
@@ -180,10 +213,16 @@ export default function Diagnostics() {
       });
     }
 
-    // Test 10: Onboarding Status
+    // Test 9: Onboarding Status
     try {
-      const onboarding = await base44.entities.OnboardingProgress.filter({ user_email: user.email });
-      if (onboarding.length > 0) {
+      const { data: onboarding, error } = await supabase
+        .from('onboarding_progress')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      if (onboarding && onboarding.length > 0) {
         const progress = onboarding[0];
         results.push({
           name: 'Onboarding Status',
@@ -214,37 +253,37 @@ export default function Diagnostics() {
 
     setTestResults(results);
     setRunningTests(false);
-  };
+  }, [user, profile]);
 
   useEffect(() => {
     if (user) {
       runDiagnostics();
     }
-  }, [user]);
+  }, [user, runDiagnostics]);
 
   const getStatusIcon = (status) => {
     switch (status) {
       case 'success':
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+        return <CheckCircle2 className="w-5 h-5 text-teal-600" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+        return <AlertCircle className="w-5 h-5 text-amber-600" />;
       case 'error':
         return <XCircle className="w-5 h-5 text-red-600" />;
       default:
-        return <AlertCircle className="w-5 h-5 text-gray-400" />;
+        return <AlertCircle className="w-5 h-5 text-slate-400" />;
     }
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'success':
-        return <Badge className="bg-green-100 text-green-800">Passed</Badge>;
+        return <Badge className="bg-teal-100 text-teal-800">Passed</Badge>;
       case 'warning':
-        return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>;
+        return <Badge className="bg-amber-100 text-amber-800">Warning</Badge>;
       case 'error':
         return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+        return <Badge className="bg-slate-100 text-slate-800">Unknown</Badge>;
     }
   };
 
@@ -253,23 +292,23 @@ export default function Diagnostics() {
   const errorCount = testResults.filter(r => r.status === 'error').length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
+        <Card className="bg-gradient-to-r from-teal-600 to-teal-700 text-white border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Heart className="w-8 h-8" />
                 <div>
                   <h1 className="text-2xl font-bold">System Diagnostics</h1>
-                  <p className="text-blue-100 text-sm font-normal">Comprehensive app health check</p>
+                  <p className="text-teal-100 text-sm font-normal">Comprehensive app health check</p>
                 </div>
               </div>
               <Button
                 onClick={runDiagnostics}
                 disabled={runningTests}
-                className="bg-white text-blue-600 hover:bg-blue-50"
+                className="bg-white text-teal-700 hover:bg-teal-50"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${runningTests ? 'animate-spin' : ''}`} />
                 Rerun Tests
@@ -281,7 +320,7 @@ export default function Diagnostics() {
         {/* Summary */}
         {testResults.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-green-200 bg-green-50">
+            <Card className="border border-green-200 bg-green-50 shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -293,19 +332,19 @@ export default function Diagnostics() {
               </CardContent>
             </Card>
 
-            <Card className="border-yellow-200 bg-yellow-50">
+            <Card className="border border-amber-200 bg-amber-50 shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-yellow-700 font-medium">Warnings</p>
-                    <p className="text-3xl font-bold text-yellow-900">{warningCount}</p>
+                    <p className="text-sm text-amber-700 font-medium">Warnings</p>
+                    <p className="text-3xl font-bold text-amber-900">{warningCount}</p>
                   </div>
-                  <AlertCircle className="w-10 h-10 text-yellow-600" />
+                  <AlertCircle className="w-10 h-10 text-amber-600" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-red-200 bg-red-50">
+            <Card className="border border-red-200 bg-red-50 shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -320,14 +359,14 @@ export default function Diagnostics() {
         )}
 
         {/* Test Results */}
-        <Card>
+        <Card className="border border-slate-200 shadow-sm">
           <CardHeader>
-            <CardTitle>Diagnostic Results</CardTitle>
+            <CardTitle className="text-slate-800">Diagnostic Results</CardTitle>
           </CardHeader>
           <CardContent>
             {runningTests ? (
               <div className="flex items-center justify-center py-12">
-                <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+                <RefreshCw className="w-8 h-8 text-teal-600 animate-spin" />
                 <span className="ml-3 text-slate-600">Running diagnostics...</span>
               </div>
             ) : testResults.length === 0 ? (
@@ -338,8 +377,8 @@ export default function Diagnostics() {
             ) : (
               <div className="space-y-3">
                 {testResults.map((result, index) => (
-                  <Card key={index} className="border-l-4" style={{
-                    borderLeftColor: result.status === 'success' ? '#16a34a' : result.status === 'warning' ? '#ca8a04' : '#dc2626'
+                  <Card key={index} className="border border-slate-200 border-l-4 shadow-sm" style={{
+                    borderLeftColor: result.status === 'success' ? '#0d9488' : result.status === 'warning' ? '#d97706' : '#dc2626'
                   }}>
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between">
@@ -352,8 +391,8 @@ export default function Diagnostics() {
                             </div>
                             <p className="text-sm text-slate-600 mb-2">{result.message}</p>
                             {result.details && (
-                              <details className="text-xs bg-slate-50 rounded p-2">
-                                <summary className="cursor-pointer text-slate-500 hover:text-slate-700">
+                              <details className="text-xs bg-slate-100 rounded-lg p-2">
+                                <summary className="cursor-pointer text-slate-500 hover:text-teal-700 font-medium">
                                   View details
                                 </summary>
                                 <pre className="mt-2 text-slate-700 overflow-x-auto">
@@ -373,9 +412,9 @@ export default function Diagnostics() {
         </Card>
 
         {/* System Info */}
-        <Card>
+        <Card className="border border-slate-200 shadow-sm">
           <CardHeader>
-            <CardTitle>System Information</CardTitle>
+            <CardTitle className="text-slate-800">System Information</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -387,7 +426,7 @@ export default function Diagnostics() {
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-slate-500" />
                 <span className="text-slate-600">Role:</span>
-                <span className="font-medium">{user?.role || 'N/A'}</span>
+                <span className="font-medium">{profile?.role || 'N/A'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-slate-500" />

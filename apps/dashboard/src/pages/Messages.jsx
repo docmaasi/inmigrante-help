@@ -1,15 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Plus, Users, Phone } from 'lucide-react';
+import { MessageSquare, Plus, Phone } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth-context';
+import {
+  useConversations,
+  useMessages,
+  useSendMessage,
+  useCreateConversation,
+  useCareRecipients,
+  useTeamMembers,
+  useAppointments,
+  useMedications,
+  useTasks,
+} from '@/hooks';
 import ConversationList from '../components/messaging/ConversationList';
 import MessageThread from '../components/messaging/MessageThread';
 import MessageInput from '../components/messaging/MessageInput';
@@ -17,7 +27,7 @@ import ShareUpdateDialog from '../components/messaging/ShareUpdateDialog';
 import ExternalCommLog from '../components/messaging/ExternalCommLog';
 
 export default function Messages() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [showNewConvDialog, setShowNewConvDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -28,130 +38,79 @@ export default function Messages() {
     participants: []
   });
 
-  const queryClient = useQueryClient();
+  const { data: conversations = [] } = useConversations();
+  const { data: messages = [] } = useMessages(selectedConversationId);
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: teamMembers = [] } = useTeamMembers();
+  const { data: appointments = [] } = useAppointments();
+  const { data: medications = [] } = useMedications();
+  const { data: tasks = [] } = useTasks();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const { data: conversations = [] } = useQuery({
-    queryKey: ['conversations'],
-    queryFn: () => base44.entities.Conversation.list('-last_message_at')
-  });
-
-  const { data: messages = [] } = useQuery({
-    queryKey: ['messages', selectedConversationId],
-    queryFn: () => base44.entities.Message.filter({ conversation_id: selectedConversationId }, 'created_date'),
-    enabled: !!selectedConversationId
-  });
-
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
-  });
-
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.list('-date', 20)
-  });
-
-  const { data: medications = [] } = useQuery({
-    queryKey: ['medications'],
-    queryFn: () => base44.entities.Medication.list()
-  });
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list()
-  });
-
-  // Real-time message subscription
-  useEffect(() => {
-    if (!selectedConversationId) return;
-
-    const unsubscribe = base44.entities.Message.subscribe((event) => {
-      if (event.data.conversation_id === selectedConversationId) {
-        queryClient.invalidateQueries(['messages', selectedConversationId]);
-        queryClient.invalidateQueries(['conversations']);
-      }
-    });
-
-    return unsubscribe;
-  }, [selectedConversationId, queryClient]);
-
-  const createConversationMutation = useMutation({
-    mutationFn: (data) => base44.entities.Conversation.create(data),
-    onSuccess: (newConv) => {
-      queryClient.invalidateQueries(['conversations']);
-      setSelectedConversationId(newConv.id);
-      setShowNewConvDialog(false);
-      toast.success('Conversation created');
-    }
-  });
-
-  const sendMessageMutation = useMutation({
-    mutationFn: (data) => base44.entities.Message.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['messages', selectedConversationId]);
-      base44.entities.Conversation.update(selectedConversationId, {
-        last_message_at: new Date().toISOString()
-      });
-    }
-  });
+  const createConversationMutation = useCreateConversation();
+  const sendMessageMutation = useSendMessage();
 
   const handleCreateConversation = () => {
-    const data = {
-      ...newConvData,
-      participants: JSON.stringify(newConvData.participants),
-      last_message_at: new Date().toISOString()
-    };
-    createConversationMutation.mutate(data);
-    setNewConvData({ name: '', care_recipient_id: '', conversation_type: 'general', participants: [] });
+    createConversationMutation.mutate(
+      {
+        name: newConvData.name,
+        care_recipient_id: newConvData.care_recipient_id,
+        conversation_type: newConvData.conversation_type,
+        participants: newConvData.participants,
+        last_message_at: new Date().toISOString(),
+      },
+      {
+        onSuccess: (newConv) => {
+          setSelectedConversationId(newConv.id);
+          setShowNewConvDialog(false);
+          toast.success('Conversation created');
+          setNewConvData({ name: '', care_recipient_id: '', conversation_type: 'general', participants: [] });
+        },
+      }
+    );
   };
 
   const handleSendMessage = (content) => {
     if (!user || !selectedConversationId) return;
-    
+
     sendMessageMutation.mutate({
-      conversation_id: selectedConversationId,
-      sender_email: user.email,
-      sender_name: user.full_name,
+      conversationId: selectedConversationId,
       content,
-      message_type: 'text'
+      messageType: 'text',
     });
   };
 
   const handleShareUpdate = ({ type, relatedEntityId, content }) => {
     if (!user || !selectedConversationId) return;
-    
-    sendMessageMutation.mutate({
-      conversation_id: selectedConversationId,
-      sender_email: user.email,
-      sender_name: user.full_name,
-      content,
-      message_type: type,
-      related_entity_id: relatedEntityId
-    });
-    setShowShareDialog(false);
-    toast.success('Update shared');
+
+    sendMessageMutation.mutate(
+      {
+        conversationId: selectedConversationId,
+        content,
+        messageType: type,
+      },
+      {
+        onSuccess: () => {
+          setShowShareDialog(false);
+          toast.success('Update shared');
+        },
+      }
+    );
   };
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
-  const recipientTeamMembers = selectedConversation
-    ? teamMembers.filter(tm => tm.care_recipient_id === selectedConversation.care_recipient_id)
-    : [];
+
+  // Transform recipients to match expected format
+  const formattedRecipients = recipients.map(r => ({
+    ...r,
+    full_name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+  }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
+            <MessageSquare className="w-6 h-6 md:w-8 md:h-8 text-teal-600" />
             Communications
           </h1>
           <p className="text-sm md:text-base text-slate-500 mt-1">Team messaging and external communication logs</p>
@@ -172,14 +131,14 @@ export default function Messages() {
           <TabsContent value="messages">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Conversations List */}
-              <Card className="lg:col-span-1 shadow-sm border-slate-200/60">
+              <Card className="lg:col-span-1 shadow-sm border-slate-200">
                 <CardHeader className="border-b border-slate-100">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">Conversations</CardTitle>
                     <Button
                       size="sm"
                       onClick={() => setShowNewConvDialog(true)}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-teal-600 hover:bg-teal-700"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -199,20 +158,20 @@ export default function Messages() {
                       conversations={conversations}
                       selectedId={selectedConversationId}
                       onSelect={setSelectedConversationId}
-                      recipients={recipients}
+                      recipients={formattedRecipients}
                     />
                   )}
                 </CardContent>
               </Card>
 
               {/* Message Thread */}
-              <Card className="lg:col-span-2 flex flex-col h-[600px] shadow-sm border-slate-200/60">
+              <Card className="lg:col-span-2 flex flex-col h-[600px] shadow-sm border-slate-200">
                 {selectedConversationId ? (
                   <>
                     <CardHeader className="border-b border-slate-100">
                       <CardTitle className="text-lg">{selectedConversation?.name}</CardTitle>
                       <p className="text-sm text-slate-500">
-                        {recipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
+                        {formattedRecipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
                       </p>
                     </CardHeader>
                     <MessageThread messages={messages} currentUserEmail={user?.email} />
@@ -264,7 +223,7 @@ export default function Messages() {
                   <SelectValue placeholder="Select recipient" />
                 </SelectTrigger>
                 <SelectContent>
-                  {recipients.map(r => (
+                  {formattedRecipients.map(r => (
                     <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -303,27 +262,27 @@ export default function Messages() {
                 </SelectTrigger>
                 <SelectContent>
                   {teamMembers.map(tm => (
-                    <SelectItem key={tm.id} value={tm.user_email}>
-                      {tm.full_name} ({tm.relationship})
+                    <SelectItem key={tm.id} value={tm.email || tm.id}>
+                      {tm.full_name} ({tm.relationship || tm.role})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {newConvData.participants.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {newConvData.participants.map(email => {
-                    const member = teamMembers.find(tm => tm.user_email === email);
+                  {newConvData.participants.map(participantId => {
+                    const member = teamMembers.find(tm => (tm.email || tm.id) === participantId);
                     return (
-                      <div key={email} className="px-2 py-1 bg-slate-100 rounded text-sm flex items-center gap-1">
-                        {member?.full_name || email}
+                      <div key={participantId} className="px-2 py-1 bg-slate-100 rounded text-sm flex items-center gap-1">
+                        {member?.full_name || participantId}
                         <button
                           onClick={() => setNewConvData({
                             ...newConvData,
-                            participants: newConvData.participants.filter(e => e !== email)
+                            participants: newConvData.participants.filter(e => e !== participantId)
                           })}
                           className="ml-1 text-slate-500 hover:text-slate-700"
                         >
-                          ×
+                          x
                         </button>
                       </div>
                     );
@@ -337,9 +296,9 @@ export default function Messages() {
               </Button>
               <Button
                 onClick={handleCreateConversation}
-                disabled={!newConvData.name || !newConvData.care_recipient_id}
+                disabled={!newConvData.name || !newConvData.care_recipient_id || createConversationMutation.isPending}
               >
-                Create
+                {createConversationMutation.isPending ? 'Creating...' : 'Create'}
               </Button>
             </div>
           </div>

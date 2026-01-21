@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
+import { useCareRecipients } from '@/hooks/use-care-recipients';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +15,7 @@ import { Phone, Mail, Stethoscope, Building2, Plus, Calendar, Clock, AlertCircle
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function ExternalCommLog() {
+export function ExternalCommLog() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingLog, setEditingLog] = useState(null);
   const [formData, setFormData] = useState({
@@ -32,35 +34,55 @@ export default function ExternalCommLog() {
   });
 
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { data: recipients = [] } = useCareRecipients();
 
   const { data: logs = [], isLoading } = useQuery({
-    queryKey: ['externalCommunications'],
-    queryFn: () => base44.entities.ExternalCommunication.list('-communication_date')
-  });
+    queryKey: ['external-communications'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('external_communications')
+        .select('*')
+        .order('communication_date', { ascending: false });
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me()
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.ExternalCommunication.create(data),
+    mutationFn: async (data) => {
+      const { data: result, error } = await supabase
+        .from('external_communications')
+        .insert({ ...data, user_id: user.id })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['externalCommunications']);
+      queryClient.invalidateQueries({ queryKey: ['external-communications'] });
       toast.success('Communication logged');
       handleCloseDialog();
     }
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ExternalCommunication.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const { data: result, error } = await supabase
+        .from('external_communications')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return result;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['externalCommunications']);
+      queryClient.invalidateQueries({ queryKey: ['external-communications'] });
       toast.success('Communication updated');
       handleCloseDialog();
     }
@@ -107,7 +129,7 @@ export default function ExternalCommLog() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = { ...formData, logged_by: user?.email };
-    
+
     if (editingLog) {
       updateMutation.mutate({ id: editingLog.id, data });
     } else {
@@ -149,7 +171,8 @@ export default function ExternalCommLog() {
   };
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+    const recipient = recipients.find(r => r.id === id);
+    return recipient ? `${recipient.first_name} ${recipient.last_name}` : 'Unknown';
   };
 
   return (
@@ -187,7 +210,7 @@ export default function ExternalCommLog() {
           {logs.map(log => {
             const Icon = getContactIcon(log.contact_type);
             const MethodIcon = getMethodIcon(log.method);
-            
+
             return (
               <Card key={log.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
@@ -205,7 +228,7 @@ export default function ExternalCommLog() {
                           {log.contact_type}
                         </Badge>
                       </div>
-                      
+
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-4 flex-wrap text-slate-600">
                           <span className="flex items-center gap-1">
@@ -223,13 +246,13 @@ export default function ExternalCommLog() {
                             {log.method}
                           </span>
                         </div>
-                        
+
                         <p className="font-medium text-slate-700">Re: {log.regarding}</p>
-                        
+
                         {log.notes && (
                           <p className="text-slate-600 bg-slate-50 rounded p-2 text-xs">{log.notes}</p>
                         )}
-                        
+
                         {log.follow_up_needed && (
                           <div className="flex items-center gap-2 text-orange-600 bg-orange-50 rounded p-2">
                             <AlertCircle className="w-4 h-4" />
@@ -240,7 +263,7 @@ export default function ExternalCommLog() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="mt-3 flex gap-2">
                         <Button size="sm" variant="outline" onClick={() => handleEdit(log)}>
                           Edit
@@ -255,7 +278,6 @@ export default function ExternalCommLog() {
         </div>
       )}
 
-      {/* Log Communication Dialog */}
       <Dialog open={showDialog} onOpenChange={handleCloseDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -271,7 +293,7 @@ export default function ExternalCommLog() {
                   </SelectTrigger>
                   <SelectContent>
                     {recipients.map(r => (
-                      <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
+                      <SelectItem key={r.id} value={r.id}>{r.first_name} {r.last_name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -375,3 +397,5 @@ export default function ExternalCommLog() {
     </div>
   );
 }
+
+export default ExternalCommLog;

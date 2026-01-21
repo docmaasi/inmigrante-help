@@ -1,35 +1,44 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCareRecipients, useMedications } from '@/hooks';
+import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Phone, FileText, Pill, User, MapPin, Heart, Share2, Printer } from 'lucide-react';
+import { AlertCircle, Phone, FileText, Pill, User, Heart, Share2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import EmergencyAlert from '../components/emergency/EmergencyAlert';
 
 export default function EmergencyProfile() {
   const [selectedRecipient, setSelectedRecipient] = useState('');
+  const { user } = useAuth();
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const { data: medications = [] } = useQuery({
-    queryKey: ['medications'],
-    queryFn: () => base44.entities.Medication.list()
-  });
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: allMedications = [] } = useMedications();
 
   const { data: documents = [] } = useQuery({
     queryKey: ['documents'],
-    queryFn: () => base44.entities.Document.list()
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
   });
 
   const recipient = recipients.find(r => r.id === selectedRecipient);
-  const recipientMeds = medications.filter(m => m.care_recipient_id === selectedRecipient && m.active);
+  const recipientMeds = allMedications.filter(m => m.care_recipient_id === selectedRecipient && m.is_active);
   const recipientDocs = documents.filter(d => d.care_recipient_id === selectedRecipient);
+
+  const fullName = recipient
+    ? [recipient.first_name, recipient.last_name].filter(Boolean).join(' ')
+    : '';
 
   const handlePrint = () => {
     window.print();
@@ -38,8 +47,8 @@ export default function EmergencyProfile() {
 
   const handleShare = async () => {
     const shareData = {
-      title: `Emergency Profile - ${recipient?.full_name}`,
-      text: `Emergency contact and medical information for ${recipient?.full_name}`,
+      title: `Emergency Profile - ${fullName}`,
+      text: `Emergency contact and medical information for ${fullName}`,
       url: window.location.href
     };
 
@@ -47,8 +56,8 @@ export default function EmergencyProfile() {
       try {
         await navigator.share(shareData);
         toast.success('Shared successfully');
-      } catch (err) {
-        console.log('Share cancelled');
+      } catch {
+        // Share cancelled
       }
     } else {
       navigator.clipboard.writeText(window.location.href);
@@ -57,7 +66,7 @@ export default function EmergencyProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -73,7 +82,7 @@ export default function EmergencyProfile() {
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </Button>
-              <Button onClick={handlePrint} className="bg-red-600 hover:bg-red-700">
+              <Button onClick={handlePrint} className="bg-teal-600 hover:bg-teal-700">
                 <Printer className="w-4 h-4 mr-2" />
                 Print
               </Button>
@@ -81,7 +90,7 @@ export default function EmergencyProfile() {
           )}
         </div>
 
-        <Card className="mb-6 bg-red-50 border-red-200 shadow-sm print:hidden">
+        <Card className="mb-6 border-red-200 bg-red-50 shadow-sm print:hidden">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
@@ -102,15 +111,18 @@ export default function EmergencyProfile() {
               <SelectValue placeholder="Select care recipient" />
             </SelectTrigger>
             <SelectContent>
-              {recipients.map(r => (
-                <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-              ))}
+              {recipients.map(r => {
+                const rFullName = [r.first_name, r.last_name].filter(Boolean).join(' ');
+                return (
+                  <SelectItem key={r.id} value={r.id}>{rFullName}</SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
 
         {!recipient ? (
-          <Card className="shadow-sm border-slate-200/60">
+          <Card className="border-slate-200 shadow-sm">
             <CardContent className="p-12 text-center">
               <User className="w-16 h-16 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-500">Select a care recipient to view their emergency profile</p>
@@ -118,14 +130,12 @@ export default function EmergencyProfile() {
           </Card>
         ) : (
           <div className="space-y-6">
-            {/* Emergency Alert */}
-            <EmergencyAlert recipientId={recipient.id} recipientName={recipient.full_name} />
+            <EmergencyAlert recipientId={recipient.id} recipientName={fullName} />
 
-            {/* Basic Info */}
-            <Card className="shadow-sm border-slate-200/60">
-              <CardHeader className="bg-slate-50">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="border-b border-slate-100">
                 <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-blue-600" />
+                  <User className="w-5 h-5 text-teal-600" />
                   Patient Information
                 </CardTitle>
               </CardHeader>
@@ -133,7 +143,7 @@ export default function EmergencyProfile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm text-slate-500 mb-1">Full Name</div>
-                    <div className="font-semibold text-lg">{recipient.full_name}</div>
+                    <div className="font-semibold text-lg">{fullName}</div>
                   </div>
                   <div>
                     <div className="text-sm text-slate-500 mb-1">Date of Birth</div>
@@ -153,28 +163,27 @@ export default function EmergencyProfile() {
               </CardContent>
             </Card>
 
-            {/* Emergency Contacts */}
-            <Card className="shadow-sm border-slate-200/60">
-              <CardHeader className="bg-slate-50">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="border-b border-slate-100">
                 <CardTitle className="flex items-center gap-2">
-                  <Phone className="w-5 h-5 text-green-600" />
+                  <Phone className="w-5 h-5 text-teal-600" />
                   Emergency Contacts
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-50 rounded-lg">
+                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-semibold text-slate-800">
                         {recipient.emergency_contact_name || 'Not provided'}
                       </div>
-                      <Badge className="bg-green-100 text-green-700">Primary</Badge>
+                      <Badge className="bg-teal-100 text-teal-700">Primary</Badge>
                     </div>
                     <div className="text-sm text-slate-600 space-y-1">
                       <div>Relationship: {recipient.emergency_contact_relationship || 'Not specified'}</div>
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4" />
-                        <a href={`tel:${recipient.emergency_contact_phone}`} className="font-medium text-blue-600">
+                        <a href={`tel:${recipient.emergency_contact_phone}`} className="font-medium text-teal-600 hover:text-teal-700">
                           {recipient.emergency_contact_phone || 'Not provided'}
                         </a>
                       </div>
@@ -183,19 +192,19 @@ export default function EmergencyProfile() {
                       )}
                     </div>
                   </div>
-                  
+
                   {recipient.secondary_emergency_contact_name && (
-                    <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-semibold text-slate-800">
                           {recipient.secondary_emergency_contact_name}
                         </div>
-                        <Badge className="bg-blue-100 text-blue-700">Secondary</Badge>
+                        <Badge className="bg-slate-100 text-slate-700">Secondary</Badge>
                       </div>
                       <div className="text-sm text-slate-600">
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4" />
-                          <a href={`tel:${recipient.secondary_emergency_contact_phone}`} className="font-medium text-blue-600">
+                          <a href={`tel:${recipient.secondary_emergency_contact_phone}`} className="font-medium text-teal-600 hover:text-teal-700">
                             {recipient.secondary_emergency_contact_phone}
                           </a>
                         </div>
@@ -206,11 +215,10 @@ export default function EmergencyProfile() {
               </CardContent>
             </Card>
 
-            {/* Current Medications */}
-            <Card className="shadow-sm border-slate-200/60">
-              <CardHeader className="bg-slate-50">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="border-b border-slate-100">
                 <CardTitle className="flex items-center gap-2">
-                  <Pill className="w-5 h-5 text-purple-600" />
+                  <Pill className="w-5 h-5 text-teal-600" />
                   Current Medications ({recipientMeds.length})
                 </CardTitle>
               </CardHeader>
@@ -220,14 +228,14 @@ export default function EmergencyProfile() {
                 ) : (
                   <div className="space-y-3">
                     {recipientMeds.map(med => (
-                      <div key={med.id} className="p-3 bg-purple-50 rounded-lg">
-                        <div className="font-semibold text-slate-800">{med.medication_name}</div>
+                      <div key={med.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div className="font-semibold text-slate-800">{med.name}</div>
                         <div className="text-sm text-slate-600 mt-1">
                           <div>Dosage: {med.dosage}</div>
                           <div>Frequency: {med.frequency}</div>
                           {med.purpose && <div>Purpose: {med.purpose}</div>}
-                          {med.special_instructions && (
-                            <div className="text-orange-700 font-medium mt-1">⚠️ {med.special_instructions}</div>
+                          {med.instructions && (
+                            <div className="text-orange-700 font-medium mt-1">Warning: {med.instructions}</div>
                           )}
                         </div>
                       </div>
@@ -237,12 +245,11 @@ export default function EmergencyProfile() {
               </CardContent>
             </Card>
 
-            {/* Primary Physician */}
             {recipient.primary_physician && (
-              <Card className="shadow-sm border-slate-200/60">
-                <CardHeader className="bg-slate-50">
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b border-slate-100">
                   <CardTitle className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-red-600" />
+                    <Heart className="w-5 h-5 text-teal-600" />
                     Primary Physician
                   </CardTitle>
                 </CardHeader>
@@ -251,7 +258,7 @@ export default function EmergencyProfile() {
                   {recipient.physician_phone && (
                     <div className="flex items-center gap-2 mt-2 text-slate-600">
                       <Phone className="w-4 h-4" />
-                      <a href={`tel:${recipient.physician_phone}`} className="font-medium text-blue-600">
+                      <a href={`tel:${recipient.physician_phone}`} className="font-medium text-teal-600 hover:text-teal-700">
                         {recipient.physician_phone}
                       </a>
                     </div>
@@ -260,11 +267,10 @@ export default function EmergencyProfile() {
               </Card>
             )}
 
-            {/* Important Documents */}
-            <Card className="shadow-sm border-slate-200/60">
-              <CardHeader className="bg-slate-50">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="border-b border-slate-100">
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-orange-600" />
+                  <FileText className="w-5 h-5 text-teal-600" />
                   Important Documents ({recipientDocs.filter(d => d.is_important).length})
                 </CardTitle>
               </CardHeader>
@@ -274,12 +280,12 @@ export default function EmergencyProfile() {
                 ) : (
                   <div className="space-y-2">
                     {recipientDocs.filter(d => d.is_important).map(doc => (
-                      <div key={doc.id} className="flex items-center justify-between p-2 bg-orange-50 rounded">
+                      <div key={doc.id} className="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-200">
                         <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-orange-600" />
-                          <span className="text-sm font-medium">{doc.document_name}</span>
+                          <FileText className="w-4 h-4 text-teal-600" />
+                          <span className="text-sm font-medium">{doc.name}</span>
                         </div>
-                        <Badge className="bg-orange-100 text-orange-700">{doc.document_type}</Badge>
+                        <Badge className="bg-slate-100 text-slate-700">{doc.type}</Badge>
                       </div>
                     ))}
                   </div>
@@ -287,10 +293,9 @@ export default function EmergencyProfile() {
               </CardContent>
             </Card>
 
-            {/* Additional Notes */}
             {recipient.notes && (
-              <Card className="shadow-sm border-slate-200/60">
-                <CardHeader className="bg-slate-50">
+              <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b border-slate-100">
                   <CardTitle>Additional Notes</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">

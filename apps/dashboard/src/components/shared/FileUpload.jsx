@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, X, Loader2, Image } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { Upload, X, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
-export default function FileUpload({ value, onChange, accept = "image/*", label = "Upload Photo" }) {
+export function FileUpload({ value, onChange, accept = "image/*", label = "Upload Photo", bucket = "documents" }) {
   const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
 
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
@@ -13,8 +15,20 @@ export default function FileUpload({ value, onChange, accept = "image/*", label 
 
     setUploading(true);
     try {
-      const result = await base44.integrations.Core.UploadFile({ file });
-      onChange(result.file_url);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id || 'anonymous'}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
+
+      onChange(publicUrl);
       toast.success('Photo uploaded successfully');
     } catch (error) {
       toast.error('Failed to upload photo');
@@ -32,9 +46,9 @@ export default function FileUpload({ value, onChange, accept = "image/*", label 
     <div className="space-y-2">
       {value ? (
         <div className="relative inline-block">
-          <img 
-            src={value} 
-            alt="Uploaded" 
+          <img
+            src={value}
+            alt="Uploaded"
             className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
           />
           <button
@@ -65,12 +79,12 @@ export default function FileUpload({ value, onChange, accept = "image/*", label 
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   Uploading...
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-4 h-4 mr-2" />
                   {label}
                 </>
               )}
@@ -81,3 +95,5 @@ export default function FileUpload({ value, onChange, accept = "image/*", label 
     </div>
   );
 }
+
+export default FileUpload;

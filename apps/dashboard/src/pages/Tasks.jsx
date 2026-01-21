@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useTasks, useUpdateTask, useDeleteTask, useCareRecipients, useTeamMembers } from '@/hooks';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,45 +21,25 @@ export default function Tasks() {
   const [filterType, setFilterType] = useState('all');
   const [sortBy, setSortBy] = useState('due_date');
   const [groupBy, setGroupBy] = useState('none');
-  const queryClient = useQueryClient();
 
-  const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-due_date')
-  });
+  const { data: tasks = [], isLoading } = useTasks();
+  const { data: recipients = [] } = useCareRecipients();
+  const { data: teamMembers = [] } = useTeamMembers();
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status, notes }) => base44.entities.Task.update(id, { status, completion_notes: notes }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Task.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-    }
-  });
+  const updateTaskMutation = useUpdateTask();
+  const deleteTaskMutation = useDeleteTask();
 
   const getRecipientName = (id) => {
     const recipient = recipients.find(r => r.id === id);
-    return recipient?.full_name || 'Unknown';
+    if (recipient) {
+      return `${recipient.first_name} ${recipient.last_name}`;
+    }
+    return 'Unknown';
   };
 
   const handleComplete = (notes) => {
     if (completingTask) {
-      updateStatusMutation.mutate(
+      updateTaskMutation.mutate(
         { id: completingTask.id, status: 'completed', notes },
         {
           onSuccess: () => {
@@ -75,7 +54,7 @@ export default function Tasks() {
     if (filterStatus !== 'all' && task.status !== filterStatus) return false;
     if (filterPriority !== 'all' && task.priority !== filterPriority) return false;
     if (filterRecipient !== 'all' && task.care_recipient_id !== filterRecipient) return false;
-    if (filterType !== 'all' && task.task_type !== filterType) return false;
+    if (filterType !== 'all' && task.category !== filterType) return false;
     return true;
   });
 
@@ -118,7 +97,7 @@ export default function Tasks() {
     });
   } else if (groupBy === 'type') {
     filteredTasks.forEach(task => {
-      const type = task.task_type || 'other';
+      const type = task.category || 'other';
       if (!groupedTasks[type]) groupedTasks[type] = [];
       groupedTasks[type].push(task);
     });
@@ -145,26 +124,20 @@ export default function Tasks() {
   };
 
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/e44b9ad82_Untitleddesign15.png)'
-        }}
-      />
-      <div className="max-w-7xl mx-auto relative">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Tasks</h1>
-          <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregiver responsibilities</p>
+          <p className="text-sm md:text-base text-slate-500 mt-1">Manage caregiver responsibilities</p>
         </div>
         <Button
           onClick={() => {
             setSelectedTask(null);
             setShowForm(true);
           }}
-          className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
+          className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Task
@@ -172,7 +145,7 @@ export default function Tasks() {
       </div>
 
       {/* Filters */}
-      <Card className="mb-6">
+      <Card className="mb-6 border-slate-200 shadow-sm">
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -184,7 +157,7 @@ export default function Tasks() {
                     variant={filterStatus === status ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFilterStatus(status)}
-                    className={`whitespace-nowrap ${filterStatus === status ? 'bg-purple-600' : ''}`}
+                    className={`whitespace-nowrap ${filterStatus === status ? 'bg-teal-600 hover:bg-teal-700' : 'hover:border-teal-300'}`}
                   >
                     {status === 'all' ? 'All' : status.replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                   </Button>
@@ -217,7 +190,7 @@ export default function Tasks() {
                 <SelectContent>
                   <SelectItem value="all">All Recipients</SelectItem>
                   {recipients.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
+                    <SelectItem key={r.id} value={r.id}>{r.first_name} {r.last_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -297,14 +270,14 @@ export default function Tasks() {
         onClose={() => setCompletingTask(null)}
         onComplete={handleComplete}
         task={completingTask}
-        isLoading={updateStatusMutation.isPending}
+        isLoading={updateTaskMutation.isPending}
       />
 
       {/* Tasks List */}
       {isLoading ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="shadow-sm border-slate-200/60">
+            <Card key={i} className="shadow-sm border-slate-200 bg-white">
               <CardContent className="p-6">
                 <div className="flex items-start gap-3 mb-3">
                   <Skeleton className="w-12 h-12 rounded-lg" />
@@ -324,15 +297,17 @@ export default function Tasks() {
           ))}
         </div>
       ) : Object.keys(groupedTasks).length === 0 || filteredTasks.length === 0 ? (
-        <Card className="border-slate-200/60">
-          <CardContent className="p-8 md:p-12 text-center">
-            <CheckSquare className="w-12 h-12 md:w-16 md:h-16 text-slate-300 mx-auto mb-4" />
+        <Card className="border-slate-200 bg-white shadow-sm">
+          <CardContent className="p-8 md:p-16 text-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckSquare className="w-8 h-8 md:w-10 md:h-10 text-slate-400" />
+            </div>
             <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Tasks</h3>
-            <p className="text-sm md:text-base text-slate-500 mb-6">
+            <p className="text-sm md:text-base text-slate-500 mb-6 max-w-sm mx-auto">
               {filterStatus === 'all' ? 'Add your first task to get started' : `No ${filterStatus.replace(/_/g, ' ')} tasks`}
             </p>
             {filterStatus === 'all' && (
-              <Button onClick={() => setShowForm(true)} className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">
+              <Button onClick={() => setShowForm(true)} className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
               </Button>
@@ -352,16 +327,17 @@ export default function Tasks() {
                 {groupTasks.map(task => {
             const isOverdue = task.due_date && isPast(parseISO(task.due_date)) && task.status !== 'completed';
             const isDueToday = task.due_date && isToday(parseISO(task.due_date));
-            
+            const taskType = task.category || 'other';
+
             return (
-              <Card key={task.id} className={`shadow-sm border-slate-200/60 hover:shadow-md transition-shadow ${
+              <Card key={task.id} className={`shadow-sm border-slate-200 bg-white hover:shadow-md transition-shadow ${
                 isOverdue ? 'border-l-4 border-l-red-500' : ''
               }`}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className={`p-3 rounded-lg flex-shrink-0 ${
-                        task.status === 'completed' ? 'bg-green-100' : 'bg-gradient-to-br from-purple-600 to-purple-700'
+                        task.status === 'completed' ? 'bg-green-100' : 'bg-teal-600'
                       }`}>
                         {task.status === 'completed' ? (
                           <Check className="w-5 h-5 text-green-600" />
@@ -387,7 +363,7 @@ export default function Tasks() {
                             <>
                               <span className="text-slate-400">•</span>
                               <span className={`flex items-center gap-1 ${
-                                isOverdue ? 'text-red-600 font-medium' : 
+                                isOverdue ? 'text-red-600 font-medium' :
                                 isDueToday ? 'text-orange-600 font-medium' : ''
                               }`}>
                                 <Calendar className="w-4 h-4" />
@@ -404,24 +380,24 @@ export default function Tasks() {
                   </div>
 
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge className={`${taskTypeColors[task.task_type]} border-0`}>
-                      {task.task_type.replace(/_/g, ' ')}
+                    <Badge className={`${taskTypeColors[taskType]} border-0`}>
+                      {taskType.replace(/_/g, ' ')}
                     </Badge>
-                    {task.recurring !== 'none' && (
+                    {task.recurring && task.recurrence_pattern && (
                       <Badge variant="outline" className="text-xs">
-                        Recurring: {task.recurring}
+                        Recurring: {task.recurrence_pattern}
                       </Badge>
                     )}
                     {task.assigned_to && (
                       <Badge variant="outline" className="text-xs">
-                        Assigned: {task.assigned_to}
+                        Assigned: {task.team_members?.full_name || task.assigned_to}
                       </Badge>
                     )}
                   </div>
 
-                  {task.completion_notes && (
+                  {task.notes && task.status === 'completed' && (
                     <p className="text-sm text-slate-600 bg-green-50 rounded-lg p-3 mb-4 border border-green-200">
-                      <span className="font-medium">Completed:</span> {task.completion_notes}
+                      <span className="font-medium">Completed:</span> {task.notes}
                     </p>
                   )}
 
@@ -455,7 +431,7 @@ export default function Tasks() {
                       variant="outline"
                       onClick={() => {
                         if (confirm('Delete this task?')) {
-                          deleteMutation.mutate(task.id);
+                          deleteTaskMutation.mutate(task.id);
                         }
                       }}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"

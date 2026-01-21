@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useCreateCareRecipient, useUpdateCareRecipient } from '@/hooks';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,7 @@ import { X, Upload, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 
-export default function CareRecipientForm({ recipient, onClose }) {
-  const queryClient = useQueryClient();
+export function CareRecipientForm({ recipient, onClose }) {
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState(recipient || {
     full_name: '',
@@ -52,19 +51,9 @@ export default function CareRecipientForm({ recipient, onClose }) {
   const [newCondition, setNewCondition] = useState({ condition: '', diagnosed_date: '' });
   const [newHistory, setNewHistory] = useState({ event: '', date: '', notes: '' });
 
-  const saveMutation = useMutation({
-    mutationFn: (data) => {
-      if (recipient?.id) {
-        return base44.entities.CareRecipient.update(recipient.id, data);
-      }
-      return base44.entities.CareRecipient.create(data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['careRecipients']);
-      toast.success(recipient ? 'Care recipient updated' : 'Care recipient added');
-      onClose();
-    }
-  });
+  const createMutation = useCreateCareRecipient();
+  const updateMutation = useUpdateCareRecipient();
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -72,8 +61,21 @@ export default function CareRecipientForm({ recipient, onClose }) {
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({ ...formData, photo_url: file_url });
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `care-recipients/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('uploads')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, photo_url: publicUrl });
       toast.success('Photo uploaded');
     } catch (error) {
       toast.error('Failed to upload photo');
@@ -82,18 +84,31 @@ export default function CareRecipientForm({ recipient, onClose }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.full_name) {
       toast.error('Please enter a name');
       return;
     }
+
     const dataToSave = {
       ...formData,
       conditions_diagnoses: JSON.stringify(conditions),
       medical_history: JSON.stringify(medicalHistory)
     };
-    saveMutation.mutate(dataToSave);
+
+    try {
+      if (recipient?.id) {
+        await updateMutation.mutateAsync({ id: recipient.id, ...dataToSave });
+        toast.success('Care recipient updated');
+      } else {
+        await createMutation.mutateAsync(dataToSave);
+        toast.success('Care recipient added');
+      }
+      onClose();
+    } catch (error) {
+      toast.error(error.message || 'Failed to save care recipient');
+    }
   };
 
   const addCondition = () => {
@@ -289,7 +304,7 @@ export default function CareRecipientForm({ recipient, onClose }) {
                         <span className="font-medium text-sm block">{hist.event}</span>
                         <div className="text-xs text-slate-500">
                           {hist.date && format(parseISO(hist.date), 'MMM yyyy')}
-                          {hist.notes && ` • ${hist.notes}`}
+                          {hist.notes && ` - ${hist.notes}`}
                         </div>
                       </div>
                       <Button type="button" variant="ghost" size="icon" onClick={() => removeHistory(idx)}>
@@ -423,10 +438,10 @@ export default function CareRecipientForm({ recipient, onClose }) {
             </Button>
             <Button
               type="submit"
-              disabled={saveMutation.isPending}
+              disabled={isPending}
               className="flex-1 bg-blue-600 hover:bg-blue-700"
             >
-              {saveMutation.isPending ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Saving...
@@ -439,3 +454,5 @@ export default function CareRecipientForm({ recipient, onClose }) {
     </Card>
   );
 }
+
+export default CareRecipientForm;

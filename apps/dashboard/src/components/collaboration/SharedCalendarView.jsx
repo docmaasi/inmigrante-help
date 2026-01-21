@@ -1,43 +1,24 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useAppointments, useTasks, useTeamMembers } from '@/hooks';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle2, Pill, MessageSquare } from 'lucide-react';
+import { Calendar, CheckCircle2 } from 'lucide-react';
 import { format, getDay, getDaysInMonth, startOfMonth } from 'date-fns';
 
 export default function SharedCalendarView({ careRecipientId }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments', careRecipientId],
-    queryFn: () => careRecipientId
-      ? base44.entities.Appointment.filter({
-          care_recipient_id: careRecipientId,
-          status: 'scheduled'
-        })
-      : []
+  const { data: appointments = [] } = useAppointments({
+    careRecipientId,
+    status: 'scheduled'
   });
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks', careRecipientId],
-    queryFn: () => careRecipientId
-      ? base44.entities.Task.filter({
-          care_recipient_id: careRecipientId,
-          status: 'pending'
-        })
-      : []
+  const { data: tasks = [] } = useTasks({
+    careRecipientId,
+    status: 'pending'
   });
 
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers', careRecipientId],
-    queryFn: () => careRecipientId
-      ? base44.entities.TeamMember.filter({
-          care_recipient_id: careRecipientId,
-          active: true
-        })
-      : []
-  });
+  const { data: teamMembers = [] } = useTeamMembers();
 
   const currentYear = selectedDate.getFullYear();
   const currentMonth = selectedDate.getMonth();
@@ -56,9 +37,12 @@ export default function SharedCalendarView({ careRecipientId }) {
   const getEventsForDate = (date) => {
     if (!date) return [];
     const dateStr = format(date, 'yyyy-MM-dd');
-    
+
     const aptEvents = appointments
-      .filter(a => a.date === dateStr)
+      .filter(a => {
+        const aptDate = a.start_time ? format(new Date(a.start_time), 'yyyy-MM-dd') : a.date;
+        return aptDate === dateStr;
+      })
       .map(a => ({
         type: 'appointment',
         title: a.title,
@@ -81,9 +65,10 @@ export default function SharedCalendarView({ careRecipientId }) {
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
   const selectedDateEvents = getEventsForDate(selectedDate);
 
-  const getAssignedMemberName = (email) => {
-    const member = teamMembers.find(m => m.user_email === email);
-    return member?.full_name || email.split('@')[0];
+  const getAssignedMemberName = (assignedTo) => {
+    if (!assignedTo) return null;
+    const member = teamMembers.find(m => m.id === assignedTo || m.user_email === assignedTo);
+    return member?.full_name || assignedTo;
   };
 
   return (
@@ -96,19 +81,18 @@ export default function SharedCalendarView({ careRecipientId }) {
               onClick={() => setSelectedDate(new Date(currentYear, currentMonth - 1))}
               className="px-2 py-1 hover:bg-slate-100 rounded"
             >
-              ← Prev
+              &larr; Prev
             </button>
             <span className="px-3 py-1">{format(selectedDate, 'MMMM yyyy')}</span>
             <button
               onClick={() => setSelectedDate(new Date(currentYear, currentMonth + 1))}
               className="px-2 py-1 hover:bg-slate-100 rounded"
             >
-              Next →
+              Next &rarr;
             </button>
           </div>
         </div>
 
-        {/* Calendar Grid */}
         <div className="bg-slate-50 rounded-lg p-4 mb-4">
           <div className="grid grid-cols-7 gap-1 text-xs font-semibold text-slate-600 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
@@ -119,7 +103,7 @@ export default function SharedCalendarView({ careRecipientId }) {
             {days.map((day, idx) => {
               const events = day ? getEventsForDate(day) : [];
               const isSelected = day && format(day, 'yyyy-MM-dd') === selectedDateStr;
-              
+
               return (
                 <button
                   key={idx}
@@ -150,7 +134,6 @@ export default function SharedCalendarView({ careRecipientId }) {
           </div>
         </div>
 
-        {/* Selected Date Events */}
         {selectedDateEvents.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-semibold text-slate-700">
@@ -158,7 +141,10 @@ export default function SharedCalendarView({ careRecipientId }) {
             </p>
             {selectedDateEvents.map((event, idx) => {
               const entity = event.type === 'appointment'
-                ? appointments.find(a => a.title === event.title && a.date === selectedDateStr)
+                ? appointments.find(a => {
+                    const aptDate = a.start_time ? format(new Date(a.start_time), 'yyyy-MM-dd') : a.date;
+                    return a.title === event.title && aptDate === selectedDateStr;
+                  })
                 : tasks.find(t => t.title === event.title && t.due_date === selectedDateStr);
 
               return (
@@ -166,8 +152,10 @@ export default function SharedCalendarView({ careRecipientId }) {
                   <div className="mt-0.5">{event.icon}</div>
                   <div className="flex-1 text-xs">
                     <p className="font-medium">{event.title}</p>
-                    {event.type === 'appointment' && entity?.time && (
-                      <p className="text-opacity-70">{entity.time}</p>
+                    {event.type === 'appointment' && entity?.start_time && (
+                      <p className="text-opacity-70">
+                        {format(new Date(entity.start_time), 'h:mm a')}
+                      </p>
                     )}
                     {entity?.assigned_to && (
                       <p className="text-opacity-70">

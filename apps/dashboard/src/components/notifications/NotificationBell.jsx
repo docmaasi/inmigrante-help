@@ -1,53 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import { Bell, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  useNotifications,
+  useUnreadNotificationCount,
+  useMarkNotificationRead,
+  useDeleteNotification
+} from '@/hooks';
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { data: notifications = [] } = useNotifications();
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
+  const markReadMutation = useMarkNotificationRead();
+  const deleteMutation = useDeleteNotification();
 
-  const { data: notifications = [], refetch } = useQuery({
-    queryKey: ['notifications', user?.email],
-    queryFn: () => user ? base44.entities.Notification.filter({ user_email: user.email }, '-created_date', 20) : [],
-    enabled: !!user,
-    refetchInterval: 30000 // Refetch every 30 seconds
-  });
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const handleMarkAsRead = async (notificationId) => {
-    await base44.entities.Notification.update(notificationId, { read: true });
-    refetch();
+  const handleMarkAsRead = (notificationId) => {
+    markReadMutation.mutate(notificationId);
   };
 
-  const handleDismiss = async (notificationId) => {
-    await base44.entities.Notification.delete(notificationId);
-    refetch();
+  const handleDismiss = (notificationId) => {
+    deleteMutation.mutate(notificationId);
   };
 
   const getPriorityColor = (priority) => {
-    switch(priority) {
-      case 'urgent': return 'border-l-4 border-l-red-500 bg-red-50';
-      case 'high': return 'border-l-4 border-l-orange-500 bg-orange-50';
-      case 'medium': return 'border-l-4 border-l-blue-500 bg-blue-50';
-      default: return 'border-l-4 border-l-slate-500 bg-slate-50';
+    switch (priority) {
+      case 'urgent':
+        return 'border-l-4 border-l-red-500 bg-red-50';
+      case 'high':
+        return 'border-l-4 border-l-orange-500 bg-orange-50';
+      case 'medium':
+        return 'border-l-4 border-l-blue-500 bg-blue-50';
+      default:
+        return 'border-l-4 border-l-slate-500 bg-slate-50';
     }
   };
 
   const getTypeIcon = (type) => {
-    switch(type) {
-      case 'appointment': return '📅';
-      case 'task': return '✓';
-      case 'medication_refill': return '💊';
-      default: return 'ℹ️';
+    switch (type) {
+      case 'appointment':
+        return '📅';
+      case 'task':
+        return '✓';
+      case 'medication_refill':
+        return '💊';
+      default:
+        return 'ℹ️';
     }
   };
 
@@ -79,7 +80,7 @@ export default function NotificationBell() {
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {notifications.map(notif => (
+              {notifications.map((notif) => (
                 <div
                   key={notif.id}
                   className={`p-4 ${getPriorityColor(notif.priority)} hover:bg-opacity-75 transition-colors`}
@@ -88,15 +89,19 @@ export default function NotificationBell() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-lg">{getTypeIcon(notif.type)}</span>
-                        <h4 className="font-medium text-slate-800 text-sm">{notif.title}</h4>
+                        <h4 className="font-medium text-slate-800 text-sm">
+                          {notif.title}
+                        </h4>
                       </div>
                       <p className="text-sm text-slate-600 mb-2">{notif.message}</p>
                       <p className="text-xs text-slate-500">
-                        {formatDistanceToNow(new Date(notif.created_date), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(notif.created_at), {
+                          addSuffix: true,
+                        })}
                       </p>
                     </div>
                     <div className="flex gap-1">
-                      {!notif.read && (
+                      {!notif.is_read && (
                         <button
                           onClick={() => handleMarkAsRead(notif.id)}
                           className="p-1 text-slate-400 hover:text-slate-600 transition-colors"

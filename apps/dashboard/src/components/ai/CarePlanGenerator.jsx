@@ -1,42 +1,39 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
+import { useCreateCarePlan } from '@/hooks/use-care-plans';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Sparkles, Calendar, Heart, Activity, Users, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function CarePlanGenerator({ recipient, medications = [], appointments = [], tasks = [] }) {
+export function CarePlanGenerator({ recipient, medications = [], appointments = [], tasks = [] }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState(null);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const savePlanMutation = useMutation({
-    mutationFn: (planData) => base44.entities.CarePlan.create(planData),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['carePlans']);
-      toast.success('Care plan saved');
-      setGeneratedPlan(null);
-    }
-  });
+  const createCarePlanMutation = useCreateCarePlan();
 
   const generateCarePlan = async (planType) => {
     setIsGenerating(true);
     try {
+      const recipientName = `${recipient.first_name} ${recipient.last_name}`;
       const prompt = `You are a professional care planning assistant. Generate a comprehensive ${planType} care plan for the following care recipient:
 
 **Care Recipient Profile:**
-- Name: ${recipient.full_name}
+- Name: ${recipientName}
 - Primary Condition: ${recipient.primary_condition || 'Not specified'}
 - Allergies: ${recipient.allergies || 'None listed'}
 - Date of Birth: ${recipient.date_of_birth || 'Not provided'}
 
 **Current Medications (${medications.length}):**
-${medications.map(m => `- ${m.medication_name}: ${m.dosage}, ${m.frequency || ''} ${m.time_of_day ? `at ${m.time_of_day}` : ''}`).join('\n')}
+${medications.map(m => `- ${m.name}: ${m.dosage}, ${m.frequency || ''} ${m.time_of_day ? `at ${m.time_of_day}` : ''}`).join('\n')}
 
 **Upcoming Appointments (${appointments.length}):**
-${appointments.slice(0, 5).map(a => `- ${a.title} on ${a.date} ${a.time ? `at ${a.time}` : ''}`).join('\n')}
+${appointments.slice(0, 5).map(a => `- ${a.title} on ${a.start_time ? new Date(a.start_time).toLocaleDateString() : a.date}`).join('\n')}
 
 **Current Tasks (${tasks.length}):**
 ${tasks.slice(0, 5).map(t => `- ${t.title} (${t.priority} priority)`).join('\n')}
@@ -53,50 +50,54 @@ Please generate a comprehensive care plan with the following sections:
 
 Format your response to be clear, actionable, and compassionate.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            daily_schedule: {
-              type: "array",
-              items: {
+      const { data, error } = await supabase.functions.invoke('generate-care-plan', {
+        body: {
+          prompt,
+          responseSchema: {
+            type: "object",
+            properties: {
+              daily_schedule: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    time: { type: "string" },
+                    activity: { type: "string" },
+                    notes: { type: "string" }
+                  }
+                }
+              },
+              health_monitoring: {
                 type: "object",
                 properties: {
-                  time: { type: "string" },
-                  activity: { type: "string" },
-                  notes: { type: "string" }
+                  vitals_to_track: { type: "array", items: { type: "string" } },
+                  warning_signs: { type: "array", items: { type: "string" } },
+                  checkup_frequency: { type: "string" }
                 }
-              }
-            },
-            health_monitoring: {
-              type: "object",
-              properties: {
-                vitals_to_track: { type: "array", items: { type: "string" } },
-                warning_signs: { type: "array", items: { type: "string" } },
-                checkup_frequency: { type: "string" }
-              }
-            },
-            activities_recommendations: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  category: { type: "string" },
-                  activity: { type: "string" },
-                  frequency: { type: "string" },
-                  benefits: { type: "string" }
+              },
+              activities_recommendations: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    category: { type: "string" },
+                    activity: { type: "string" },
+                    frequency: { type: "string" },
+                    benefits: { type: "string" }
+                  }
                 }
-              }
-            },
-            special_considerations: { type: "array", items: { type: "string" } }
+              },
+              special_considerations: { type: "array", items: { type: "string" } }
+            }
           }
         }
       });
 
+      if (error) throw error;
+
       setGeneratedPlan({
         type: planType,
-        data: result
+        data: data
       });
     } catch (error) {
       toast.error('Failed to generate care plan');
@@ -107,16 +108,24 @@ Format your response to be clear, actionable, and compassionate.`;
   };
 
   const savePlan = () => {
-    const planData = {
-      care_recipient_id: recipient.id,
-      plan_type: generatedPlan.type,
-      daily_schedule: JSON.stringify(generatedPlan.data.daily_schedule),
-      health_monitoring: JSON.stringify(generatedPlan.data.health_monitoring),
-      activities_recommendations: JSON.stringify(generatedPlan.data.activities_recommendations),
-      special_notes: JSON.stringify(generatedPlan.data.special_considerations),
-      generated_date: new Date().toISOString().split('T')[0]
-    };
-    savePlanMutation.mutate(planData);
+    createCarePlanMutation.mutate(
+      {
+        care_recipient_id: recipient.id,
+        plan_type: generatedPlan.type,
+        daily_schedule: JSON.stringify(generatedPlan.data.daily_schedule),
+        health_monitoring: JSON.stringify(generatedPlan.data.health_monitoring),
+        activities_recommendations: JSON.stringify(generatedPlan.data.activities_recommendations),
+        special_notes: JSON.stringify(generatedPlan.data.special_considerations),
+        generated_date: new Date().toISOString().split('T')[0]
+      },
+      {
+        onSuccess: () => {
+          toast.success('Care plan saved');
+          setGeneratedPlan(null);
+        },
+        onError: () => toast.error('Failed to save care plan')
+      }
+    );
   };
 
   if (!recipient) {
@@ -131,14 +140,14 @@ Format your response to be clear, actionable, and compassionate.`;
   }
 
   if (generatedPlan) {
+    const recipientName = `${recipient.first_name} ${recipient.last_name}`;
     return (
       <div className="space-y-6">
-        {/* Header */}
         <Card className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="w-6 h-6" />
-              AI-Generated Care Plan for {recipient.full_name}
+              AI-Generated Care Plan for {recipientName}
             </CardTitle>
             <p className="text-sm text-purple-100">
               {generatedPlan.type === 'daily' ? 'Daily' : 'Weekly'} care schedule and recommendations
@@ -146,7 +155,6 @@ Format your response to be clear, actionable, and compassionate.`;
           </CardHeader>
         </Card>
 
-        {/* Daily Schedule */}
         <Card>
           <CardHeader className="border-b border-slate-100">
             <CardTitle className="flex items-center gap-2">
@@ -169,7 +177,6 @@ Format your response to be clear, actionable, and compassionate.`;
           </CardContent>
         </Card>
 
-        {/* Health Monitoring */}
         <Card>
           <CardHeader className="border-b border-slate-100">
             <CardTitle className="flex items-center gap-2">
@@ -199,7 +206,7 @@ Format your response to be clear, actionable, and compassionate.`;
               <ul className="space-y-1">
                 {generatedPlan.data.health_monitoring?.warning_signs?.map((sign, idx) => (
                   <li key={idx} className="text-sm text-slate-700 flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5">•</span>
+                    <span className="text-orange-500 mt-0.5">-</span>
                     {sign}
                   </li>
                 ))}
@@ -215,7 +222,6 @@ Format your response to be clear, actionable, and compassionate.`;
           </CardContent>
         </Card>
 
-        {/* Activities & Social Engagement */}
         <Card>
           <CardHeader className="border-b border-slate-100">
             <CardTitle className="flex items-center gap-2">
@@ -237,7 +243,6 @@ Format your response to be clear, actionable, and compassionate.`;
           </CardContent>
         </Card>
 
-        {/* Special Considerations */}
         {generatedPlan.data.special_considerations?.length > 0 && (
           <Card className="border-orange-200 bg-orange-50/50">
             <CardHeader className="border-b border-orange-200">
@@ -250,7 +255,7 @@ Format your response to be clear, actionable, and compassionate.`;
               <ul className="space-y-2">
                 {generatedPlan.data.special_considerations.map((note, idx) => (
                   <li key={idx} className="text-sm text-orange-900 flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5 font-bold">•</span>
+                    <span className="text-orange-500 mt-0.5 font-bold">-</span>
                     {note}
                   </li>
                 ))}
@@ -259,19 +264,19 @@ Format your response to be clear, actionable, and compassionate.`;
           </Card>
         )}
 
-        {/* Actions */}
         <div className="flex gap-3">
           <Button onClick={() => setGeneratedPlan(null)} variant="outline" className="flex-1">
             Generate New Plan
           </Button>
-          <Button onClick={savePlan} disabled={savePlanMutation.isPending} className="flex-1 bg-purple-600 hover:bg-purple-700">
-            {savePlanMutation.isPending ? 'Saving...' : 'Save This Plan'}
+          <Button onClick={savePlan} disabled={createCarePlanMutation.isPending} className="flex-1 bg-purple-600 hover:bg-purple-700">
+            {createCarePlanMutation.isPending ? 'Saving...' : 'Save This Plan'}
           </Button>
         </div>
       </div>
     );
   }
 
+  const recipientName = `${recipient.first_name} ${recipient.last_name}`;
   return (
     <Card className="border-slate-200/60">
       <CardHeader className="border-b border-slate-100">
@@ -279,7 +284,7 @@ Format your response to be clear, actionable, and compassionate.`;
           <Sparkles className="w-5 h-5 text-purple-600" />
           AI Care Plan Generator
         </CardTitle>
-        <p className="text-sm text-slate-500">Generate a personalized care plan for {recipient.full_name}</p>
+        <p className="text-sm text-slate-500">Generate a personalized care plan for {recipientName}</p>
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-4">
@@ -318,3 +323,5 @@ Format your response to be clear, actionable, and compassionate.`;
     </Card>
   );
 }
+
+export default CarePlanGenerator;

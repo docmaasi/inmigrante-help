@@ -4,7 +4,7 @@ import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ArrowRight } from 'lucide-react';
 import ShareQRCode from '../components/shared/ShareQRCode';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/auth-context';
 import OnboardingFlow from '../components/onboarding/OnboardingFlow';
 
 const QUOTES = [
@@ -35,11 +35,7 @@ export default function Dashboard() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [shuffledImages, setShuffledImages] = useState([]);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { user, profile } = useAuth();
 
   useEffect(() => {
     // Shuffle images on mount
@@ -50,31 +46,25 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (shuffledImages.length === 0) return;
-    
+
     const timer = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % shuffledImages.length);
       setCurrentQuoteIndex((prev) => (prev + 1) % QUOTES.length);
     }, 4000);
-    
+
     return () => clearInterval(timer);
   }, [shuffledImages]);
 
   return (
-    <div className="min-h-screen relative">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/4e2e7d088_Untitleddesign13.png)'
-        }}
-      />
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="relative sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-slate-200">
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg" 
-                alt="FamilyCare.Help Logo" 
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
+                alt="FamilyCare.Help Logo"
                 className="w-10 h-10 object-contain flex-shrink-0"
               />
               <div className="min-w-0">
@@ -82,9 +72,9 @@ export default function Dashboard() {
                 <p className="text-xs text-slate-500 hidden sm:block">Coordinating care together</p>
               </div>
             </div>
-            <Link 
+            <Link
               to={createPageUrl('Today')}
-              className="flex items-center gap-2 px-4 md:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium text-sm md:text-base flex-shrink-0"
+              className="flex items-center gap-2 px-4 md:px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium text-sm md:text-base flex-shrink-0"
             >
               <span className="hidden sm:inline">Enter App</span>
               <span className="sm:hidden">Enter</span>
@@ -96,7 +86,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="relative max-w-7xl mx-auto px-4 md:px-8 py-16">
-        {user && <OnboardingFlow user={user} />}
+        {user && <OnboardingFlow user={{ ...user, ...profile }} />}
         {/* Hero Section */}
         <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
           <motion.div
@@ -108,7 +98,7 @@ export default function Dashboard() {
             <div>
               <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-4 leading-tight">
                 Care Coordinated.
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                <span className="block text-teal-600">
                   Families Connected.
                 </span>
               </h2>
@@ -132,9 +122,9 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <Link 
+            <Link
               to={createPageUrl('Today')}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all font-semibold text-lg w-fit"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors font-semibold text-lg w-fit"
             >
               Get Started <ArrowRight className="w-5 h-5" />
             </Link>
@@ -147,12 +137,12 @@ export default function Dashboard() {
             transition={{ duration: 0.8 }}
             className="rounded-2xl overflow-hidden shadow-2xl aspect-video"
           >
-            <iframe 
-              src="https://www.veed.io/embed/9e64fd3d-7b6a-4b5d-9467-0c050a22480a?watermark=0&color=default&sharing=1&title=1" 
-              width="100%" 
-              height="100%" 
-              frameBorder="0" 
-              title="Simplifying Senior and Disability Care Management, www.FamilyCare.Help" 
+            <iframe
+              src="https://www.veed.io/embed/9e64fd3d-7b6a-4b5d-9467-0c050a22480a?watermark=0&color=default&sharing=1&title=1"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              title="Simplifying Senior and Disability Care Management, www.FamilyCare.Help"
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
               className="w-full h-full"
@@ -161,16 +151,16 @@ export default function Dashboard() {
         </div>
 
         {/* Quote Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white text-center mb-16 shadow-lg">
+        <div className="bg-teal-50 border border-teal-100 rounded-2xl p-12 text-center mb-16">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentQuoteIndex}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.6 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.5 }}
             >
-              <p className="text-2xl md:text-3xl font-semibold leading-relaxed">
+              <p className="text-2xl md:text-3xl font-semibold leading-relaxed text-teal-900">
                 "{QUOTES[currentQuoteIndex]}"
               </p>
             </motion.div>
@@ -182,24 +172,23 @@ export default function Dashboard() {
           <h3 className="text-2xl font-bold text-slate-900 text-center">
             Family Care in Action
           </h3>
-          
+
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <AnimatePresence mode="wait">
               {shuffledImages.map((img, idx) => (
                 <motion.div
                   key={`${idx}-${img}`}
-                  initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-                  animate={{ 
-                    opacity: idx === currentImageIndex ? 1 : 0.4,
-                    scale: idx === currentImageIndex ? 1 : 0.9,
-                    rotate: idx === currentImageIndex ? 0 : -10
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{
+                    opacity: idx === currentImageIndex ? 1 : 0.5,
+                    scale: idx === currentImageIndex ? 1 : 0.95
                   }}
-                  transition={{ duration: 0.6 }}
-                  className={`rounded-xl overflow-hidden shadow-lg cursor-pointer transition-all ${
-                    idx === currentImageIndex ? 'ring-4 ring-blue-500' : ''
+                  transition={{ duration: 0.4 }}
+                  className={`rounded-xl overflow-hidden shadow-md cursor-pointer transition-all ${
+                    idx === currentImageIndex ? 'ring-2 ring-teal-500' : ''
                   }`}
                 >
-                  <img 
+                  <img
                     src={img}
                     alt={`Care moment ${idx + 1}`}
                     className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
@@ -215,7 +204,7 @@ export default function Dashboard() {
               <motion.div
                 key={idx}
                 className={`h-2 rounded-full transition-all ${
-                  idx === currentImageIndex ? 'bg-blue-600 w-8' : 'bg-slate-300 w-2'
+                  idx === currentImageIndex ? 'bg-teal-600 w-8' : 'bg-slate-300 w-2'
                 }`}
                 animate={{ width: idx === currentImageIndex ? 32 : 8 }}
               />
@@ -236,15 +225,15 @@ export default function Dashboard() {
               <p className="text-slate-300">Join families and care teams who are simplifying caregiving coordination.</p>
             </div>
             <div className="flex items-center justify-start md:justify-end">
-              <Link 
+              <Link
                 to={createPageUrl('Today')}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold inline-flex items-center gap-2"
+                className="px-8 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-semibold inline-flex items-center gap-2"
               >
                 Start Now <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
-          
+
           <div className="border-t border-slate-700 pt-8 text-center text-slate-400 text-sm">
             <p>FamilyCare.Help — Giving caregivers clarity, accountability, and peace of mind</p>
           </div>

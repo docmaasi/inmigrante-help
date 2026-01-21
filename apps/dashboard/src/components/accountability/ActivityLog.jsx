@@ -1,43 +1,21 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useAppointments } from '@/hooks/use-appointments';
+import { useMedications, useMedicationLogs } from '@/hooks/use-medications';
+import { useTasks } from '@/hooks/use-tasks';
+import { useCareNotes } from '@/hooks/use-care-plans';
+import { useCareRecipients } from '@/hooks/use-care-recipients';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
 import { User, Calendar, Pill, CheckSquare, FileText, Clock } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
-export default function ActivityLog({ recipientId = null, limit = 20 }) {
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.Appointment.list('-created_date', limit)
-  });
+export function ActivityLog({ recipientId = null, limit = 20 }) {
+  const { data: appointments = [] } = useAppointments();
+  const { data: medications = [] } = useMedications();
+  const { data: tasks = [] } = useTasks();
+  const { data: medicationLogs = [] } = useMedicationLogs();
+  const { data: careNotes = [] } = useCareNotes();
+  const { data: recipients = [] } = useCareRecipients();
 
-  const { data: medications = [] } = useQuery({
-    queryKey: ['medications'],
-    queryFn: () => base44.entities.Medication.list('-created_date', limit)
-  });
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('-created_date', limit)
-  });
-
-  const { data: medicationLogs = [] } = useQuery({
-    queryKey: ['medicationLogs'],
-    queryFn: () => base44.entities.MedicationLog.list('-created_date', limit)
-  });
-
-  const { data: careNotes = [] } = useQuery({
-    queryKey: ['careNotes'],
-    queryFn: () => base44.entities.CareNote.list('-created_date', limit)
-  });
-
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
-
-  // Combine all activities
   const activities = [
     ...appointments.map(a => ({
       type: 'appointment',
@@ -45,8 +23,8 @@ export default function ActivityLog({ recipientId = null, limit = 20 }) {
       color: 'text-blue-600',
       bg: 'bg-blue-100',
       title: `Scheduled appointment: ${a.title}`,
-      user: a.created_by,
-      timestamp: a.created_date,
+      user: a.profiles?.full_name || 'Unknown',
+      timestamp: a.created_at,
       recipientId: a.care_recipient_id
     })),
     ...medications.map(m => ({
@@ -54,9 +32,9 @@ export default function ActivityLog({ recipientId = null, limit = 20 }) {
       icon: Pill,
       color: 'text-green-600',
       bg: 'bg-green-100',
-      title: `Added medication: ${m.medication_name}`,
-      user: m.created_by,
-      timestamp: m.created_date,
+      title: `Added medication: ${m.name}`,
+      user: m.profiles?.full_name || 'Unknown',
+      timestamp: m.created_at,
       recipientId: m.care_recipient_id
     })),
     ...tasks.map(t => ({
@@ -65,8 +43,8 @@ export default function ActivityLog({ recipientId = null, limit = 20 }) {
       color: 'text-purple-600',
       bg: 'bg-purple-100',
       title: `Created task: ${t.title}`,
-      user: t.created_by,
-      timestamp: t.created_date,
+      user: t.profiles?.full_name || 'Unknown',
+      timestamp: t.created_at,
       recipientId: t.care_recipient_id
     })),
     ...medicationLogs.map(l => ({
@@ -74,9 +52,9 @@ export default function ActivityLog({ recipientId = null, limit = 20 }) {
       icon: Pill,
       color: l.status === 'taken' ? 'text-green-600' : 'text-yellow-600',
       bg: l.status === 'taken' ? 'bg-green-100' : 'bg-yellow-100',
-      title: `Logged medication: ${l.medication_name} (${l.status})`,
-      user: l.created_by,
-      timestamp: l.created_date,
+      title: `Logged medication: ${l.medications?.name || 'Unknown'} (${l.status})`,
+      user: l.profiles?.full_name || 'Unknown',
+      timestamp: l.created_at,
       recipientId: l.care_recipient_id
     })),
     ...careNotes.map(n => ({
@@ -84,25 +62,24 @@ export default function ActivityLog({ recipientId = null, limit = 20 }) {
       icon: FileText,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
-      title: `Added care note: ${n.title || n.note_type}`,
-      user: n.created_by,
-      timestamp: n.created_date,
+      title: `Added care note: ${n.title || n.note_type || 'Note'}`,
+      user: n.profiles?.full_name || 'Unknown',
+      timestamp: n.created_at,
       recipientId: n.care_recipient_id
     }))
   ];
 
-  // Filter by recipient if specified
-  const filteredActivities = recipientId 
+  const filteredActivities = recipientId
     ? activities.filter(a => a.recipientId === recipientId)
     : activities;
 
-  // Sort by timestamp descending
-  const sortedActivities = filteredActivities.sort((a, b) => 
-    new Date(b.timestamp) - new Date(a.timestamp)
-  ).slice(0, limit);
+  const sortedActivities = filteredActivities
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, limit);
 
   const getRecipientName = (id) => {
-    return recipients.find(r => r.id === id)?.full_name || 'Unknown';
+    const recipient = recipients.find(r => r.id === id);
+    return recipient ? `${recipient.first_name} ${recipient.last_name}` : 'Unknown';
   };
 
   return (
@@ -130,7 +107,7 @@ export default function ActivityLog({ recipientId = null, limit = 20 }) {
                       <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
                         <User className="w-3 h-3" />
                         <span>{activity.user}</span>
-                        <span>•</span>
+                        <span>-</span>
                         <Clock className="w-3 h-3" />
                         <span>{formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}</span>
                       </div>
@@ -150,3 +127,5 @@ export default function ActivityLog({ recipientId = null, limit = 20 }) {
     </Card>
   );
 }
+
+export default ActivityLog;

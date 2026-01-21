@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
+import { useTeamMembers } from '@/hooks/use-team';
+import { useConversations, useCreateConversation, useSendMessage } from '@/hooks/use-messages';
+import { useCreateNotifications } from '@/hooks/use-notifications';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,53 +12,51 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AlertCircle, Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function EmergencyAlert({ recipientId, recipientName }) {
-  const [user, setUser] = useState(null);
+export function EmergencyAlert({ recipientId, recipientName }) {
   const [message, setMessage] = useState('');
   const [selectedMembers, setSelectedMembers] = useState([]);
   const queryClient = useQueryClient();
+  const { user, profile } = useAuth();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const { data: teamMembers = [] } = useQuery({
-    queryKey: ['teamMembers'],
-    queryFn: () => base44.entities.TeamMember.list()
-  });
-
-  const { data: conversations = [] } = useQuery({
-    queryKey: ['conversations'],
-    queryFn: () => base44.entities.Conversation.list()
-  });
+  const { data: teamMembers = [] } = useTeamMembers();
+  const { data: conversations = [] } = useConversations();
+  const createConversationMutation = useCreateConversation();
+  const sendMessageMutation = useSendMessage();
+  const createNotificationsMutation = useCreateNotifications();
 
   const recipientTeamMembers = teamMembers.filter(
-    tm => tm.care_recipient_id === recipientId && tm.active
+    tm => tm.care_recipient_id === recipientId && tm.status === 'active'
   );
 
   const sendAlertMutation = useMutation({
-    mutationFn: async ({ conversationId, messageData }) => {
-      await base44.entities.Message.create(messageData);
-      await base44.entities.Conversation.update(conversationId, {
-        last_message_at: new Date().toISOString()
+    mutationFn: async ({ conversationId, messageContent }) => {
+      await sendMessageMutation.mutateAsync({
+        conversationId,
+        content: messageContent,
+        messageType: 'text'
       });
-      
-      // Create notifications for selected members
-      const notificationPromises = selectedMembers.map(email => 
-        base44.entities.Notification.create({
-          user_email: email,
-          type: 'general',
-          title: '🚨 Emergency Alert',
+
+      const notifications = selectedMembers.map(memberId => {
+        const member = recipientTeamMembers.find(tm => tm.id === memberId);
+        return {
+          user_id: member?.member_user_id,
+          type: 'emergency',
+          title: 'Emergency Alert',
           message: `Emergency alert for ${recipientName}`,
-          priority: 'urgent'
-        })
-      );
-      await Promise.all(notificationPromises);
+          priority: 'urgent',
+          related_entity_id: conversationId,
+          related_entity_type: 'conversation'
+        };
+      }).filter(n => n.user_id);
+
+      if (notifications.length > 0) {
+        await createNotificationsMutation.mutateAsync(notifications);
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['messages']);
-      queryClient.invalidateQueries(['conversations']);
-      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
       setMessage('');
       setSelectedMembers([]);
       toast.success('Emergency alert sent to all selected team members');
@@ -70,42 +72,35 @@ export default function EmergencyAlert({ recipientId, recipientName }) {
       return;
     }
 
-    // Find or create an emergency conversation
     let emergencyConv = conversations.find(
       c => c.care_recipient_id === recipientId && c.conversation_type === 'care_team'
     );
 
     if (!emergencyConv) {
-      // Create emergency conversation
-      emergencyConv = await base44.entities.Conversation.create({
+      emergencyConv = await createConversationMutation.mutateAsync({
         name: `${recipientName} - Emergency Alerts`,
         care_recipient_id: recipientId,
         conversation_type: 'care_team',
-        participants: JSON.stringify(selectedMembers),
-        last_message_at: new Date().toISOString()
+        participants: selectedMembers.map(id => {
+          const member = recipientTeamMembers.find(tm => tm.id === id);
+          return member?.member_user_id;
+        }).filter(Boolean)
       });
-      queryClient.invalidateQueries(['conversations']);
     }
 
-    const alertMessage = `🚨 EMERGENCY ALERT 🚨\n\n${message}`;
+    const alertMessage = `EMERGENCY ALERT\n\n${message}`;
 
     sendAlertMutation.mutate({
       conversationId: emergencyConv.id,
-      messageData: {
-        conversation_id: emergencyConv.id,
-        sender_email: user.email,
-        sender_name: user.full_name,
-        content: alertMessage,
-        message_type: 'text'
-      }
+      messageContent: alertMessage
     });
   };
 
-  const toggleMember = (email) => {
-    if (selectedMembers.includes(email)) {
-      setSelectedMembers(selectedMembers.filter(e => e !== email));
+  const toggleMember = (memberId) => {
+    if (selectedMembers.includes(memberId)) {
+      setSelectedMembers(selectedMembers.filter(id => id !== memberId));
     } else {
-      setSelectedMembers([...selectedMembers, email]);
+      setSelectedMembers([...selectedMembers, memberId]);
     }
   };
 
@@ -113,7 +108,7 @@ export default function EmergencyAlert({ recipientId, recipientName }) {
     if (selectedMembers.length === recipientTeamMembers.length) {
       setSelectedMembers([]);
     } else {
-      setSelectedMembers(recipientTeamMembers.map(tm => tm.user_email));
+      setSelectedMembers(recipientTeamMembers.map(tm => tm.id));
     }
   };
 
@@ -156,7 +151,7 @@ export default function EmergencyAlert({ recipientId, recipientName }) {
               </Button>
             )}
           </div>
-          
+
           {recipientTeamMembers.length === 0 ? (
             <p className="text-sm text-slate-500 italic">
               No team members found for this care recipient
@@ -169,12 +164,12 @@ export default function EmergencyAlert({ recipientId, recipientName }) {
                   className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer"
                 >
                   <Checkbox
-                    checked={selectedMembers.includes(member.user_email)}
-                    onCheckedChange={() => toggleMember(member.user_email)}
+                    checked={selectedMembers.includes(member.id)}
+                    onCheckedChange={() => toggleMember(member.id)}
                   />
                   <div className="flex-1">
                     <div className="font-medium text-sm text-slate-800">{member.full_name}</div>
-                    <div className="text-xs text-slate-500">{member.relationship}</div>
+                    <div className="text-xs text-slate-500">{member.role}</div>
                   </div>
                 </label>
               ))}
@@ -207,3 +202,5 @@ export default function EmergencyAlert({ recipientId, recipientName }) {
     </Card>
   );
 }
+
+export default EmergencyAlert;

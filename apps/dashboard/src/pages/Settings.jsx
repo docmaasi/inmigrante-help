@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, FileText, RefreshCw, Mail } from 'lucide-react';
@@ -19,31 +20,34 @@ export default function Settings() {
   const [showReacceptModal, setShowReacceptModal] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const queryClient = useQueryClient();
-
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { user } = useAuth();
 
   const { data: acceptances } = useQuery({
-    queryKey: ['legalAcceptances', user?.email],
-    queryFn: () => base44.entities.LegalAcceptance.filter({ user_email: user.email }),
-    enabled: !!user?.email,
+    queryKey: ['legalAcceptances', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('legal_acceptances')
+        .select('*')
+        .eq('user_id', user.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
   });
 
   const reacceptMutation = useMutation({
     mutationFn: async () => {
-      await base44.entities.LegalAcceptance.create({
-        user_email: user.email,
+      await supabase.from('legal_acceptances').insert({
+        user_id: user.id,
         document_type: 'terms_of_service',
         document_version: CURRENT_VERSIONS.terms_of_service,
-        acceptance_date: new Date().toISOString(),
+        accepted_at: new Date().toISOString(),
       });
-      await base44.entities.LegalAcceptance.create({
-        user_email: user.email,
+      await supabase.from('legal_acceptances').insert({
+        user_id: user.id,
         document_type: 'privacy_policy',
         document_version: CURRENT_VERSIONS.privacy_policy,
-        acceptance_date: new Date().toISOString(),
+        accepted_at: new Date().toISOString(),
       });
     },
     onSuccess: () => {
@@ -58,11 +62,11 @@ export default function Settings() {
 
     const termsAcceptance = acceptances
       .filter(a => a.document_type === 'terms_of_service')
-      .sort((a, b) => new Date(b.acceptance_date) - new Date(a.acceptance_date))[0];
+      .sort((a, b) => new Date(b.accepted_at) - new Date(a.accepted_at))[0];
 
     const privacyAcceptance = acceptances
       .filter(a => a.document_type === 'privacy_policy')
-      .sort((a, b) => new Date(b.acceptance_date) - new Date(a.acceptance_date))[0];
+      .sort((a, b) => new Date(b.accepted_at) - new Date(a.accepted_at))[0];
 
     const termsOutdated = !termsAcceptance || termsAcceptance.document_version !== CURRENT_VERSIONS.terms_of_service;
     const privacyOutdated = !privacyAcceptance || privacyAcceptance.document_version !== CURRENT_VERSIONS.privacy_policy;
@@ -83,10 +87,10 @@ export default function Settings() {
 
         <div className="space-y-6">
           {/* Legal & Privacy Section */}
-          <Card>
+          <Card className="border-slate-200 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-blue-600" />
+                <Shield className="w-5 h-5 text-teal-600" />
                 Legal & Privacy
               </CardTitle>
               <CardDescription>
@@ -95,34 +99,34 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <Link 
-                  to={createPageUrl('TermsOfService')} 
+                <Link
+                  to={createPageUrl('TermsOfService')}
                   target="_blank"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                  className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <FileText className="w-4 h-4" />
                   View Terms of Service
                 </Link>
-                <Link 
-                  to={createPageUrl('PrivacyPolicy')} 
+                <Link
+                  to={createPageUrl('PrivacyPolicy')}
                   target="_blank"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                  className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <Shield className="w-4 h-4" />
                   View Privacy Policy
                 </Link>
-                <Link 
-                  to={createPageUrl('CookiePolicy')} 
+                <Link
+                  to={createPageUrl('CookiePolicy')}
                   target="_blank"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                  className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <FileText className="w-4 h-4" />
                   View Cookie Policy
                 </Link>
-                <Link 
-                  to={createPageUrl('LegalDisclosure')} 
+                <Link
+                  to={createPageUrl('LegalDisclosure')}
                   target="_blank"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                  className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <FileText className="w-4 h-4" />
                   View Legal Disclosure
@@ -136,9 +140,9 @@ export default function Settings() {
                       Our Terms of Service or Privacy Policy has been updated. Please review and accept the latest version.
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => setShowReacceptModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-teal-600 hover:bg-teal-700"
                   >
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Re-accept Latest Terms
@@ -149,10 +153,10 @@ export default function Settings() {
           </Card>
 
           {/* Help & Support Section */}
-          <Card>
+          <Card className="border-slate-200 shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Mail className="w-5 h-5 text-blue-600" />
+                <Mail className="w-5 h-5 text-teal-600" />
                 Help & Support
               </CardTitle>
               <CardDescription>
@@ -160,9 +164,9 @@ export default function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <a 
+              <a
                 href="mailto:familycarehelp@mail.com"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
               >
                 <Mail className="w-4 h-4" />
                 Contact Support (familycarehelp@mail.com)
@@ -177,7 +181,7 @@ export default function Settings() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <Shield className="w-6 h-6 text-blue-600" />
+              <Shield className="w-6 h-6 text-teal-600" />
               Accept Updated Terms
             </DialogTitle>
           </DialogHeader>
@@ -188,18 +192,18 @@ export default function Settings() {
             </p>
 
             <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
-              <Link 
-                to={createPageUrl('TermsOfService')} 
+              <Link
+                to={createPageUrl('TermsOfService')}
                 target="_blank"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
               >
                 <FileText className="w-4 h-4" />
                 Terms of Service (v{CURRENT_VERSIONS.terms_of_service})
               </Link>
-              <Link 
-                to={createPageUrl('PrivacyPolicy')} 
+              <Link
+                to={createPageUrl('PrivacyPolicy')}
                 target="_blank"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
               >
                 <Shield className="w-4 h-4" />
                 Privacy Policy (v{CURRENT_VERSIONS.privacy_policy})
@@ -207,13 +211,13 @@ export default function Settings() {
             </div>
 
             <div className="flex items-start gap-3 pt-2">
-              <Checkbox 
-                id="reaccept-terms" 
+              <Checkbox
+                id="reaccept-terms"
                 checked={agreedToTerms}
                 onCheckedChange={setAgreedToTerms}
               />
-              <label 
-                htmlFor="reaccept-terms" 
+              <label
+                htmlFor="reaccept-terms"
                 className="text-sm text-slate-700 cursor-pointer leading-relaxed"
               >
                 I have read and agree to the updated Terms of Service and Privacy Policy
@@ -221,7 +225,7 @@ export default function Settings() {
             </div>
 
             <div className="flex gap-3">
-              <Button 
+              <Button
                 onClick={() => {
                   setShowReacceptModal(false);
                   setAgreedToTerms(false);
@@ -231,10 +235,10 @@ export default function Settings() {
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleReaccept}
                 disabled={!agreedToTerms || reacceptMutation.isPending}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1 bg-teal-600 hover:bg-teal-700"
               >
                 {reacceptMutation.isPending ? 'Processing...' : 'Accept'}
               </Button>

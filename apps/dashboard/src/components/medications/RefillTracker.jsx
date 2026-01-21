@@ -1,56 +1,47 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useMedications, useCareRecipients, useUpdateMedication } from '@/hooks';
+import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Pill, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { format, parseISO, differenceInDays, isBefore, startOfToday } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function RefillTracker({ recipientId = null }) {
-  const queryClient = useQueryClient();
+export function RefillTracker({ recipientId = null }) {
+  const { data: medications = [] } = useMedications(recipientId);
+  const { data: recipients = [] } = useCareRecipients();
+  const updateMutation = useUpdateMedication();
 
-  const { data: refills = [] } = useQuery({
-    queryKey: ['medicationRefills'],
-    queryFn: () => base44.entities.MedicationRefill.list('refill_date')
+  const filteredMedications = recipientId
+    ? medications.filter(m => m.care_recipient_id === recipientId)
+    : medications;
+
+  const pendingRefills = filteredMedications.filter(m => {
+    if (!m.is_active || !m.refill_date) return false;
+    const today = startOfToday();
+    const refillDate = parseISO(m.refill_date);
+    return !isBefore(today, refillDate) || differenceInDays(refillDate, today) <= 14;
   });
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipient.list()
-  });
+  const markCompleted = (medication) => {
+    const nextRefillDate = new Date();
+    nextRefillDate.setDate(nextRefillDate.getDate() + 30);
 
-  const updateRefillMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.MedicationRefill.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['medicationRefills']);
-      toast.success('Refill updated');
-    }
-  });
-
-  const markCompleted = (refill) => {
-    updateRefillMutation.mutate({
-      id: refill.id,
-      data: {
-        status: 'completed',
-        completed_date: new Date().toISOString().split('T')[0]
+    updateMutation.mutate(
+      {
+        id: medication.id,
+        refill_date: format(nextRefillDate, 'yyyy-MM-dd')
+      },
+      {
+        onSuccess: () => {
+          toast.success('Refill completed - next refill date updated');
+        },
+        onError: (error) => {
+          toast.error(error.message || 'Failed to update refill');
+        }
       }
-    });
+    );
   };
-
-  const markOrdered = (refill) => {
-    updateRefillMutation.mutate({
-      id: refill.id,
-      data: { status: 'ordered' }
-    });
-  };
-
-  const filteredRefills = recipientId
-    ? refills.filter(r => r.care_recipient_id === recipientId)
-    : refills;
-
-  const pendingRefills = filteredRefills.filter(r => r.status !== 'completed');
 
   const getUrgency = (refillDate) => {
     const today = startOfToday();
@@ -84,11 +75,11 @@ export default function RefillTracker({ recipientId = null }) {
 
   return (
     <div className="space-y-4">
-      {pendingRefills.map(refill => {
-        const urgency = getUrgency(refill.refill_date);
-        
+      {pendingRefills.map(medication => {
+        const urgency = getUrgency(medication.refill_date);
+
         return (
-          <Card key={refill.id} className={`border-2 ${urgency.color.includes('red') ? 'border-red-300' : urgency.color.includes('orange') ? 'border-orange-300' : 'border-slate-200'}`}>
+          <Card key={medication.id} className={`border-2 ${urgency.color.includes('red') ? 'border-red-300' : urgency.color.includes('orange') ? 'border-orange-300' : 'border-slate-200'}`}>
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3 flex-1">
@@ -96,19 +87,19 @@ export default function RefillTracker({ recipientId = null }) {
                     <Pill className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-slate-800">{refill.medication_name}</h3>
+                    <h3 className="font-semibold text-slate-800">{medication.name}</h3>
                     <p className="text-sm text-slate-600 mb-2">
-                      For: {getRecipientName(refill.care_recipient_id)}
+                      For: {getRecipientName(medication.care_recipient_id)}
                     </p>
-                    
+
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4 text-slate-400" />
                         <span className="text-slate-600">
-                          {format(parseISO(refill.refill_date), 'MMM d, yyyy')}
+                          {format(parseISO(medication.refill_date), 'MMM d, yyyy')}
                         </span>
                       </div>
-                      
+
                       {urgency.level === 'overdue' ? (
                         <Badge className="bg-red-600 text-white">
                           <AlertCircle className="w-3 h-3 mr-1" />
@@ -128,41 +119,21 @@ export default function RefillTracker({ recipientId = null }) {
                           {urgency.days} days left
                         </Badge>
                       )}
-
-                      <Badge variant="outline" className={
-                        refill.status === 'ordered' ? 'bg-blue-50 text-blue-700' : ''
-                      }>
-                        {refill.status}
-                      </Badge>
                     </div>
 
-                    {refill.pharmacy && (
+                    {medication.pharmacy && (
                       <p className="text-xs text-slate-500 mt-2">
-                        Pharmacy: {refill.pharmacy}
-                      </p>
-                    )}
-                    {refill.assigned_to && (
-                      <p className="text-xs text-slate-500">
-                        Assigned to: {refill.assigned_to}
+                        Pharmacy: {medication.pharmacy}
                       </p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  {refill.status === 'pending' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => markOrdered(refill)}
-                      className="whitespace-nowrap"
-                    >
-                      Mark Ordered
-                    </Button>
-                  )}
                   <Button
                     size="sm"
-                    onClick={() => markCompleted(refill)}
+                    onClick={() => markCompleted(medication)}
+                    disabled={updateMutation.isPending}
                     className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
@@ -177,3 +148,5 @@ export default function RefillTracker({ recipientId = null }) {
     </div>
   );
 }
+
+export default RefillTracker;

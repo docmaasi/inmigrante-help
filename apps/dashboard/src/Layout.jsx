@@ -1,205 +1,125 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
-import { base44 } from '@/api/base44Client';
-import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap, Mail, LogOut, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth-context';
+import { LogOut, LogIn, Mail } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
 import ShareButton from './components/shared/ShareButton';
 import { Button } from '@/components/ui/button';
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger
+} from '@/components/ui/sidebar';
+import { AppSidebar } from './components/layout/app-sidebar';
 
 export default function Layout({ children, currentPageName }) {
-  const [user, setUser] = React.useState(null);
+  const { user, isAuthenticated, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
-  const navItems = [
-    { name: 'Dashboard', icon: Home, path: 'Dashboard', bg: 'bg-blue-50' },
-    { name: 'Today', icon: Zap, path: 'Today', bg: 'bg-amber-50' },
-    { name: 'Diagnostics', icon: AlertCircle, path: 'Diagnostics', bg: 'bg-green-50' },
-    { name: 'Care Recipients', icon: Users, path: 'CareRecipients', bg: 'bg-purple-50' },
-    { name: 'Receipts', icon: FileText, path: 'Receipts', bg: 'bg-orange-50' },
-    { name: 'Comm Hub', icon: MessageSquare, path: 'CommunicationHub', bg: 'bg-green-50' },
-    { name: 'Calendar', icon: Calendar, path: 'Calendar', bg: 'bg-pink-50' },
-    { name: 'AI Care Plans', icon: Sparkles, path: 'CarePlans', bg: 'bg-violet-50' },
-    { name: 'Plan Builder', icon: FileText, path: 'CarePlanBuilder', bg: 'bg-indigo-50' },
-    { name: 'Documents', icon: FileText, path: 'Documents', bg: 'bg-cyan-50' },
-    { name: 'Medications', icon: Pill, path: 'Medications', bg: 'bg-rose-50' },
-    { name: 'Refills', icon: Bell, path: 'Refills', bg: 'bg-indigo-50' },
-    { name: 'Med Log', icon: ClipboardCheck, path: 'MedicationLog', bg: 'bg-teal-50' },
-    { name: 'Team/Family', icon: UserCheck, path: 'Team', bg: 'bg-lime-50' },
-    { name: 'Emergency', icon: AlertCircle, path: 'EmergencyProfile', bg: 'bg-red-50' },
-    { name: 'Tasks', icon: ListTodo, path: 'Tasks', bg: 'bg-sky-50' },
-    { name: 'Shift Handoff', icon: Clock, path: 'ShiftHandoff', bg: 'bg-emerald-50' },
-    { name: 'Collaboration', icon: Users, path: 'Collaboration', bg: 'bg-fuchsia-50' },
-    { name: 'Scheduling', icon: Calendar, path: 'Scheduling', bg: 'bg-orange-50' },
-    { name: 'Reports', icon: FileText, path: 'Reports', bg: 'bg-slate-50' },
-    { name: 'Settings', icon: Heart, path: 'Settings', bg: 'bg-gray-50' },
-    { name: 'Subscribe', icon: Heart, path: 'Checkout', bg: 'bg-gradient-to-br from-orange-400 to-pink-500', special: true }
-    ];
+  const handleLogin = () => {
+    navigate('/login');
+  };
 
-    const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || "https://familycare.help";
+  const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || "https://familycare.help";
 
-    const footerNavItems = [
+  const footerNavItems = [
     { name: 'FAQ', href: `${MARKETING_URL}/faq` },
     { name: 'Privacy Policy', href: `${MARKETING_URL}/privacy` },
     { name: 'Terms of Service', href: `${MARKETING_URL}/terms` },
     { name: 'Cookie Policy', href: `${MARKETING_URL}/cookies` },
     { name: 'Legal Disclosure', href: `${MARKETING_URL}/legal` },
     { name: 'Record Retention', href: `${MARKETING_URL}/retention-policy` }
-    ];
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <style>{`
-        :root {
-          --primary: #3B82F6;
-          --primary-light: #93C5FD;
-          --primary-dark: #1E40AF;
-          --secondary: #8B5CF6;
-          --secondary-light: #D8B4FE;
-          --secondary-dark: #6D28D9;
-          --accent: #EF4444;
-          --accent-light: #FCA5A5;
-          --accent-dark: #991B1B;
-          --success: #22C55E;
-          --success-light: #86EFAC;
-          --warning: #FBBF24;
-          --warning-light: #FDE047;
-          --neutral-bg-light: #F8FAFC;
-          --neutral-bg: #E2E8F0;
-          --neutral-text: #64748B;
-          --neutral-text-dark: #1E293B;
-        }
-      `}</style>
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg" 
-                alt="FamilyCare.Help Logo" 
-                className="w-10 h-10 object-contain"
-              />
-              <div>
-                <h1 className="text-xl font-medium text-slate-800">www.FamilyCare<span className="text-orange-500">.Help</span></h1>
-                <p className="text-xs text-slate-500">Coordinating care together</p>
-              </div>
-            </Link>
-            <div className="flex items-center gap-2">
-              <ShareButton />
-              <NotificationBell />
-              {user ? (
-                <Button
-                  onClick={() => base44.auth.logout()}
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:bg-slate-100"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:bg-slate-100"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Login</span>
-                </Button>
-              )}
-            </div>
-            </div>
-            </div>
-            </header>
+    <SidebarProvider>
+      <AppSidebar />
 
-      <NotificationGenerator />
-      <LegalAcceptanceModal />
+      <SidebarInset className="flex flex-col min-h-screen bg-slate-50 overscroll-none">
+        {/* Top Header Bar */}
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
+          <SidebarTrigger />
 
-      {/* Cancellation Reminder */}
-      {user && (
-        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-4">
-          <CancellationReminder userEmail={user.email} />
-        </div>
-      )}
-
-      {/* Navigation */}
-      <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-1 py-2">
-            {navItems.map(item => {
-              const Icon = item.icon;
-              const isActive = currentPageName === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={createPageUrl(item.path)}
-                  className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-all ${
-                    isActive
-                      ? 'bg-blue-500 text-white shadow-md scale-105'
-                      : item.special
-                      ? `${item.bg} text-white hover:shadow-lg hover:scale-110 animate-pulse`
-                      : `${item.bg} text-slate-700 hover:shadow-md hover:scale-105`
-                  }`}
-                >
-                  <Icon className="w-5 h-5 flex-shrink-0" fill={item.special ? "currentColor" : "none"} />
-                  <span className="text-center leading-tight">{item.name}</span>
-                </Link>
-              );
-            })}
+          <div className="flex items-center gap-3">
+            <ShareButton />
+            <NotificationBell />
+            {isAuthenticated ? (
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                size="sm"
+                className="text-slate-600 hover:bg-slate-100"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            ) : (
+              <Button
+                onClick={handleLogin}
+                variant="ghost"
+                size="sm"
+                className="text-slate-600 hover:bg-slate-100"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Login</span>
+              </Button>
+            )}
           </div>
-        </div>
-      </nav>
+        </header>
 
-      {/* Main Content */}
-      <main className="relative min-h-screen">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ 
-            backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/a150f12cc_Untitleddesign17.png)'
-          }}
-        />
-        <div className="relative">
+        <NotificationGenerator />
+        <LegalAcceptanceModal />
+
+        {/* Cancellation Reminder */}
+        {user && (
+          <div className="px-4 md:px-6 pt-4">
+            <CancellationReminder userEmail={user.email} />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <main className="flex-1">
           {children}
-        </div>
-      </main>
+        </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-16">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-2">
-              <Heart className="w-5 h-5 text-blue-600" fill="currentColor" />
-              <span className="text-slate-600 font-medium">www.FamilyCare.Help</span>
-            </div>
-            <p className="text-sm text-slate-500">
-              Giving caregivers clarity, accountability, and peace of mind
-            </p>
-            <div className="flex items-center justify-center gap-4 text-sm text-slate-600 flex-wrap">
-              {footerNavItems.map((item, index) => (
-                <React.Fragment key={item.href}>
-                  {index > 0 && <span className="text-slate-300">|</span>}
-                  <a href={item.href} className="hover:text-blue-600 transition-colors">
-                    {item.name}
-                  </a>
-                </React.Fragment>
-              ))}
-              <span className="text-slate-300">|</span>
-              <a href="mailto:familycarehelp@mail.com" className="flex items-center gap-1 hover:text-blue-600 transition-colors">
-                <Mail className="w-4 h-4" />
-                Contact Support
-              </a>
+        {/* Footer */}
+        <footer className="border-t border-slate-100 bg-white mt-auto">
+          <div className="px-4 md:px-6 py-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm text-slate-500">
+                FamilyCare.Help
+              </p>
+              <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap justify-center">
+                {footerNavItems.map((item, index) => (
+                  <React.Fragment key={item.href}>
+                    {index > 0 && <span className="text-slate-200">|</span>}
+                    <a href={item.href} className="hover:text-teal-600 transition-colors">
+                      {item.name}
+                    </a>
+                  </React.Fragment>
+                ))}
+                <span className="text-slate-200">|</span>
+                <a href="mailto:familycarehelp@mail.com" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+                  <Mail className="w-3.5 h-3.5" />
+                  Support
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

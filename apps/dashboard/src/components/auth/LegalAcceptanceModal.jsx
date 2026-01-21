@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,28 +9,31 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import { Shield, FileText } from 'lucide-react';
 
-export default function LegalAcceptanceModal() {
+export function LegalAcceptanceModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const queryClient = useQueryClient();
-
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-    retry: false,
-  });
+  const { user } = useAuth();
 
   const { data: existingAcceptances } = useQuery({
-    queryKey: ['legalAcceptances', user?.email],
-    queryFn: () => base44.entities.LegalAcceptance.filter({ user_email: user.email }),
-    enabled: !!user?.email,
+    queryKey: ['legal-acceptances', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('legal_acceptances')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
     if (user && existingAcceptances) {
       const hasTerms = existingAcceptances.some(a => a.document_type === 'terms_of_service');
       const hasPrivacy = existingAcceptances.some(a => a.document_type === 'privacy_policy');
-      
+
       if (!hasTerms || !hasPrivacy) {
         setIsOpen(true);
       }
@@ -38,23 +42,22 @@ export default function LegalAcceptanceModal() {
 
   const acceptMutation = useMutation({
     mutationFn: async () => {
-      await logAcceptance(user.email, 'terms_of_service');
-      await logAcceptance(user.email, 'privacy_policy');
+      const acceptances = [
+        { user_id: user.id, document_type: 'terms_of_service', document_version: '1.0' },
+        { user_id: user.id, document_type: 'privacy_policy', document_version: '1.0' },
+      ];
+
+      const { error } = await supabase
+        .from('legal_acceptances')
+        .insert(acceptances);
+
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['legalAcceptances'] });
+      queryClient.invalidateQueries({ queryKey: ['legal-acceptances'] });
       setIsOpen(false);
     },
   });
-
-  const logAcceptance = async (userEmail, documentType) => {
-    await base44.entities.LegalAcceptance.create({
-      user_email: userEmail,
-      document_type: documentType,
-      document_version: '1.0',
-      acceptance_date: new Date().toISOString(),
-    });
-  };
 
   const handleAccept = () => {
     if (agreedToTerms) {
@@ -80,16 +83,16 @@ export default function LegalAcceptanceModal() {
           </p>
 
           <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
-            <Link 
-              to={createPageUrl('TermsOfService')} 
+            <Link
+              to={createPageUrl('TermsOfService')}
               target="_blank"
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
             >
               <FileText className="w-4 h-4" />
               Terms of Service
             </Link>
-            <Link 
-              to={createPageUrl('PrivacyPolicy')} 
+            <Link
+              to={createPageUrl('PrivacyPolicy')}
               target="_blank"
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
             >
@@ -99,20 +102,20 @@ export default function LegalAcceptanceModal() {
           </div>
 
           <div className="flex items-start gap-3 pt-2">
-            <Checkbox 
-              id="terms-agreement" 
+            <Checkbox
+              id="terms-agreement"
               checked={agreedToTerms}
               onCheckedChange={setAgreedToTerms}
             />
-            <label 
-              htmlFor="terms-agreement" 
+            <label
+              htmlFor="terms-agreement"
               className="text-sm text-slate-700 cursor-pointer leading-relaxed"
             >
               I have read and agree to the Terms of Service and Privacy Policy
             </label>
           </div>
 
-          <Button 
+          <Button
             onClick={handleAccept}
             disabled={!agreedToTerms || acceptMutation.isPending}
             className="w-full bg-blue-600 hover:bg-blue-700"
@@ -124,3 +127,5 @@ export default function LegalAcceptanceModal() {
     </Dialog>
   );
 }
+
+export default LegalAcceptanceModal;
