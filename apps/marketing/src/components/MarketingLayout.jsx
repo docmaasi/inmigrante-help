@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
-import { Heart, ArrowRight, Mail } from "lucide-react";
+import { Heart, ArrowRight, Mail, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "../lib/use-auth";
 
 const DASHBOARD_URL =
   import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5174";
 
 export function MarketingLayout({ children, fullWidth = false }) {
   const [hasScrolled, setHasScrolled] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     function handleScroll() {
@@ -79,27 +81,45 @@ export function MarketingLayout({ children, fullWidth = false }) {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
-              <a
-                href={`${DASHBOARD_URL}/login`}
-                className="px-5 py-2.5 rounded-full font-medium transition-all duration-200 hover:bg-indigo-50"
-                style={{
-                  color: "#4F46E5",
-                  fontFamily: "var(--font-body), sans-serif",
-                }}
-              >
-                Sign In
-              </a>
-              <a
-                href={`${DASHBOARD_URL}/signup`}
-                className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
-                style={{
-                  backgroundColor: "#4F46E5",
-                  fontFamily: "var(--font-body), sans-serif",
-                }}
-              >
-                Get Started
-                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </a>
+              {isLoading ? (
+                <div className="w-24 h-10" />
+              ) : isAuthenticated ? (
+                <a
+                  href={`${DASHBOARD_URL}/`}
+                  className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                  style={{
+                    backgroundColor: "#4F46E5",
+                    fontFamily: "var(--font-body), sans-serif",
+                  }}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </a>
+              ) : (
+                <>
+                  <a
+                    href={`${DASHBOARD_URL}/login`}
+                    className="px-5 py-2.5 rounded-full font-medium transition-all duration-200 hover:bg-indigo-50"
+                    style={{
+                      color: "#4F46E5",
+                      fontFamily: "var(--font-body), sans-serif",
+                    }}
+                  >
+                    Sign In
+                  </a>
+                  <a
+                    href={`${DASHBOARD_URL}/signup`}
+                    className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                    style={{
+                      backgroundColor: "#4F46E5",
+                      fontFamily: "var(--font-body), sans-serif",
+                    }}
+                  >
+                    Get Started
+                    <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </a>
+                </>
+              )}
             </div>
           </div>
         </div>

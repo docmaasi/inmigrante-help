@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { usePermissions } from '@/hooks/use-permissions';
 import {
   Home,
   Users,
@@ -27,7 +28,9 @@ import {
   Shield,
   Users2,
   CalendarClock,
-  BarChart3
+  BarChart3,
+  ShieldCheck,
+  History
 } from 'lucide-react';
 import {
   Sidebar,
@@ -53,8 +56,7 @@ const NAV_GROUPS = [
   {
     label: 'Overview',
     items: [
-      { name: 'Home', icon: Home, path: 'Today' },
-      { name: 'Diagnostics', icon: Activity, path: 'Diagnostics' }
+      { name: 'Dashboard', icon: Home, path: '/' }
     ]
   },
   {
@@ -111,11 +113,21 @@ export function AppSidebar() {
   const location = useLocation();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const { isAdmin, isSuperAdmin } = usePermissions();
 
   const isActive = (path) => {
     const currentPath = location.pathname.toLowerCase();
+    // Handle absolute paths (starting with /)
+    if (path.startsWith('/')) {
+      return currentPath === path.toLowerCase();
+    }
     const targetPath = createPageUrl(path).toLowerCase();
     return currentPath === targetPath || currentPath === `/${path.toLowerCase()}`;
+  };
+
+  const getNavPath = (path) => {
+    // If path starts with /, use it directly
+    return path.startsWith('/') ? path : createPageUrl(path);
   };
 
   return (
@@ -138,7 +150,7 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-2">
+      <SidebarContent className="py-2">
         {NAV_GROUPS.map((group) => (
           <Collapsible key={group.label} defaultOpen className="group/collapsible">
             <SidebarGroup className="py-1">
@@ -162,7 +174,7 @@ export function AppSidebar() {
                             tooltip={item.name}
                           >
                             <Link
-                              to={createPageUrl(item.path)}
+                              to={getNavPath(item.path)}
                               className={active ? 'bg-teal-50 text-teal-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                             >
                               <Icon className={`w-5 h-5 ${active ? 'text-teal-600' : ''}`} />
@@ -178,6 +190,127 @@ export function AppSidebar() {
             </SidebarGroup>
           </Collapsible>
         ))}
+
+        {/* Administration Section - Only visible to admins */}
+        {isAdmin && (
+          <>
+            <SidebarSeparator className="my-2" />
+            <Collapsible defaultOpen className="group/collapsible">
+              <SidebarGroup className="py-1">
+                <CollapsibleTrigger asChild>
+                  <SidebarGroupLabel className="cursor-pointer hover:bg-purple-50 rounded-md transition-colors flex items-center justify-between w-full px-2 text-[11px] font-medium text-purple-500 uppercase tracking-wider">
+                    <span>Administration</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-purple-300 transition-transform group-data-[state=closed]/collapsible:rotate-[-90deg]" />
+                  </SidebarGroupLabel>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {/* Admin Dashboard - all admins */}
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location.pathname === '/admin'}
+                          tooltip="Admin Dashboard"
+                        >
+                          <Link
+                            to="/admin"
+                            className={location.pathname === '/admin'
+                              ? 'bg-purple-50 text-purple-700 font-medium'
+                              : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700'}
+                          >
+                            <ShieldCheck className={`w-5 h-5 ${location.pathname === '/admin' ? 'text-purple-600' : 'text-purple-500'}`} />
+                            <span>Admin Dashboard</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+
+                      {/* User Management - super_admin only */}
+                      {isSuperAdmin && (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={location.pathname === '/admin/users'}
+                            tooltip="User Management"
+                          >
+                            <Link
+                              to="/admin/users"
+                              className={location.pathname === '/admin/users'
+                                ? 'bg-amber-50 text-amber-700 font-medium'
+                                : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'}
+                            >
+                              <Users className={`w-5 h-5 ${location.pathname === '/admin/users' ? 'text-amber-600' : 'text-amber-500'}`} />
+                              <span>User Management</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )}
+
+                      {/* System Settings - super_admin only */}
+                      {isSuperAdmin && (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={location.pathname === '/admin/settings'}
+                            tooltip="System Settings"
+                          >
+                            <Link
+                              to="/admin/settings"
+                              className={location.pathname === '/admin/settings'
+                                ? 'bg-amber-50 text-amber-700 font-medium'
+                                : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'}
+                            >
+                              <Settings className={`w-5 h-5 ${location.pathname === '/admin/settings' ? 'text-amber-600' : 'text-amber-500'}`} />
+                              <span>System Settings</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )}
+
+                      {/* Activity Log - all admins */}
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location.pathname === '/admin/activity'}
+                          tooltip="Activity Log"
+                        >
+                          <Link
+                            to="/admin/activity"
+                            className={location.pathname === '/admin/activity'
+                              ? 'bg-purple-50 text-purple-700 font-medium'
+                              : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700'}
+                          >
+                            <History className={`w-5 h-5 ${location.pathname === '/admin/activity' ? 'text-purple-600' : 'text-purple-500'}`} />
+                            <span>Activity Log</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+
+                      {/* Diagnostics - all admins */}
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location.pathname === '/admin/diagnostics'}
+                          tooltip="Diagnostics"
+                        >
+                          <Link
+                            to="/admin/diagnostics"
+                            className={location.pathname === '/admin/diagnostics'
+                              ? 'bg-purple-50 text-purple-700 font-medium'
+                              : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700'}
+                          >
+                            <Activity className={`w-5 h-5 ${location.pathname === '/admin/diagnostics' ? 'text-purple-600' : 'text-purple-500'}`} />
+                            <span>Diagnostics</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
+          </>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-slate-100 p-2">
@@ -193,7 +326,7 @@ export function AppSidebar() {
                   tooltip={item.name}
                   className={item.special ? 'bg-teal-600 text-white hover:bg-teal-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                 >
-                  <Link to={createPageUrl(item.path)}>
+                  <Link to={getNavPath(item.path)}>
                     <Icon className="w-5 h-5" />
                     <span>{item.name}</span>
                   </Link>

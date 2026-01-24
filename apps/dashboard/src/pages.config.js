@@ -12,8 +12,6 @@ import ClientTasks from "./pages/ClientTasks";
 import { ClientUpdates } from "./pages/ClientUpdates";
 import Collaboration from "./pages/Collaboration";
 import CommunicationHub from "./pages/CommunicationHub";
-import Dashboard from "./pages/Dashboard";
-import Diagnostics from "./pages/Diagnostics";
 import Documents from "./pages/Documents";
 import Emergency from "./pages/Emergency";
 import EmergencyProfile from "./pages/EmergencyProfile";
@@ -30,9 +28,11 @@ import ShiftHandoff from "./pages/ShiftHandoff";
 import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
 import Today from "./pages/Today";
+import { AdminDashboard } from "./pages/admin/admin-dashboard";
 import __Layout from "./Layout.jsx";
 
 export const PAGES = {
+  AdminDashboard,
   Appointments,
   Calendar,
   CareNotes,
@@ -47,8 +47,6 @@ export const PAGES = {
   ClientUpdates,
   Collaboration,
   CommunicationHub,
-  Dashboard,
-  Diagnostics,
   Documents,
   Emergency,
   EmergencyProfile,
@@ -64,11 +62,10 @@ export const PAGES = {
   ShiftHandoff,
   Tasks,
   Team,
-  Today,
 };
 
 export const pagesConfig = {
-  mainPage: "Today",
+  MainPage: Today,
   Pages: PAGES,
   Layout: __Layout,
 };

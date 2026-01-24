@@ -1,18 +1,64 @@
+import { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AuthCallback from './pages/AuthCallback';
+import { ProtectedRoute } from '@/components/auth';
+import { AdminLayout } from '@/components/layout/admin-layout';
+import { Loader2 } from 'lucide-react';
 
-const { Pages, Layout, mainPage } = pagesConfig;
-const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const AdminDashboard = lazy(() =>
+  import('@/pages/admin/admin-dashboard').then((module) => ({
+    default: module.AdminDashboard,
+  }))
+);
+
+const UserManagement = lazy(() =>
+  import('@/pages/admin/user-management').then((module) => ({
+    default: module.UserManagement,
+  }))
+);
+
+const SystemSettings = lazy(() =>
+  import('@/pages/admin/system-settings').then((module) => ({
+    default: module.SystemSettings,
+  }))
+);
+
+const AdminActivity = lazy(() =>
+  import('@/pages/admin/admin-activity').then((module) => ({
+    default: module.AdminActivity,
+  }))
+);
+
+const AdminSubscriptions = lazy(() =>
+  import('@/pages/admin/admin-subscriptions').then((module) => ({
+    default: module.AdminSubscriptions,
+  }))
+);
+
+const Diagnostics = lazy(() =>
+  import('@/pages/Diagnostics').then((module) => ({
+    default: module.default,
+  }))
+);
+
+function AdminLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+    </div>
+  );
+}
+
+const { Pages, Layout, MainPage } = pagesConfig;
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -36,7 +82,7 @@ const ProtectedRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
+        <LayoutWrapper currentPageName="Dashboard">
           <MainPage />
         </LayoutWrapper>
       } />
@@ -51,6 +97,67 @@ const ProtectedRoutes = () => {
           }
         />
       ))}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requiredRole={['admin', 'super_admin']}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <AdminDashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="users"
+          element={
+            <ProtectedRoute requiredRole="super_admin">
+              <Suspense fallback={<AdminLoadingFallback />}>
+                <UserManagement />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute requiredRole="super_admin">
+              <Suspense fallback={<AdminLoadingFallback />}>
+                <SystemSettings />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="activity"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <AdminActivity />
+            </Suspense>
+          }
+        />
+        <Route
+          path="subscriptions"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <AdminSubscriptions />
+            </Suspense>
+          }
+        />
+        <Route
+          path="diagnostics"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <Diagnostics />
+            </Suspense>
+          }
+        />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

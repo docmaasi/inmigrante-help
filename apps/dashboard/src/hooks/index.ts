@@ -123,3 +123,47 @@ export {
   useUpdateClientAccess,
   useRevokeClientAccess,
 } from './use-client-access';
+
+// Permissions
+export { usePermissions } from './use-permissions';
+export type { UsePermissionsReturn } from './use-permissions';
+
+// Admin Users
+export {
+  useAdminUsers,
+  useAdminUserById,
+  useUpdateUserRole,
+  useDisableUser,
+  useEnableUser,
+  useAdminUserStats,
+} from './admin/use-admin-users';
+export type {
+  AdminUserProfile,
+  AdminUserFilters,
+} from './admin/use-admin-users';
+
+// Admin Activity
+export {
+  useAdminActivity,
+  useAdminActivityById,
+  useLogAdminAction,
+  useAdminActivityStats,
+} from './admin/use-admin-activity';
+
+// System Settings
+export {
+  useSystemSettings,
+  useSystemSetting,
+  useUpdateSetting,
+  useUpdateMultipleSettings,
+  useFeatureFlags,
+  useFeatureFlag,
+  useToggleFeatureFlag,
+  useCreateFeatureFlag,
+  useIsFeatureEnabled,
+} from './admin/use-system-settings';
+export type {
+  SystemSetting,
+  FeatureFlag,
+  ParsedSystemSettings,
+} from './admin/use-system-settings';

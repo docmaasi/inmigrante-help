@@ -9,6 +9,7 @@ import {
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import type { Profile } from '@/types/database';
+import type { UserRole } from '@/types/permissions';
 
 interface AuthState {
   user: User | null;
@@ -16,6 +17,9 @@ interface AuthState {
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  role: UserRole;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 interface AuthContextValue extends AuthState {
@@ -29,6 +33,25 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const DEFAULT_ROLE: UserRole = 'viewer';
+
+function computeRole(profile: Profile | null): UserRole {
+  if (!profile) return DEFAULT_ROLE;
+  const role = profile.role as UserRole | undefined;
+  if (role && ['super_admin', 'admin', 'caregiver', 'viewer'].includes(role)) {
+    return role;
+  }
+  return DEFAULT_ROLE;
+}
+
+function computeIsSuperAdmin(profile: Profile | null): boolean {
+  return profile?.is_super_admin === true;
+}
+
+function computeIsAdmin(profile: Profile | null, role: UserRole): boolean {
+  return role === 'admin' || role === 'super_admin' || computeIsSuperAdmin(profile);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
@@ -36,6 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session: null,
     isLoading: true,
     isAuthenticated: false,
+    role: DEFAULT_ROLE,
+    isAdmin: false,
+    isSuperAdmin: false,
   });
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -56,48 +82,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!state.user) return;
     const profile = await fetchProfile(state.user.id);
     if (profile) {
-      setState((prev) => ({ ...prev, profile }));
+      const role = computeRole(profile);
+      const isSuperAdmin = computeIsSuperAdmin(profile);
+      const isAdmin = computeIsAdmin(profile, role);
+      setState((prev) => ({ ...prev, profile, role, isAdmin, isSuperAdmin }));
     }
   }, [state.user, fetchProfile]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    let isMounted = true;
+    let initialSessionHandled = false;
+
+    const handleSession = async (session: Session | null) => {
       const user = session?.user ?? null;
-      let profile: Profile | null = null;
 
       if (user) {
-        profile = await fetchProfile(user.id);
-      }
+        const profile = await fetchProfile(user.id);
+        if (!isMounted) return;
 
-      setState({
-        user,
-        profile,
-        session,
-        isLoading: false,
-        isAuthenticated: !!user,
-      });
+        const role = computeRole(profile);
+        const isSuperAdmin = computeIsSuperAdmin(profile);
+        const isAdmin = computeIsAdmin(profile, role);
+
+        setState({
+          user,
+          profile,
+          session,
+          isLoading: false,
+          isAuthenticated: true,
+          role,
+          isAdmin,
+          isSuperAdmin,
+        });
+      } else {
+        setState({
+          user: null,
+          profile: null,
+          session: null,
+          isLoading: false,
+          isAuthenticated: false,
+          role: DEFAULT_ROLE,
+          isAdmin: false,
+          isSuperAdmin: false,
+        });
+      }
+    };
+
+    // getSession() handles token refresh automatically before returning
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      initialSessionHandled = true;
+      handleSession(session);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const user = session?.user ?? null;
-      let profile: Profile | null = null;
+      if (!isMounted) return;
 
-      if (user) {
-        profile = await fetchProfile(user.id);
+      // Skip INITIAL_SESSION since getSession() handles it (avoids race condition)
+      if (event === 'INITIAL_SESSION' && !initialSessionHandled) {
+        return;
       }
 
-      setState({
-        user,
-        profile,
-        session,
-        isLoading: false,
-        isAuthenticated: !!user,
-      });
+      handleSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [fetchProfile]);
 
   const signIn = async (email: string, password: string) => {

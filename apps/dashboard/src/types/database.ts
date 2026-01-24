@@ -1250,6 +1250,99 @@ export interface Database {
           created_at?: string;
         };
       };
+      admin_activity_logs: {
+        Row: {
+          id: string;
+          admin_id: string;
+          action: string;
+          target_type: string;
+          target_id: string | null;
+          details: Json;
+          ip_address: string | null;
+          user_agent: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          action: string;
+          target_type: string;
+          target_id?: string | null;
+          details?: Json;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          admin_id?: string;
+          action?: string;
+          target_type?: string;
+          target_id?: string | null;
+          details?: Json;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+      };
+      system_settings: {
+        Row: {
+          id: string;
+          key: string;
+          value: Json;
+          description: string | null;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          value: Json;
+          description?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          value?: Json;
+          description?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      feature_flags: {
+        Row: {
+          id: string;
+          name: string;
+          enabled: boolean;
+          description: string | null;
+          allowed_roles: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          enabled?: boolean;
+          description?: string | null;
+          allowed_roles?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          enabled?: boolean;
+          description?: string | null;
+          allowed_roles?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1300,3 +1393,6 @@ export type OnboardingProgress = Tables<'onboarding_progress'>;
 export type WidgetPreference = Tables<'widget_preferences'>;
 export type ClientAccess = Tables<'client_access'>;
 export type ActionLog = Tables<'action_logs'>;
+export type AdminActivityLog = Tables<'admin_activity_logs'>;
+export type SystemSetting = Tables<'system_settings'>;
+export type FeatureFlag = Tables<'feature_flags'>;

@@ -6,7 +6,6 @@ import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
-import ShareButton from './components/shared/ShareButton';
 import { Button } from '@/components/ui/button';
 import {
   SidebarProvider,
@@ -53,7 +52,6 @@ export default function Layout({ children, currentPageName }) {
           <SidebarTrigger />
 
           <div className="flex items-center gap-3">
-            <ShareButton />
             <NotificationBell />
             {isAuthenticated ? (
               <Button
