@@ -17,6 +17,7 @@ export interface Database {
           avatar_url: string | null;
           phone: string | null;
           role: string;
+          is_super_admin: boolean;
           onboarding_completed: boolean;
           legal_accepted_at: string | null;
           subscription_status: string;
@@ -31,6 +32,7 @@ export interface Database {
           avatar_url?: string | null;
           phone?: string | null;
           role?: string;
+          is_super_admin?: boolean;
           onboarding_completed?: boolean;
           legal_accepted_at?: string | null;
           subscription_status?: string;
@@ -45,6 +47,7 @@ export interface Database {
           avatar_url?: string | null;
           phone?: string | null;
           role?: string;
+          is_super_admin?: boolean;
           onboarding_completed?: boolean;
           legal_accepted_at?: string | null;
           subscription_status?: string;
@@ -704,8 +707,9 @@ export interface Database {
           title: string;
           message: string | null;
           type: string | null;
-          reference_type: string | null;
-          reference_id: string | null;
+          priority: string | null;
+          related_entity_type: string | null;
+          related_entity_id: string | null;
           is_read: boolean;
           read_at: string | null;
           created_at: string;
@@ -716,8 +720,9 @@ export interface Database {
           title: string;
           message?: string | null;
           type?: string | null;
-          reference_type?: string | null;
-          reference_id?: string | null;
+          priority?: string | null;
+          related_entity_type?: string | null;
+          related_entity_id?: string | null;
           is_read?: boolean;
           read_at?: string | null;
           created_at?: string;
@@ -728,8 +733,9 @@ export interface Database {
           title?: string;
           message?: string | null;
           type?: string | null;
-          reference_type?: string | null;
-          reference_id?: string | null;
+          priority?: string | null;
+          related_entity_type?: string | null;
+          related_entity_id?: string | null;
           is_read?: boolean;
           read_at?: string | null;
           created_at?: string;
@@ -1146,30 +1152,21 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          widget_id: string;
-          is_visible: boolean;
-          position: number | null;
-          settings: Json;
+          widget_config: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          widget_id: string;
-          is_visible?: boolean;
-          position?: number | null;
-          settings?: Json;
+          widget_config?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
-          widget_id?: string;
-          is_visible?: boolean;
-          position?: number | null;
-          settings?: Json;
+          widget_config?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1351,6 +1348,9 @@ export interface Database {
       [_ in never]: never;
     };
     Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
       [_ in never]: never;
     };
   };

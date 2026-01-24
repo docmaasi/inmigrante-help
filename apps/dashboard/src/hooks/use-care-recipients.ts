@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
-import type { CareRecipient, InsertTables, UpdateTables } from '@/types/database';
+import type { CareRecipient, InsertTables, UpdateTables, Database } from '@/types/database';
+
+type CareRecipientInsert = Database['public']['Tables']['care_recipients']['Insert'];
+type CareRecipientUpdate = Database['public']['Tables']['care_recipients']['Update'];
 
 const QUERY_KEY = 'care-recipients';
 
@@ -51,14 +54,16 @@ export function useCreateCareRecipient() {
     mutationFn: async (data: Omit<InsertTables<'care_recipients'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('care_recipients')
-        .insert({ ...data, user_id: user.id })
+      const insertData: CareRecipientInsert = { ...data, user_id: user.id };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('care_recipients') as any)
+        .insert(insertData)
         .select()
         .single();
 
       if (error) throw error;
-      return result;
+      return result as CareRecipient;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -74,15 +79,16 @@ export function useUpdateCareRecipient() {
       id,
       ...data
     }: UpdateTables<'care_recipients'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('care_recipients')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('care_recipients') as any)
         .update(data)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      return result;
+      return result as CareRecipient;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });

@@ -148,8 +148,9 @@ export function useUpdateUserRole() {
         throw new Error('Not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('profiles') as any)
         .update({ role: newRole, updated_at: new Date().toISOString() })
         .eq('id', userId)
         .select()
@@ -196,8 +197,9 @@ export function useDisableUser() {
         throw new Error('Not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('profiles') as any)
         .update({
           subscription_status: 'disabled',
           updated_at: new Date().toISOString(),
@@ -243,8 +245,9 @@ export function useEnableUser() {
         throw new Error('Not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('profiles') as any)
         .update({
           subscription_status: 'active',
           updated_at: new Date().toISOString(),

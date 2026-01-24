@@ -144,8 +144,9 @@ function AdminActivityFeed(): JSX.Element {
         (data ?? []).map(async (activity) => {
           let actorName = 'System';
           if (activity.actor_id) {
-            const { data: profile } = await supabase
-              .from('profiles')
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: profile } = await (supabase
+              .from('profiles') as any)
               .select('full_name, email')
               .eq('id', activity.actor_id)
               .single();

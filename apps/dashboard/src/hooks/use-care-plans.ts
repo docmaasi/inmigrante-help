@@ -58,8 +58,9 @@ export function useCreateCarePlan() {
     mutationFn: async (data: Omit<InsertTables<'care_plans'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('care_plans')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('care_plans') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -81,8 +82,9 @@ export function useUpdateCarePlan() {
       id,
       ...data
     }: UpdateTables<'care_plans'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('care_plans')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('care_plans') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -131,7 +133,8 @@ export function useUpdateCarePlanDetails() {
 
       // Insert new details
       if (details.length > 0) {
-        const { error } = await supabase.from('care_plan_details').insert(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from('care_plan_details') as any).insert(
           details.map((d, i) => ({
             ...d,
             care_plan_id: carePlanId,
@@ -179,8 +182,9 @@ export function useCreateCareNote() {
     mutationFn: async (data: Omit<InsertTables<'care_notes'>, 'user_id' | 'author_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('care_notes')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('care_notes') as any)
         .insert({ ...data, user_id: user.id, author_id: user.id })
         .select()
         .single();
@@ -202,8 +206,9 @@ export function useUpdateCareNote() {
       id,
       ...data
     }: UpdateTables<'care_notes'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('care_notes')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('care_notes') as any)
         .update(data)
         .eq('id', id)
         .select()

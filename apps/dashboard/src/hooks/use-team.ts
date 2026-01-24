@@ -53,8 +53,9 @@ export function useInviteTeamMember() {
     ) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('team_members')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('team_members') as any)
         .insert({
           ...data,
           user_id: user.id,
@@ -81,8 +82,9 @@ export function useUpdateTeamMember() {
       id,
       ...data
     }: UpdateTables<'team_members'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('team_members')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('team_members') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -157,8 +159,9 @@ export function useCreateShift() {
     mutationFn: async (data: Omit<InsertTables<'caregiver_shifts'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('caregiver_shifts')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('caregiver_shifts') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -180,8 +183,9 @@ export function useUpdateShift() {
       id,
       ...data
     }: UpdateTables<'caregiver_shifts'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('caregiver_shifts')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('caregiver_shifts') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -225,8 +229,9 @@ export function useCreateAnnouncement() {
     mutationFn: async (data: Omit<InsertTables<'team_announcements'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('team_announcements')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('team_announcements') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();

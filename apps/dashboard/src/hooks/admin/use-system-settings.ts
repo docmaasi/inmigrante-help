@@ -190,8 +190,9 @@ export function useUpdateSetting() {
 
       let result;
       if (existing) {
-        const { data, error } = await supabase
-          .from('system_settings')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase
+          .from('system_settings') as any)
           .update({
             value,
             description,
@@ -207,8 +208,9 @@ export function useUpdateSetting() {
         }
         result = data;
       } else {
-        const { data, error } = await supabase
-          .from('system_settings')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (supabase
+          .from('system_settings') as any)
           .insert({
             key,
             value,
@@ -267,8 +269,9 @@ export function useUpdateMultipleSettings() {
 
         let result;
         if (existing) {
-          const { data, error } = await supabase
-            .from('system_settings')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data, error } = await (supabase
+            .from('system_settings') as any)
             .update({
               value: setting.value,
               description: setting.description,
@@ -284,8 +287,9 @@ export function useUpdateMultipleSettings() {
           }
           result = data;
         } else {
-          const { data, error } = await supabase
-            .from('system_settings')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data, error } = await (supabase
+            .from('system_settings') as any)
             .insert({
               key: setting.key,
               value: setting.value,
@@ -392,8 +396,9 @@ export function useToggleFeatureFlag() {
         throw new Error('Not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('feature_flags')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('feature_flags') as any)
         .update({
           enabled,
           updated_at: new Date().toISOString(),
@@ -446,8 +451,9 @@ export function useCreateFeatureFlag() {
         throw new Error('Not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('feature_flags')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('feature_flags') as any)
         .insert({
           name,
           description,

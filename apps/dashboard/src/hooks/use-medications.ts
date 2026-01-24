@@ -56,8 +56,9 @@ export function useCreateMedication() {
     mutationFn: async (data: Omit<InsertTables<'medications'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('medications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('medications') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -79,8 +80,9 @@ export function useUpdateMedication() {
       id,
       ...data
     }: UpdateTables<'medications'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('medications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('medications') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -144,8 +146,9 @@ export function useLogMedication() {
     mutationFn: async (data: Omit<InsertTables<'medication_logs'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('medication_logs')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('medication_logs') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();

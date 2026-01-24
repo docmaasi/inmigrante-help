@@ -23,6 +23,16 @@ const badgeVariants = cva(
   }
 )
 
+/**
+ * @typedef {React.HTMLAttributes<HTMLDivElement> & {
+ *   className?: string,
+ *   variant?: 'default' | 'secondary' | 'destructive' | 'outline'
+ * }} BadgeProps
+ */
+
+/**
+ * @param {BadgeProps} props
+ */
 function Badge({
   className,
   variant,

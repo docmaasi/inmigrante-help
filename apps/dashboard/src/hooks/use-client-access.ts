@@ -49,21 +49,24 @@ export function useClientAccessByRecipient(careRecipientId?: string) {
 export function useValidateClientAccess() {
   return useMutation({
     mutationFn: async (accessCode: string) => {
-      const { data, error } = await supabase
-        .from('client_access')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('client_access') as any)
         .select('*, care_recipients(id, first_name, last_name)')
         .eq('access_code', accessCode)
         .eq('is_active', true)
         .single();
 
       if (error) throw error;
+      if (!data) throw new Error('Access code not found');
 
       if (data.expires_at && new Date(data.expires_at) < new Date()) {
         throw new Error('Access code has expired');
       }
 
-      await supabase
-        .from('client_access')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase
+        .from('client_access') as any)
         .update({ last_accessed_at: new Date().toISOString() })
         .eq('id', data.id);
 
@@ -87,8 +90,9 @@ export function useCreateClientAccess() {
       const accessCode =
         data.access_code || generateAccessCode();
 
-      const { data: result, error } = await supabase
-        .from('client_access')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('client_access') as any)
         .insert({
           ...data,
           user_id: user.id,
@@ -114,8 +118,9 @@ export function useUpdateClientAccess() {
       id,
       ...data
     }: UpdateTables<'client_access'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('client_access')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('client_access') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -135,8 +140,9 @@ export function useRevokeClientAccess() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('client_access')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase
+        .from('client_access') as any)
         .update({ is_active: false })
         .eq('id', id);
 

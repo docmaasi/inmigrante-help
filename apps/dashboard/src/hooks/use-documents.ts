@@ -64,8 +64,9 @@ export function useCreateDocument() {
     mutationFn: async (data: Omit<InsertTables<'documents'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('documents')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('documents') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -87,8 +88,9 @@ export function useUpdateDocument() {
       id,
       ...data
     }: UpdateTables<'documents'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('documents')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('documents') as any)
         .update(data)
         .eq('id', id)
         .select()

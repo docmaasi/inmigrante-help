@@ -32,14 +32,16 @@ interface LogAdminActionParams {
   details?: Record<string, unknown>;
 }
 
-type LogAdminActionResult =
+export type LogAdminActionResult =
   | {
       ok: true;
       data: { id: string };
+      error?: undefined;
     }
   | {
       ok: false;
       error: Error;
+      data?: undefined;
     };
 
 function getUserAgent(): string {
@@ -64,8 +66,9 @@ export async function logAdminAction({
     };
   }
 
-  const { data, error } = await supabase
-    .from('admin_activity_logs')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase
+    .from('admin_activity_logs') as any)
     .insert({
       admin_id: userData.user.id,
       action,
@@ -77,10 +80,10 @@ export async function logAdminAction({
     .select('id')
     .single();
 
-  if (error) {
+  if (error || !data) {
     return {
       ok: false,
-      error: new Error(error.message),
+      error: new Error(error?.message ?? 'Failed to log admin action'),
     };
   }
 

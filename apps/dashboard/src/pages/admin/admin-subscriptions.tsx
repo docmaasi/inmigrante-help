@@ -80,17 +80,19 @@ function useSubscriptionStats() {
   return useQuery({
     queryKey: ['admin', 'subscription-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('subscriptions')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('subscriptions') as any)
         .select('status');
 
       if (error) throw error;
 
+      const subscriptions = data as { status: string }[] | null;
       const stats: SubscriptionStats = {
-        total: data?.length ?? 0,
-        active: data?.filter((s) => s.status === 'active').length ?? 0,
-        canceled: data?.filter((s) => s.status === 'canceled').length ?? 0,
-        trialing: data?.filter((s) => s.status === 'trialing').length ?? 0,
+        total: subscriptions?.length ?? 0,
+        active: subscriptions?.filter((s) => s.status === 'active').length ?? 0,
+        canceled: subscriptions?.filter((s) => s.status === 'canceled').length ?? 0,
+        trialing: subscriptions?.filter((s) => s.status === 'trialing').length ?? 0,
       };
 
       return stats;
