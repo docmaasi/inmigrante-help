@@ -10,9 +10,12 @@
     "build:dashboard": "turbo build --filter=@familycare/dashboard",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "clean": "turbo clean && rm -rf node_modules"
+    "clean": "turbo clean && rm -rf node_modules",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
     "turbo": "^2.0.0"
   },
   "packageManager": "pnpm@9.0.0",
