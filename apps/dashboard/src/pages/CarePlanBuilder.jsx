@@ -1,0 +1,102 @@
+import React, { useState } from 'react';
+import { useCareRecipients, useCarePlans } from '@/hooks';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, Plus } from 'lucide-react';
+import { Skeleton } from '../components/ui/skeleton';
+import CarePlanForm from '../components/careplan/CarePlanForm';
+import CarePlanCard from '../components/careplan/CarePlanCard';
+
+export default function CarePlanBuilder() {
+  const [showForm, setShowForm] = useState(false);
+  const [editingPlan, setEditingPlan] = useState(null);
+
+  const { data: recipients = [], isLoading: loadingRecipients } = useCareRecipients();
+  const { data: carePlans = [], isLoading: loadingPlans } = useCarePlans();
+
+  const handleEdit = (plan) => {
+    setEditingPlan(plan);
+    setShowForm(true);
+  };
+
+  const handleClose = () => {
+    setShowForm(false);
+    setEditingPlan(null);
+  };
+
+  if (showForm) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+        <CarePlanForm
+          plan={editingPlan}
+          recipients={recipients}
+          onClose={handleClose}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+              <FileText className="w-8 h-8 text-teal-600" />
+              Care Plan Builder
+            </h1>
+            <p className="text-sm md:text-base text-slate-500">
+              Create comprehensive care plans with daily routines, medications, contacts, and emergency procedures
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Care Plan
+          </Button>
+        </div>
+
+        {loadingPlans || loadingRecipients ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2 mt-2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-20 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : carePlans.length === 0 ? (
+          <div className="text-center py-12 md:py-16">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-6 h-6 md:w-8 md:h-8 text-teal-600" />
+            </div>
+            <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No care plans yet</h3>
+            <p className="text-sm md:text-base text-slate-500 mb-6">Create your first care plan to organize care routines</p>
+            <Button onClick={() => setShowForm(true)} className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Care Plan
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {carePlans.map(plan => (
+              <CarePlanCard
+                key={plan.id}
+                plan={plan}
+                recipients={recipients}
+                onEdit={handleEdit}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

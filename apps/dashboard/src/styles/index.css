@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Refined warm neutral palette */
+    --background: 40 20% 99%;
+    --foreground: 220 20% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 14%;
+
+    /* Teal accent - professional healthcare feel */
+    --primary: 172 50% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm gray secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 14%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 20% 14%;
+
+    /* Coral for alerts/destructive */
+    --destructive: 4 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 172 50% 36%;
+
+    /* Chart colors - muted, cohesive */
+    --chart-1: 172 50% 36%;
+    --chart-2: 220 60% 55%;
+    --chart-3: 32 80% 55%;
+    --chart-4: 280 45% 55%;
+    --chart-5: 4 70% 60%;
+
+    --radius: 0.625rem;
+
+    /* Sidebar - clean and subtle */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 25%;
+    --sidebar-primary: 172 50% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 172 40% 96%;
+    --sidebar-accent-foreground: 172 50% 26%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 172 50% 36%;
+  }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 220 10% 96%;
+    --card: 220 18% 11%;
+    --card-foreground: 220 10% 96%;
+    --popover: 220 18% 11%;
+    --popover-foreground: 220 10% 96%;
+    --primary: 172 50% 45%;
+    --primary-foreground: 220 20% 8%;
+    --secondary: 220 15% 16%;
+    --secondary-foreground: 220 10% 96%;
+    --muted: 220 15% 16%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 220 15% 16%;
+    --accent-foreground: 220 10% 96%;
+    --destructive: 4 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 172 50% 45%;
+    --chart-1: 172 50% 50%;
+    --chart-2: 220 60% 60%;
+    --chart-3: 32 80% 60%;
+    --chart-4: 280 45% 60%;
+    --chart-5: 4 70% 65%;
+    --sidebar-background: 220 18% 10%;
+    --sidebar-foreground: 220 10% 90%;
+    --sidebar-primary: 172 50% 45%;
+    --sidebar-primary-foreground: 220 20% 8%;
+    --sidebar-accent: 220 15% 15%;
+    --sidebar-accent-foreground: 172 50% 60%;
+    --sidebar-border: 220 15% 16%;
+    --sidebar-ring: 172 50% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    overscroll-behavior: none;
+  }
+
+  /* Typography refinements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-semibold;
+  }
+
+  h1 { @apply text-3xl md:text-4xl; }
+  h2 { @apply text-2xl md:text-3xl; }
+  h3 { @apply text-xl md:text-2xl; }
+}
+
+@layer components {
+  /* Refined card styling */
+  .card-elevated {
+    @apply bg-white border border-border/60 shadow-sm;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  }
+
+  .card-elevated:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  }
+
+  /* Stat card accent bar */
+  .stat-accent {
+    @apply relative overflow-hidden;
+  }
+
+  .stat-accent::before {
+    content: '';
+    @apply absolute left-0 top-0 bottom-0 w-1 rounded-l-lg;
+    background: hsl(var(--primary));
+  }
+
+  /* Page header styling */
+  .page-header {
+    @apply mb-8 pb-6 border-b border-border/40;
+  }
+
+  .page-header h1 {
+    @apply text-2xl font-semibold text-foreground mb-1;
+  }
+
+  .page-header p {
+    @apply text-muted-foreground text-sm;
+  }
+}
