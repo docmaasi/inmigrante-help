@@ -1,8 +1,8 @@
 -- FamilyCare.help Initial Schema Migration
 -- Migrated from Base44 to Supabase
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Extensions are managed by Supabase
+-- PostgreSQL has built-in gen_random_uuid() function
 
 -- ============================================
 -- CORE TABLES
@@ -26,7 +26,7 @@ CREATE TABLE public.profiles (
 
 -- Care Recipients
 CREATE TABLE public.care_recipients (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE public.care_recipients (
 
 -- Team Members (Caregivers)
 CREATE TABLE public.team_members (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     invited_user_id UUID REFERENCES public.profiles(id),
     email TEXT NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE public.team_members (
 -- ============================================
 
 CREATE TABLE public.appointments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID NOT NULL REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE public.appointments (
 );
 
 CREATE TABLE public.caregiver_shifts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     team_member_id UUID REFERENCES public.team_members(id) ON DELETE SET NULL,
     care_recipient_id UUID REFERENCES public.care_recipients(id) ON DELETE CASCADE,
@@ -112,7 +112,7 @@ CREATE TABLE public.caregiver_shifts (
 );
 
 CREATE TABLE public.caregiver_availability (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     team_member_id UUID REFERENCES public.team_members(id) ON DELETE CASCADE,
     day_of_week INTEGER NOT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE public.caregiver_availability (
 -- ============================================
 
 CREATE TABLE public.medications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID NOT NULL REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
@@ -157,7 +157,7 @@ CREATE TABLE public.medications (
 );
 
 CREATE TABLE public.medication_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     medication_id UUID NOT NULL REFERENCES public.medications(id) ON DELETE CASCADE,
     care_recipient_id UUID NOT NULL REFERENCES public.care_recipients(id) ON DELETE CASCADE,
@@ -173,7 +173,7 @@ CREATE TABLE public.medication_logs (
 );
 
 CREATE TABLE public.medication_refills (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     medication_id UUID NOT NULL REFERENCES public.medications(id) ON DELETE CASCADE,
     requested_date DATE,
@@ -191,7 +191,7 @@ CREATE TABLE public.medication_refills (
 -- ============================================
 
 CREATE TABLE public.tasks (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     assigned_to UUID REFERENCES public.team_members(id) ON DELETE SET NULL,
@@ -212,7 +212,7 @@ CREATE TABLE public.tasks (
 );
 
 CREATE TABLE public.task_comments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     task_id UUID NOT NULL REFERENCES public.tasks(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
@@ -221,7 +221,7 @@ CREATE TABLE public.task_comments (
 );
 
 CREATE TABLE public.care_tasks (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID NOT NULL REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
@@ -239,7 +239,7 @@ CREATE TABLE public.care_tasks (
 -- ============================================
 
 CREATE TABLE public.care_plans (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID NOT NULL REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
@@ -253,7 +253,7 @@ CREATE TABLE public.care_plans (
 );
 
 CREATE TABLE public.care_plan_details (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     care_plan_id UUID NOT NULL REFERENCES public.care_plans(id) ON DELETE CASCADE,
     section TEXT NOT NULL,
     content JSONB,
@@ -263,7 +263,7 @@ CREATE TABLE public.care_plan_details (
 );
 
 CREATE TABLE public.care_notes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID NOT NULL REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     author_id UUID REFERENCES public.profiles(id),
@@ -282,7 +282,7 @@ CREATE TABLE public.care_notes (
 -- ============================================
 
 CREATE TABLE public.conversations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT,
     type TEXT DEFAULT 'direct',
@@ -294,7 +294,7 @@ CREATE TABLE public.conversations (
 );
 
 CREATE TABLE public.messages (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
     sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
@@ -306,7 +306,7 @@ CREATE TABLE public.messages (
 );
 
 CREATE TABLE public.notifications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     message TEXT,
@@ -319,7 +319,7 @@ CREATE TABLE public.notifications (
 );
 
 CREATE TABLE public.external_communications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     contact_name TEXT NOT NULL,
@@ -337,7 +337,7 @@ CREATE TABLE public.external_communications (
 );
 
 CREATE TABLE public.team_announcements (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
@@ -353,7 +353,7 @@ CREATE TABLE public.team_announcements (
 -- ============================================
 
 CREATE TABLE public.documents (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
@@ -374,7 +374,7 @@ CREATE TABLE public.documents (
 -- ============================================
 
 CREATE TABLE public.subscriptions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     stripe_subscription_id TEXT,
     stripe_customer_id TEXT,
@@ -390,7 +390,7 @@ CREATE TABLE public.subscriptions (
 );
 
 CREATE TABLE public.receipts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     subscription_id UUID REFERENCES public.subscriptions(id) ON DELETE SET NULL,
     stripe_invoice_id TEXT,
@@ -409,7 +409,7 @@ CREATE TABLE public.receipts (
 -- ============================================
 
 CREATE TABLE public.legal_acceptances (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     document_type TEXT NOT NULL,
     document_version TEXT NOT NULL,
@@ -419,7 +419,7 @@ CREATE TABLE public.legal_acceptances (
 );
 
 CREATE TABLE public.onboarding_progress (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     current_step INTEGER DEFAULT 1,
     completed_steps INTEGER[] DEFAULT '{}',
@@ -430,7 +430,7 @@ CREATE TABLE public.onboarding_progress (
 );
 
 CREATE TABLE public.widget_preferences (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     widget_id TEXT NOT NULL,
     is_visible BOOLEAN DEFAULT TRUE,
@@ -442,7 +442,7 @@ CREATE TABLE public.widget_preferences (
 );
 
 CREATE TABLE public.client_access (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     care_recipient_id UUID NOT NULL REFERENCES public.care_recipients(id) ON DELETE CASCADE,
     access_code TEXT NOT NULL,
@@ -459,7 +459,7 @@ CREATE TABLE public.client_access (
 -- ============================================
 
 CREATE TABLE public.action_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     actor_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     action TEXT NOT NULL,
