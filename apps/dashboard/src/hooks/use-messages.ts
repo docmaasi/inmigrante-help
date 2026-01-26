@@ -51,8 +51,9 @@ export function useCreateConversation() {
     mutationFn: async (data: Omit<InsertTables<'conversations'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('conversations')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('conversations') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -133,8 +134,9 @@ export function useSendMessage() {
     }) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('messages')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('messages') as any)
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
@@ -164,8 +166,9 @@ export function useMarkMessagesRead() {
       if (!user) throw new Error('Not authenticated');
 
       // Get unread messages
-      const { data: messages, error: fetchError } = await supabase
-        .from('messages')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: messages, error: fetchError } = await (supabase
+        .from('messages') as any)
         .select('id, read_by')
         .eq('conversation_id', conversationId)
         .not('read_by', 'cs', `{${user.id}}`);
@@ -180,8 +183,9 @@ export function useMarkMessagesRead() {
       }));
 
       for (const update of updates) {
-        const { error } = await supabase
-          .from('messages')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase
+          .from('messages') as any)
           .update({ read_by: update.read_by })
           .eq('id', update.id);
         if (error) throw error;

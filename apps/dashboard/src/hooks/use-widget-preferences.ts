@@ -29,8 +29,9 @@ export function useWidgetPreferences() {
     queryFn: async () => {
       if (!user) return null;
 
-      const { data, error } = await supabase
-        .from('widget_preferences')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('widget_preferences') as any)
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -45,7 +46,7 @@ export function useWidgetPreferences() {
 
       return {
         id: data.id,
-        widget_config: data.widget_config ? JSON.parse(data.widget_config) : DEFAULT_CONFIG,
+        widget_config: data.widget_config ? JSON.parse(data.widget_config as string) : DEFAULT_CONFIG,
       };
     },
     enabled: !!user,
@@ -69,14 +70,16 @@ export function useUpdateWidgetPreferences() {
       const configString = JSON.stringify(config);
 
       if (id) {
-        const { error } = await supabase
-          .from('widget_preferences')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase
+          .from('widget_preferences') as any)
           .update({ widget_config: configString })
           .eq('id', id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('widget_preferences').insert({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from('widget_preferences') as any).insert({
           user_id: user.id,
           widget_config: configString,
         });

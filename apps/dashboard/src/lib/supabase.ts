@@ -1,5 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
+
+// Re-export Database type for use in hooks
+export type { Database };
+
+// Type alias for typed Supabase client
+export type TypedSupabaseClient = SupabaseClient<Database>;
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -26,7 +32,7 @@ const cookieStorage = {
   },
 };
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase: TypedSupabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: cookieStorage,
     storageKey: 'sb-auth-token',

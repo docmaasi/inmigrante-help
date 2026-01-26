@@ -75,8 +75,9 @@ export function useMarkNotificationRead() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase
+        .from('notifications') as any)
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('id', id);
 
@@ -96,8 +97,9 @@ export function useMarkAllNotificationsRead() {
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
-        .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase
+        .from('notifications') as any)
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('user_id', user.id)
         .eq('is_read', false);
@@ -147,8 +149,9 @@ export function useCreateNotifications() {
         user_id: n.user_id || user.id,
       }));
 
-      const { error } = await supabase
-        .from('notifications')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase
+        .from('notifications') as any)
         .insert(notificationsWithUserId);
 
       if (error) throw error;

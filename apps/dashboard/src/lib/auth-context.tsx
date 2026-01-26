@@ -191,8 +191,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!state.user) throw new Error('No user logged in');
 
-    const { error } = await supabase
-      .from('profiles')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase
+      .from('profiles') as any)
       .update(updates)
       .eq('id', state.user.id);
 

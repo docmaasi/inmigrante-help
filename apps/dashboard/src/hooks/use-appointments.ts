@@ -93,8 +93,9 @@ export function useCreateAppointment() {
     mutationFn: async (data: Omit<InsertTables<'appointments'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('appointments')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('appointments') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -116,8 +117,9 @@ export function useUpdateAppointment() {
       id,
       ...data
     }: UpdateTables<'appointments'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('appointments')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('appointments') as any)
         .update(data)
         .eq('id', id)
         .select()

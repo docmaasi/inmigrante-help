@@ -64,8 +64,9 @@ export function useCreateMedicationRefill() {
     ) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('medication_refills')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('medication_refills') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -87,8 +88,9 @@ export function useUpdateMedicationRefill() {
       id,
       ...data
     }: UpdateTables<'medication_refills'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('medication_refills')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('medication_refills') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -135,8 +137,9 @@ export function useBulkCreateMedicationRefills() {
         user_id: user.id,
       }));
 
-      const { data, error } = await supabase
-        .from('medication_refills')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('medication_refills') as any)
         .insert(refillsWithUserId)
         .select();
 

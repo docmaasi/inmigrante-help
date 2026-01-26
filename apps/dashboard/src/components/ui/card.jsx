@@ -1,9 +1,13 @@
-
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-const Card = React.forwardRef(({ className, ...props }, ref) => (
+/**
+ * @typedef {React.HTMLAttributes<HTMLDivElement> & { className?: string }} CardProps
+ */
+
+/** @type {React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>} */
+const Card = React.forwardRef((/** @type {CardProps} */ { className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn("rounded-2xl border border-slate-200/60 bg-white shadow-sm hover:shadow-md transition-shadow", className)}
@@ -11,7 +15,8 @@ const Card = React.forwardRef(({ className, ...props }, ref) => (
 ))
 Card.displayName = "Card"
 
-const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
+/** @type {React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>} */
+const CardHeader = React.forwardRef((/** @type {CardProps} */ { className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn("flex flex-col space-y-1.5 p-6", className)}
@@ -19,7 +24,8 @@ const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
 ))
 CardHeader.displayName = "CardHeader"
 
-const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
+/** @type {React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>} */
+const CardTitle = React.forwardRef((/** @type {CardProps} */ { className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn("font-semibold leading-none tracking-tight", className)}
@@ -27,7 +33,8 @@ const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
 ))
 CardTitle.displayName = "CardTitle"
 
-const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
+/** @type {React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>} */
+const CardDescription = React.forwardRef((/** @type {CardProps} */ { className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn("text-sm text-muted-foreground", className)}
@@ -35,12 +42,14 @@ const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
 ))
 CardDescription.displayName = "CardDescription"
 
-const CardContent = React.forwardRef(({ className, ...props }, ref) => (
+/** @type {React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>} */
+const CardContent = React.forwardRef((/** @type {CardProps} */ { className, ...props }, ref) => (
   <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
 ))
 CardContent.displayName = "CardContent"
 
-const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
+/** @type {React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>} */
+const CardFooter = React.forwardRef((/** @type {CardProps} */ { className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn("flex items-center p-6 pt-0", className)}

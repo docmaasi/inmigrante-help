@@ -76,8 +76,9 @@ export function useCreateTask() {
     mutationFn: async (data: Omit<InsertTables<'tasks'>, 'user_id'>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('tasks')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('tasks') as any)
         .insert({ ...data, user_id: user.id })
         .select()
         .single();
@@ -99,8 +100,9 @@ export function useUpdateTask() {
       id,
       ...data
     }: UpdateTables<'tasks'> & { id: string }) => {
-      const { data: result, error } = await supabase
-        .from('tasks')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('tasks') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -123,8 +125,9 @@ export function useCompleteTask() {
     mutationFn: async (id: string) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('tasks')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('tasks') as any)
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
@@ -185,8 +188,9 @@ export function useAddTaskComment() {
     mutationFn: async ({ taskId, content }: { taskId: string; content: string }) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: result, error } = await supabase
-        .from('task_comments')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase
+        .from('task_comments') as any)
         .insert({ task_id: taskId, user_id: user.id, content })
         .select()
         .single();
