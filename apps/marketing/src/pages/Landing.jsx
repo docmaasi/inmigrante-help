@@ -15,7 +15,7 @@ import {
 import MarketingLayout from "../components/MarketingLayout";
 
 const DASHBOARD_URL =
-  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5174";
+  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:3001";
 
 const QUOTES = [
   "Care is access, dignity, and inclusion.",

@@ -1,68 +1,108 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { ArrowLeft, Calendar } from "lucide-react";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
 
 export default function LegalPageLayout({ title, icon: Icon, lastUpdated, children }) {
   return (
-    <div className="min-h-screen bg-[#FFFBF7] py-12 md:py-16">
-      <div className="max-w-4xl mx-auto px-4 md:px-8">
+    <div className="py-8 md:py-12">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-4xl mx-auto"
+      >
         {/* Header Section */}
-        <header className="mb-8">
+        <motion.header variants={itemVariants} className="mb-8">
           <div className="flex items-center gap-4 mb-4">
             {Icon && (
-              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-100">
-                <Icon className="w-7 h-7 text-indigo-600" />
+              <div
+                className="flex items-center justify-center w-14 h-14 rounded-2xl"
+                style={{
+                  background: "linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)",
+                  boxShadow: "0 4px 14px -2px rgba(79, 70, 229, 0.3)",
+                }}
+              >
+                <Icon className="w-7 h-7 text-white" />
               </div>
             )}
             <h1
-              className="text-3xl md:text-4xl font-bold text-slate-900"
-              style={{ fontFamily: "var(--font-display, 'Fraunces'), serif" }}
+              className="text-3xl md:text-4xl font-bold text-[#1F2937]"
+              style={{ fontFamily: "var(--font-display)" }}
             >
               {title}
             </h1>
           </div>
           {lastUpdated && (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Calendar className="w-4 h-4" />
-              <span>Last Updated: {lastUpdated}</span>
+            <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+              <Calendar className="w-4 h-4 text-[#E07A5F]" />
+              <span style={{ fontFamily: "var(--font-body)" }}>
+                Last Updated: {lastUpdated}
+              </span>
             </div>
           )}
-        </header>
+        </motion.header>
 
         {/* Content Card */}
-        <article className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-8 md:p-12">
-          <div className="legal-content prose prose-slate max-w-none text-slate-700">
-            {children}
-          </div>
-        </article>
+        <motion.article
+          variants={itemVariants}
+          className="card-glass p-8 md:p-12 legal-content"
+        >
+          {children}
+        </motion.article>
 
         {/* Back to Home Link */}
-        <nav className="mt-8 text-center">
+        <motion.nav variants={itemVariants} className="mt-8 text-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 text-[#6B7280] hover:text-[#4F46E5] transition-colors duration-200 text-sm font-medium group"
+            style={{ fontFamily: "var(--font-body)" }}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
             Back to Home
           </Link>
-        </nav>
-      </div>
+        </motion.nav>
+      </motion.div>
 
       {/* Scoped Styles for Legal Content */}
       <style>{`
         .legal-content {
-          font-family: 'DM Sans', system-ui, sans-serif;
+          font-family: var(--font-body);
           line-height: 1.75;
+          color: #4B5563;
         }
 
         .legal-content h2 {
-          font-family: var(--font-display, 'Fraunces'), serif;
+          font-family: var(--font-display);
           color: #4F46E5;
           font-size: 1.5rem;
           font-weight: 600;
           margin-top: 2.5rem;
           margin-bottom: 1rem;
           padding-bottom: 0.5rem;
-          border-bottom: 1px solid #E5E7EB;
+          border-bottom: 1px solid rgba(79, 70, 229, 0.15);
         }
 
         .legal-content h2:first-child {
@@ -70,8 +110,8 @@ export default function LegalPageLayout({ title, icon: Icon, lastUpdated, childr
         }
 
         .legal-content h3 {
-          font-family: var(--font-display, 'Fraunces'), serif;
-          color: #1E293B;
+          font-family: var(--font-display);
+          color: #1F2937;
           font-size: 1.25rem;
           font-weight: 600;
           margin-top: 1.75rem;
@@ -105,7 +145,7 @@ export default function LegalPageLayout({ title, icon: Icon, lastUpdated, childr
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          background-color: #F97316;
+          background: linear-gradient(135deg, #E07A5F 0%, #F4A261 100%);
         }
 
         .legal-content ol {
@@ -120,18 +160,22 @@ export default function LegalPageLayout({ title, icon: Icon, lastUpdated, childr
           content: counter(list-counter) '.';
           position: absolute;
           left: 0;
-          color: #F97316;
+          background: linear-gradient(135deg, #E07A5F 0%, #F4A261 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           font-weight: 600;
         }
 
         .legal-content a {
-          color: #F97316;
+          color: #E07A5F;
           text-decoration: none;
+          font-weight: 500;
           transition: all 0.2s ease;
         }
 
         .legal-content a:hover {
-          color: #EA580C;
+          color: #4F46E5;
           text-decoration: underline;
         }
 
@@ -140,10 +184,10 @@ export default function LegalPageLayout({ title, icon: Icon, lastUpdated, childr
         .legal-content .notice,
         .legal-content [class*="notice"],
         .legal-content .info-box {
-          background-color: #EEF2FF;
+          background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
           border-left: 4px solid #4F46E5;
-          padding: 1rem 1.25rem;
-          border-radius: 0 0.5rem 0.5rem 0;
+          padding: 1.25rem 1.5rem;
+          border-radius: 0 0.75rem 0.75rem 0;
           margin: 1.5rem 0;
         }
 
@@ -156,7 +200,7 @@ export default function LegalPageLayout({ title, icon: Icon, lastUpdated, childr
         }
 
         .legal-content strong {
-          color: #1E293B;
+          color: #1F2937;
           font-weight: 600;
         }
 

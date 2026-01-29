@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Heart, Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 
-const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'http://localhost:5175';
+const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'http://localhost:3000';
 
 export default function Login() {
   const [email, setEmail] = useState('');

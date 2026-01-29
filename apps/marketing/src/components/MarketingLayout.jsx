@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../lib/use-auth";
 
 const DASHBOARD_URL =
-  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5174";
+  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:3001";
 
 export function MarketingLayout({ children, fullWidth = false }) {
   const [hasScrolled, setHasScrolled] = useState(false);
