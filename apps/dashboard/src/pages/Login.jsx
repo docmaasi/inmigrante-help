@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Heart, Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 
 const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'http://localhost:5175';
 
@@ -61,7 +61,11 @@ export default function Login() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Heart className="w-12 h-12 text-teal-600" fill="currentColor" />
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
+              alt="FamilyCare.Help Logo"
+              className="w-14 h-14 object-contain rounded-lg shadow-sm"
+            />
           </div>
           <h1
             className="text-3xl font-bold tracking-tight"
