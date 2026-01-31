@@ -6,12 +6,15 @@ import { useCreateCarePlan } from '@/hooks/use-care-plans';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Sparkles, Calendar, Heart, Activity, Users, Clock, AlertCircle } from 'lucide-react';
+import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
+import { Sparkles, Calendar, Heart, Activity, Users, Clock, AlertCircle, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function CarePlanGenerator({ recipient, medications = [], appointments = [], tasks = [] }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState(null);
+  const [customPrompt, setCustomPrompt] = useState('');
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -41,6 +44,7 @@ ${tasks.slice(0, 5).map(t => `- ${t.title} (${t.priority} priority)`).join('\n')
 **Additional Notes:**
 ${recipient.notes || 'None'}
 
+${customPrompt ? `**Special Instructions from Caregiver:**\n${customPrompt}\n` : ''}
 Please generate a comprehensive care plan with the following sections:
 
 1. **Daily/Weekly Schedule**: Structured schedule with specific times for medications, meals, activities, and rest periods
@@ -297,6 +301,25 @@ Format your response to be clear, actionable, and compassionate.`;
               <p className="text-slate-600">Appointments</p>
               <p className="font-bold text-slate-800">{appointments.length} upcoming</p>
             </div>
+          </div>
+
+          {/* AI Prompt Input */}
+          <div className="pt-4 space-y-2">
+            <Label htmlFor="ai-prompt" className="flex items-center gap-2 text-slate-700">
+              <MessageSquare className="w-4 h-4 text-purple-600" />
+              Custom Instructions for AI (Optional)
+            </Label>
+            <Textarea
+              id="ai-prompt"
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              placeholder="Tell the AI what to focus on, e.g., 'Focus on mobility exercises and fall prevention' or 'Include activities for dementia care and memory exercises' or 'Create a plan that works around dialysis appointments on Mon/Wed/Fri'"
+              rows={4}
+              className="resize-none"
+            />
+            <p className="text-xs text-slate-500">
+              Add specific needs, preferences, or areas you want the AI to focus on when creating the care plan.
+            </p>
           </div>
 
           <div className="pt-4 space-y-3">

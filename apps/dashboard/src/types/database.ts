@@ -22,6 +22,7 @@ export interface Database {
           legal_accepted_at: string | null;
           subscription_status: string;
           stripe_customer_id: string | null;
+          max_care_recipients: number;
           created_at: string;
           updated_at: string;
         };
@@ -37,6 +38,7 @@ export interface Database {
           legal_accepted_at?: string | null;
           subscription_status?: string;
           stripe_customer_id?: string | null;
+          max_care_recipients?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -52,6 +54,7 @@ export interface Database {
           legal_accepted_at?: string | null;
           subscription_status?: string;
           stripe_customer_id?: string | null;
+          max_care_recipients?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -62,6 +65,7 @@ export interface Database {
           user_id: string;
           first_name: string;
           last_name: string;
+          full_name: string | null;
           date_of_birth: string | null;
           gender: string | null;
           photo_url: string | null;
@@ -74,6 +78,15 @@ export interface Database {
           emergency_contact_name: string | null;
           emergency_contact_phone: string | null;
           emergency_contact_relationship: string | null;
+          emergency_contact_email: string | null;
+          secondary_emergency_contact_name: string | null;
+          secondary_emergency_contact_relationship: string | null;
+          secondary_emergency_contact_phone: string | null;
+          secondary_emergency_contact_email: string | null;
+          primary_condition: string | null;
+          conditions_diagnoses: string | null;
+          medical_history: string | null;
+          dietary_restrictions: string | null;
           medical_conditions: string[] | null;
           allergies: string[] | null;
           blood_type: string | null;
@@ -81,6 +94,7 @@ export interface Database {
           insurance_policy_number: string | null;
           primary_physician: string | null;
           primary_physician_phone: string | null;
+          physician_phone: string | null;
           notes: string | null;
           is_active: boolean;
           created_at: string;
@@ -91,6 +105,7 @@ export interface Database {
           user_id: string;
           first_name: string;
           last_name: string;
+          full_name?: string | null;
           date_of_birth?: string | null;
           gender?: string | null;
           photo_url?: string | null;
@@ -103,6 +118,15 @@ export interface Database {
           emergency_contact_name?: string | null;
           emergency_contact_phone?: string | null;
           emergency_contact_relationship?: string | null;
+          emergency_contact_email?: string | null;
+          secondary_emergency_contact_name?: string | null;
+          secondary_emergency_contact_relationship?: string | null;
+          secondary_emergency_contact_phone?: string | null;
+          secondary_emergency_contact_email?: string | null;
+          primary_condition?: string | null;
+          conditions_diagnoses?: string | null;
+          medical_history?: string | null;
+          dietary_restrictions?: string | null;
           medical_conditions?: string[] | null;
           allergies?: string[] | null;
           blood_type?: string | null;
@@ -110,6 +134,7 @@ export interface Database {
           insurance_policy_number?: string | null;
           primary_physician?: string | null;
           primary_physician_phone?: string | null;
+          physician_phone?: string | null;
           notes?: string | null;
           is_active?: boolean;
           created_at?: string;
@@ -120,6 +145,7 @@ export interface Database {
           user_id?: string;
           first_name?: string;
           last_name?: string;
+          full_name?: string | null;
           date_of_birth?: string | null;
           gender?: string | null;
           photo_url?: string | null;
@@ -132,6 +158,15 @@ export interface Database {
           emergency_contact_name?: string | null;
           emergency_contact_phone?: string | null;
           emergency_contact_relationship?: string | null;
+          emergency_contact_email?: string | null;
+          secondary_emergency_contact_name?: string | null;
+          secondary_emergency_contact_relationship?: string | null;
+          secondary_emergency_contact_phone?: string | null;
+          secondary_emergency_contact_email?: string | null;
+          primary_condition?: string | null;
+          conditions_diagnoses?: string | null;
+          medical_history?: string | null;
+          dietary_restrictions?: string | null;
           medical_conditions?: string[] | null;
           allergies?: string[] | null;
           blood_type?: string | null;
@@ -139,6 +174,7 @@ export interface Database {
           insurance_policy_number?: string | null;
           primary_physician?: string | null;
           primary_physician_phone?: string | null;
+          physician_phone?: string | null;
           notes?: string | null;
           is_active?: boolean;
           created_at?: string;

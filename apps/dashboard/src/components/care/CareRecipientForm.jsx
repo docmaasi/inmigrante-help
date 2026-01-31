@@ -13,7 +13,8 @@ import { format, parseISO } from 'date-fns';
 export function CareRecipientForm({ recipient, onClose }) {
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState(recipient || {
-    full_name: '',
+    first_name: '',
+    last_name: '',
     date_of_birth: '',
     photo_url: '',
     primary_condition: '',
@@ -26,7 +27,9 @@ export function CareRecipientForm({ recipient, onClose }) {
     emergency_contact_phone: '',
     emergency_contact_email: '',
     secondary_emergency_contact_name: '',
+    secondary_emergency_contact_relationship: '',
     secondary_emergency_contact_phone: '',
+    secondary_emergency_contact_email: '',
     primary_physician: '',
     physician_phone: '',
     notes: ''
@@ -86,8 +89,8 @@ export function CareRecipientForm({ recipient, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.full_name) {
-      toast.error('Please enter a name');
+    if (!formData.first_name || !formData.last_name) {
+      toast.error('Please enter first and last name');
       return;
     }
 
@@ -184,12 +187,22 @@ export function CareRecipientForm({ recipient, onClose }) {
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="first_name">First Name *</Label>
               <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                placeholder="Enter full name"
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="Enter first name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="last_name">Last Name *</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                placeholder="Enter last name"
                 required
               />
             </div>
@@ -408,12 +421,31 @@ export function CareRecipientForm({ recipient, onClose }) {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="secondary_emergency_contact_relationship">Relationship</Label>
+                <Input
+                  id="secondary_emergency_contact_relationship"
+                  value={formData.secondary_emergency_contact_relationship}
+                  onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_relationship: e.target.value })}
+                  placeholder="Son, Daughter, Spouse..."
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="secondary_emergency_contact_phone">Contact Phone</Label>
                 <Input
                   id="secondary_emergency_contact_phone"
                   value={formData.secondary_emergency_contact_phone}
                   onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_phone: e.target.value })}
                   placeholder="(555) 987-6543"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secondary_emergency_contact_email">Contact Email</Label>
+                <Input
+                  id="secondary_emergency_contact_email"
+                  type="email"
+                  value={formData.secondary_emergency_contact_email}
+                  onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_email: e.target.value })}
+                  placeholder="jane@example.com"
                 />
               </div>
             </div>
