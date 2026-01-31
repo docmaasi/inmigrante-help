@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import FileUpload from '../shared/FileUpload';
+import { errorHandlers } from "@/lib/error-handler";
 
 const searchMedications = async (query) => {
   try {
@@ -70,7 +71,8 @@ export function MedicationForm({ medication, recipients, onClose }) {
         setSuggestions(results);
         setShowSuggestions(true);
       } catch (error) {
-        toast.error('Failed to search medications');
+        // Silent fail for search - user can still enter manually
+        console.error('Medication search failed:', error);
       } finally {
         setIsSearching(false);
       }
@@ -107,8 +109,16 @@ export function MedicationForm({ medication, recipients, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.care_recipient_id || !formData.name || !formData.dosage) {
-      toast.error('Please fill in all required fields');
+    if (!formData.care_recipient_id) {
+      toast.error('Please select who this medication is for.');
+      return;
+    }
+    if (!formData.name) {
+      toast.error('Please enter the medication name.');
+      return;
+    }
+    if (!formData.dosage) {
+      toast.error('Please enter the dosage (e.g., 10mg, 2 tablets).');
       return;
     }
 
@@ -131,14 +141,14 @@ export function MedicationForm({ medication, recipients, onClose }) {
     try {
       if (medication?.id) {
         await updateMutation.mutateAsync({ id: medication.id, ...dataToSave });
-        toast.success('Medication updated');
+        toast.success('Medication updated successfully!');
       } else {
         await createMutation.mutateAsync(dataToSave);
-        toast.success('Medication added');
+        toast.success('Medication added successfully!');
       }
       onClose();
     } catch (error) {
-      toast.error(error.message || 'Failed to save medication');
+      errorHandlers.save('medication', error);
     }
   };
 

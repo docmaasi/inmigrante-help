@@ -210,6 +210,30 @@ export default function Login() {
             Sign up
           </Link>
         </p>
+
+        {/* Legal links */}
+        <p
+          className="text-center text-xs text-gray-400"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
+          <a
+            href={`${MARKETING_URL}/privacy`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-teal-600 transition-colors"
+          >
+            Privacy Policy
+          </a>
+          {' · '}
+          <a
+            href={`${MARKETING_URL}/terms`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-teal-600 transition-colors"
+          >
+            Terms of Service
+          </a>
+        </p>
       </div>
     </div>
   );

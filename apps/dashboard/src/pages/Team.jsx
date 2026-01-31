@@ -11,6 +11,7 @@ import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2 } from 
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
+import { errorHandlers } from "@/lib/error-handler";
 import {
   useTeamMembers,
   useInviteTeamMember,
@@ -88,7 +89,7 @@ export default function Team() {
             handleCloseDialog();
           },
           onError: (error) => {
-            toast.error(error.message || 'Failed to update team member');
+            errorHandlers.save('team member', error);
           },
         }
       );
@@ -109,7 +110,7 @@ export default function Team() {
             handleCloseDialog();
           },
           onError: (error) => {
-            toast.error(error.message || 'Failed to add team member');
+            errorHandlers.save('team member', error);
           },
         }
       );

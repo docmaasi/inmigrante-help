@@ -95,6 +95,14 @@ export default function Layout({ children, currentPageName }) {
         {/* Footer */}
         <footer className="border-t border-slate-100 bg-white mt-auto">
           <div className="px-4 md:px-6 py-4">
+            {/* HIPAA Disclaimer */}
+            <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-xs text-amber-800 text-center">
+                <strong>Important:</strong> FamilyCare.Help is designed for family care coordination and informational purposes only.
+                This platform is <strong>not HIPAA compliant</strong> and should not be used to store or transmit protected health information (PHI).
+                It is not a substitute for professional medical, legal, or financial advice.
+              </p>
+            </div>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-sm text-slate-500">
                 FamilyCare.Help

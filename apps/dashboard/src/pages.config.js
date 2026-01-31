@@ -14,6 +14,7 @@ import Collaboration from "./pages/Collaboration";
 import CommunicationHub from "./pages/CommunicationHub";
 import Documents from "./pages/Documents";
 import Emergency from "./pages/Emergency";
+import Help from "./pages/Help";
 import EmergencyProfile from "./pages/EmergencyProfile";
 import MedicationLog from "./pages/MedicationLog";
 import Medications from "./pages/Medications";
@@ -50,6 +51,7 @@ export const PAGES = {
   Documents,
   Emergency,
   EmergencyProfile,
+  Help,
   MedicationLog,
   Medications,
   Messages,

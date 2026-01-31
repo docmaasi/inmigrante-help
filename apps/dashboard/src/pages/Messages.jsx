@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Plus, Phone } from 'lucide-react';
+import { MessageSquare, Plus, Phone, Search, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
@@ -31,6 +31,7 @@ export default function Messages() {
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [showNewConvDialog, setShowNewConvDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newConvData, setNewConvData] = useState({
     name: '',
     care_recipient_id: '',
@@ -105,6 +106,23 @@ export default function Messages() {
     full_name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
   }));
 
+  // Filter conversations based on search query
+  const filteredConversations = searchQuery.trim()
+    ? conversations.filter(conv => {
+        const nameMatch = conv.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        const recipientName = formattedRecipients.find(r => r.id === conv.care_recipient_id)?.full_name || '';
+        const recipientMatch = recipientName.toLowerCase().includes(searchQuery.toLowerCase());
+        return nameMatch || recipientMatch;
+      })
+    : conversations;
+
+  // Filter messages based on search query (for current conversation)
+  const filteredMessages = searchQuery.trim()
+    ? messages.filter(msg =>
+        msg.content?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : messages;
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
@@ -129,6 +147,33 @@ export default function Messages() {
           </TabsList>
 
           <TabsContent value="messages">
+            {/* Search Bar */}
+            <div className="mb-4">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search conversations and messages..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-10"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <p className="text-sm text-slate-500 mt-2">
+                  Found {filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}
+                  {selectedConversationId && ` and ${filteredMessages.length} message${filteredMessages.length !== 1 ? 's' : ''} in current chat`}
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Conversations List */}
               <Card className="lg:col-span-1 shadow-sm border-slate-200">
@@ -145,17 +190,21 @@ export default function Messages() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-4">
-                  {conversations.length === 0 ? (
+                  {filteredConversations.length === 0 ? (
                     <div className="text-center py-8">
                       <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                      <p className="text-slate-500 text-sm mb-4">No conversations yet</p>
-                      <Button onClick={() => setShowNewConvDialog(true)} size="sm">
-                        Start Conversation
-                      </Button>
+                      <p className="text-slate-500 text-sm mb-4">
+                        {searchQuery ? 'No conversations match your search' : 'No conversations yet'}
+                      </p>
+                      {!searchQuery && (
+                        <Button onClick={() => setShowNewConvDialog(true)} size="sm">
+                          Start Conversation
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <ConversationList
-                      conversations={conversations}
+                      conversations={filteredConversations}
                       selectedId={selectedConversationId}
                       onSelect={setSelectedConversationId}
                       recipients={formattedRecipients}
@@ -174,7 +223,11 @@ export default function Messages() {
                         {formattedRecipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
                       </p>
                     </CardHeader>
-                    <MessageThread messages={messages} currentUserEmail={user?.email} />
+                    <MessageThread
+                      messages={searchQuery ? filteredMessages : messages}
+                      currentUserEmail={user?.email}
+                      searchQuery={searchQuery}
+                    />
                     <MessageInput
                       onSend={handleSendMessage}
                       onShareUpdate={() => setShowShareDialog(true)}

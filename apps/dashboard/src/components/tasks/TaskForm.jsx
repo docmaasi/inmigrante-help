@@ -12,6 +12,7 @@ import { X, Loader2, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { cn } from "@/lib/utils";
+import { errorHandlers } from "@/lib/error-handler";
 
 export default function TaskForm({ task, recipients, teamMembers = [], onClose }) {
   const [formData, setFormData] = useState(task ? {
@@ -43,8 +44,12 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.care_recipient_id || !formData.title) {
-      toast.error('Please fill in all required fields');
+    if (!formData.care_recipient_id) {
+      toast.error('Please select a care recipient for this task.');
+      return;
+    }
+    if (!formData.title) {
+      toast.error('Please enter a title for the task.');
       return;
     }
 
@@ -66,22 +71,22 @@ export default function TaskForm({ task, recipients, teamMembers = [], onClose }
         { id: task.id, ...taskData },
         {
           onSuccess: () => {
-            toast.success('Task updated');
+            toast.success('Task updated successfully!');
             onClose();
           },
           onError: (error) => {
-            toast.error('Failed to update task');
+            errorHandlers.save('task', error);
           }
         }
       );
     } else {
       createMutation.mutate(taskData, {
         onSuccess: () => {
-          toast.success('Task created');
+          toast.success('Task created successfully!');
           onClose();
         },
         onError: (error) => {
-          toast.error('Failed to create task');
+          errorHandlers.save('task', error);
         }
       });
     }

@@ -4,7 +4,9 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, FileText, RefreshCw, Mail } from 'lucide-react';
+import { Shield, FileText, RefreshCw, Mail, CreditCard, ExternalLink, Receipt, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -19,8 +21,11 @@ const CURRENT_VERSIONS = {
 export default function Settings() {
   const [showReacceptModal, setShowReacceptModal] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const { data: acceptances } = useQuery({
     queryKey: ['legalAcceptances', user?.id],
@@ -80,12 +85,78 @@ export default function Settings() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+
+    setIsDeleting(true);
+    try {
+      // Call Edge Function to cancel subscription and mark account for deletion
+      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+        body: { reason: 'User requested account deletion' }
+      });
+
+      if (error) throw error;
+
+      toast.success('Your subscription has been canceled and account deletion requested.');
+
+      // Sign out the user
+      await signOut();
+    } catch (error) {
+      console.error('Deletion request failed:', error);
+      toast.error('Failed to process account deletion. Please contact support at familycarehelp@mail.com');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-4xl mx-auto px-4 md:px-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-8">Settings</h1>
 
         <div className="space-y-6">
+          {/* Subscription Management Section */}
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-teal-600" />
+                Subscription & Billing
+              </CardTitle>
+              <CardDescription>
+                Manage your subscription, payment methods, and view billing history
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                <p className="text-sm text-teal-800">
+                  Your subscription is managed through Stripe's secure billing portal. Click the button below to:
+                </p>
+                <ul className="text-sm text-teal-700 mt-2 ml-4 list-disc space-y-1">
+                  <li>View and update your payment method</li>
+                  <li>See your billing history and download invoices</li>
+                  <li>Add or remove additional family members ($5/month each)</li>
+                  <li>Change or cancel your subscription</li>
+                </ul>
+              </div>
+
+              <a
+                href="https://billing.stripe.com/p/login/aFaaEX04IcA44E1cjF4AU00"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 w-full sm:w-auto"
+              >
+                <Receipt className="w-5 h-5" />
+                Manage Subscription
+                <ExternalLink className="w-4 h-4" />
+              </a>
+
+              <p className="text-xs text-slate-500">
+                You'll be redirected to Stripe's secure billing portal. Use the email associated with your account to log in.
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Legal & Privacy Section */}
           <Card className="border-slate-200 shadow-sm">
             <CardHeader>
@@ -173,6 +244,55 @@ export default function Settings() {
               </a>
             </CardContent>
           </Card>
+
+          {/* Account Deletion Section */}
+          <Card className="border-red-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-700">
+                <Trash2 className="w-5 h-5" />
+                Delete Account
+              </CardTitle>
+              <CardDescription>
+                Cancel your subscription and schedule account deletion
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 60-day retention notice */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex gap-3">
+                  <RefreshCw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-800">
+                    <p className="font-semibold mb-1">60-Day Data Retention</p>
+                    <p>Your data will be archived for 60 days. During this period, you can reactivate your subscription and restore all your data. After 60 days, data will be permanently deleted.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex gap-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-800">
+                    <p className="font-semibold mb-2">What happens when you delete:</p>
+                    <ul className="list-disc ml-4 space-y-1">
+                      <li>Your subscription will be canceled immediately</li>
+                      <li>All team members will lose access</li>
+                      <li>Data is archived for 60 days (can be restored if you re-subscribe)</li>
+                      <li>After 60 days, all data is permanently deleted</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => setShowDeleteModal(true)}
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Request Account Deletion
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -241,6 +361,75 @@ export default function Settings() {
                 className="flex-1 bg-teal-600 hover:bg-teal-700"
               >
                 {reacceptMutation.isPending ? 'Processing...' : 'Accept'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Account Deletion Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-red-700 flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6" />
+              Delete Your Account
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <p className="text-sm text-amber-800">
+                <span className="font-semibold">60-day recovery period:</span> Your data will be archived for 60 days. If you change your mind, simply re-subscribe and your data will be restored.
+              </p>
+            </div>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-800 font-medium">
+                Your subscription will be canceled immediately and you'll be signed out.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm text-slate-700">
+                To confirm, type <span className="font-mono font-bold bg-slate-100 px-2 py-0.5 rounded">DELETE</span> below:
+              </p>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                placeholder="Type DELETE to confirm"
+                className="font-mono"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                }}
+                variant="outline"
+                className="flex-1"
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Account
+                  </>
+                )}
               </Button>
             </div>
           </div>

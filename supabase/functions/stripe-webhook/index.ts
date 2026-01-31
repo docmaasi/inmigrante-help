@@ -34,7 +34,7 @@ serve(async (req) => {
         // Find user by stripe_customer_id
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, is_archived, deletion_status')
           .eq('stripe_customer_id', customerId)
           .single();
 
@@ -53,11 +53,29 @@ serve(async (req) => {
             onConflict: 'stripe_subscription_id',
           });
 
-          // Update profile subscription status
-          await supabase
-            .from('profiles')
-            .update({ subscription_status: subscription.status })
-            .eq('id', profile.id);
+          // If account was archived/pending deletion, restore it on new subscription
+          if (profile.is_archived || profile.deletion_status === 'pending') {
+            await supabase
+              .from('profiles')
+              .update({
+                subscription_status: subscription.status,
+                is_archived: false,
+                deletion_status: null,
+                deletion_requested_at: null,
+                deletion_scheduled_at: null,
+                deletion_reason: null,
+                restored_at: new Date().toISOString(),
+              })
+              .eq('id', profile.id);
+
+            console.log(`Account ${profile.id} restored via new subscription`);
+          } else {
+            // Just update subscription status
+            await supabase
+              .from('profiles')
+              .update({ subscription_status: subscription.status })
+              .eq('id', profile.id);
+          }
         }
         break;
       }
