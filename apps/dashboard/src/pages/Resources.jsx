@@ -143,6 +143,15 @@ const articles = [
     readTime: '5 min read',
     category: 'platform',
   },
+  {
+    id: 'coparent-help',
+    title: 'Finding Stability for Families During Separation: CoParent.Help and FamilyCare.Help',
+    description: 'How our sister products work together to support families navigating divorce, custody changes, and caregiving.',
+    icon: Users,
+    color: 'fuchsia',
+    readTime: '4 min read',
+    category: 'platform',
+  },
 ];
 
 // Article 1: Building Bridges
@@ -1537,6 +1546,105 @@ const WorthTheCostContent = () => (
   </div>
 );
 
+// Article 15: CoParent.Help Cross-Marketing
+const CoParentHelpContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-fuchsia-50 border-l-4 border-fuchsia-500 p-4 rounded-r-lg mb-8">
+      <p className="text-fuchsia-800 font-medium m-0">
+        <strong>Summary:</strong> CoParent.Help and FamilyCare.Help are sister products that work together to support families. CoParent.Help focuses on co-parenting coordination during separation, while FamilyCare.Help handles broader caregiving needs. Together, they help families navigate complex transitions with clarity and structure.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        Families going through divorce, breakups, or custody changes often face emotional, legal, and logistical challenges at the same time. Communication can become strained, misunderstandings grow, and children frequently feel the impact. During these transitions, structure and clarity are not just helpful — they are essential.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Users className="w-6 h-6 text-fuchsia-600" />
+        What is CoParent.Help?
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        CoParent.Help is designed specifically for co-parenting situations where coordination between adults is necessary, even when relationships are tense. Instead of relying on emotional conversations or scattered messages, parents can use a centralized system to manage schedules, share updates, and document important information related to their children.
+      </p>
+      <p className="text-slate-700 leading-relaxed">
+        This helps reduce conflict and keeps the focus where it belongs — on the well-being and stability of the kids.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <BookOpen className="w-6 h-6 text-fuchsia-600" />
+        Organized Communication and Documentation
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Many parents navigating separation also feel overwhelmed or frustrated by legal and custody systems that can seem complicated or unfair. While no digital tool can change legal outcomes, organized communication and clear documentation can help parents stay prepared, informed, and consistent. Having structured records of schedules, responsibilities, and care details can reduce confusion and support more effective communication.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Layout className="w-6 h-6 text-fuchsia-600" />
+        How CoParent.Help and FamilyCare.Help Work Together
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        At the same time, some families face additional caregiving responsibilities beyond co-parenting. That is where FamilyCare.Help becomes valuable.
+      </p>
+      <div className="grid gap-4 md:grid-cols-2 mb-4">
+        <div className="bg-fuchsia-50 rounded-xl p-5">
+          <h3 className="font-semibold text-fuchsia-900 mb-2">CoParent.Help</h3>
+          <p className="text-sm text-fuchsia-800 m-0">
+            Focuses on communication and coordination between parents during separation, custody transitions, and co-parenting situations.
+          </p>
+        </div>
+        <div className="bg-teal-50 rounded-xl p-5">
+          <h3 className="font-semibold text-teal-900 mb-2">FamilyCare.Help</h3>
+          <p className="text-sm text-teal-800 m-0">
+            Supports broader care management — tracking health needs, daily support tasks, and coordination for family members who require extra assistance.
+          </p>
+        </div>
+      </div>
+      <p className="text-slate-700 leading-relaxed">
+        Together, these tools help families handle both parenting logistics and caregiving responsibilities in an organized way.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Heart className="w-6 h-6 text-fuchsia-600" />
+        Stability for Children and Parents
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        For children, predictability and stability are critical, especially during times of change. Structured coordination helps create consistent routines and clearer expectations. For caregivers and parents, having reliable systems in place reduces mental overload and stress.
+      </p>
+      <p className="text-slate-700 leading-relaxed">
+        Separation is emotionally heavy, but organization can reduce the chaos that often makes situations worse.
+      </p>
+    </section>
+
+    <section className="mb-4">
+      <div className="bg-gradient-to-r from-fuchsia-50 to-pink-50 border-l-4 border-fuchsia-500 p-6 rounded-r-xl">
+        <p className="text-lg text-fuchsia-900 font-medium mb-4">
+          CoParent.Help and FamilyCare.Help work in complementary ways to bring clarity, accountability, and calmer communication to families navigating complex transitions.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <a
+            href="https://www.coparent.help"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 transition-colors text-sm font-medium no-underline"
+          >
+            Visit CoParent.Help
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+);
+
 // Map article IDs to their content components
 const articleContentMap = {
   'building-bridges': BuildingBridgesContent,
@@ -1553,6 +1661,7 @@ const articleContentMap = {
   'how-we-help': HowWeHelpContent,
   'features-benefits': FeaturesBenefitsContent,
   'worth-the-cost': WorthTheCostContent,
+  'coparent-help': CoParentHelpContent,
 };
 
 // Color mapping for article cards
@@ -1571,6 +1680,7 @@ const colorClasses = {
   emerald: { bg: 'bg-emerald-100', hoverBg: 'group-hover:bg-emerald-200', icon: 'text-emerald-600', header: 'from-emerald-50 to-teal-50', border: 'border-emerald-500' },
   sky: { bg: 'bg-sky-100', hoverBg: 'group-hover:bg-sky-200', icon: 'text-sky-600', header: 'from-sky-50 to-cyan-50', border: 'border-sky-500' },
   slate: { bg: 'bg-slate-200', hoverBg: 'group-hover:bg-slate-300', icon: 'text-slate-600', header: 'from-slate-100 to-slate-50', border: 'border-slate-500' },
+  fuchsia: { bg: 'bg-fuchsia-100', hoverBg: 'group-hover:bg-fuchsia-200', icon: 'text-fuchsia-600', header: 'from-fuchsia-50 to-pink-50', border: 'border-fuchsia-500' },
 };
 
 export default function Resources() {
