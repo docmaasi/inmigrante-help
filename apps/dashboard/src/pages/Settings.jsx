@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, FileText, RefreshCw, Mail, CreditCard, ExternalLink, Receipt, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Shield, FileText, RefreshCw, Mail, CreditCard, ExternalLink, Receipt, Trash2, AlertTriangle, Loader2, Settings as SettingsIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -24,6 +24,7 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const queryClient = useQueryClient();
   const { user, signOut } = useAuth();
 
@@ -85,6 +86,27 @@ export default function Settings() {
     }
   };
 
+  const handleManageSubscription = async () => {
+    setIsLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-portal-session', {
+        body: { returnUrl: window.location.href }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No portal URL returned');
+      }
+    } catch (error) {
+      console.error('Failed to open billing portal:', error);
+      toast.error('Unable to open billing portal. Please try again or contact support.');
+      setIsLoadingPortal(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') return;
 
@@ -140,19 +162,27 @@ export default function Settings() {
                 </ul>
               </div>
 
-              <a
-                href="https://billing.stripe.com/p/login/aFaaEX04IcA44E1cjF4AU00"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 w-full sm:w-auto"
+              <Button
+                onClick={handleManageSubscription}
+                disabled={isLoadingPortal}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 w-full sm:w-auto h-auto"
               >
-                <Receipt className="w-5 h-5" />
-                Manage Subscription
-                <ExternalLink className="w-4 h-4" />
-              </a>
+                {isLoadingPortal ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Opening Portal...
+                  </>
+                ) : (
+                  <>
+                    <SettingsIcon className="w-5 h-5" />
+                    Manage Your Subscription
+                    <ExternalLink className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
 
               <p className="text-xs text-slate-500">
-                You'll be redirected to Stripe's secure billing portal. Use the email associated with your account to log in.
+                You'll be securely redirected to Stripe to manage your subscription, payment methods, and billing history.
               </p>
             </CardContent>
           </Card>
