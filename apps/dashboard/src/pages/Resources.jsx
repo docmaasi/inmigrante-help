@@ -17,7 +17,11 @@ import {
   Activity,
   Shield,
   Lightbulb,
-  CheckCircle
+  CheckCircle,
+  Layout,
+  Zap,
+  DollarSign,
+  Star
 } from 'lucide-react';
 
 const articles = [
@@ -84,6 +88,60 @@ const articles = [
     icon: Home,
     color: 'cyan',
     readTime: '8 min read',
+  },
+  {
+    id: 'familycare-intro',
+    title: 'FamilyCare.Help: Bringing Clarity and Coordination to Modern Family Care',
+    description: 'Discover how our platform helps families stay organized while supporting loved ones with ongoing care needs.',
+    icon: Layout,
+    color: 'rose',
+    readTime: '4 min read',
+    category: 'platform',
+  },
+  {
+    id: 'familycare-disabilities',
+    title: 'Supporting Families Caring for Individuals with Disabilities',
+    description: 'How FamilyCare.Help simplifies care coordination for families supporting loved ones with disabilities.',
+    icon: HandHeart,
+    color: 'violet',
+    readTime: '5 min read',
+    category: 'platform',
+  },
+  {
+    id: 'why-technology-matters',
+    title: 'Why Technology Like FamilyCare.Help Matters More Than Ever',
+    description: 'Explore why digital care coordination tools have become essential for modern family caregiving.',
+    icon: Zap,
+    color: 'orange',
+    readTime: '5 min read',
+    category: 'platform',
+  },
+  {
+    id: 'how-we-help',
+    title: 'How FamilyCare.Help Helps Families Every Day',
+    description: 'A practical overview of how our platform reduces stress and improves care coordination daily.',
+    icon: CheckCircle,
+    color: 'emerald',
+    readTime: '3 min read',
+    category: 'platform',
+  },
+  {
+    id: 'features-benefits',
+    title: 'Exploring the Features of FamilyCare.Help and How Families Benefit',
+    description: 'Deep dive into platform features and real family experiences using our care coordination tools.',
+    icon: Star,
+    color: 'sky',
+    readTime: '5 min read',
+    category: 'platform',
+  },
+  {
+    id: 'worth-the-cost',
+    title: 'Why FamilyCare.Help Is Worth the Cost',
+    description: 'Understanding the value of investing in care coordination for your family.',
+    icon: DollarSign,
+    color: 'slate',
+    readTime: '5 min read',
+    category: 'platform',
   },
 ];
 
@@ -1019,6 +1077,466 @@ const CircleOfCareContent = () => (
   </div>
 );
 
+// Article 9: FamilyCare.Help Introduction
+const FamilyCareIntroContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-lg mb-8">
+      <p className="text-rose-800 font-medium m-0">
+        <strong>Summary:</strong> FamilyCare.Help is a digital care coordination platform designed to help families stay organized while supporting seniors, individuals with disabilities, or anyone needing ongoing assistance. It brings structure, clarity, and peace of mind to families navigating caregiving responsibilities.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        Caring for a loved one can be one of the most meaningful roles a person takes on, but it can also be overwhelming. Between medical appointments, medication tracking, daily needs, and communication with other family members, important details can easily fall through the cracks. FamilyCare.Help was created to bring structure, clarity, and peace of mind to families navigating these responsibilities.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Layout className="w-6 h-6 text-rose-600" />
+        One Central Place for Care
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        FamilyCare.Help is a digital care coordination platform designed to help families stay organized while supporting seniors, individuals with disabilities, or anyone needing ongoing assistance. Instead of scattered notes, text messages, and forgotten details, families have one central place to manage care information. This makes collaboration easier and reduces stress for everyone involved.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Users className="w-6 h-6 text-rose-600" />
+        Shared Visibility
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        One of the platform's greatest strengths is shared visibility. Authorized family members and caregivers can view schedules, updates, and important notes in real time. This helps prevent miscommunication and ensures everyone understands current needs and responsibilities. Whether it is tracking appointments, documenting daily observations, or sharing care updates, the system keeps everyone aligned.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <BookOpen className="w-6 h-6 text-rose-600" />
+        Structured Documentation
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        FamilyCare.Help also supports documentation in a structured and secure way. Families can log care activities, record concerns, and maintain organized records that may be helpful when communicating with healthcare providers or support services. Having consistent documentation can make a significant difference when coordinating long term care or responding to changing health conditions.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Sparkles className="w-6 h-6 text-rose-600" />
+        Designed for Ease of Use
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Ease of use is another key benefit. Not every caregiver is tech savvy, so the platform is designed to be simple, clear, and accessible. The goal is to reduce the mental load on families, not add to it. By streamlining communication and organization, FamilyCare.Help helps caregivers spend less time managing logistics and more time focusing on meaningful moments with their loved ones.
+      </p>
+    </section>
+
+    <section className="mb-4">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Heart className="w-6 h-6 text-rose-600" />
+        Empowering Families
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Ultimately, FamilyCare.Help is about empowerment. It gives families the tools to feel more confident, informed, and connected as they provide care.
+      </p>
+      <div className="bg-gradient-to-r from-rose-50 to-pink-50 border-l-4 border-rose-500 p-6 rounded-r-xl">
+        <p className="text-lg text-rose-900 font-medium m-0">
+          In a time when caregiving responsibilities are growing more complex, having a reliable system in place can make all the difference.
+        </p>
+      </div>
+    </section>
+  </div>
+);
+
+// Article 10: FamilyCare.Help for Disabilities
+const FamilyCareDisabilitiesContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-violet-50 border-l-4 border-violet-500 p-4 rounded-r-lg mb-8">
+      <p className="text-violet-800 font-medium m-0">
+        <strong>Summary:</strong> FamilyCare.Help is a digital platform focused on simplifying how families coordinate care for loved ones with physical, developmental, cognitive, or long-term disabilities, creating consistency in care and reducing stress.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        Caring for a person with a disability requires dedication, patience, and constant coordination. Families often balance medical appointments, therapy schedules, educational plans, support services, daily routines, and emotional care all at once. It can feel like managing a full-time operation without a central system. FamilyCare.Help was designed to ease that burden and give families a more organized, supportive way to manage care.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Layout className="w-6 h-6 text-violet-600" />
+        Simplifying Disability Care Coordination
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        FamilyCare.Help is a digital platform focused on simplifying how families coordinate care for loved ones with physical, developmental, cognitive, or long-term disabilities. Instead of relying on memory, scattered notes, or long message threads, families can keep essential information in one secure and structured place. This creates consistency in care and reduces the stress that often comes with juggling multiple responsibilities.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Users className="w-6 h-6 text-violet-600" />
+        Shared Coordination
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        One of the most valuable features for families of individuals with disabilities is shared coordination. Authorized caregivers, relatives, or support workers can stay informed about routines, needs, and updates. This is especially helpful when multiple people are involved in daily support, such as parents, aides, therapists, or extended family. Everyone can see the same information, helping prevent confusion and ensuring continuity of care.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <BookOpen className="w-6 h-6 text-violet-600" />
+        Comprehensive Documentation
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Documentation is another major benefit. Families can track behaviors, therapy progress, medication changes, mobility needs, communication preferences, and daily observations. These records can be extremely helpful during meetings with healthcare providers, school staff, or case managers. Having organized information available supports better decision-making and clearer communication about the individual's needs.
+      </p>
+    </section>
+
+    <section className="mb-4">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Heart className="w-6 h-6 text-violet-600" />
+        Focus on What Matters
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        The platform is also designed with simplicity in mind. Caregivers already have a lot on their plates, so the system focuses on being easy to navigate and practical to use. The goal is not to add another complicated task, but to reduce mental load and improve confidence in managing care.
+      </p>
+      <div className="bg-gradient-to-r from-violet-50 to-purple-50 border-l-4 border-violet-500 p-6 rounded-r-xl">
+        <p className="text-lg text-violet-900 font-medium m-0">
+          FamilyCare.Help empowers families by turning complex care coordination into a more manageable, connected process. By improving organization and communication, it helps families focus on what truly matters: providing consistent, compassionate support and improving quality of life for their loved one.
+        </p>
+      </div>
+    </section>
+  </div>
+);
+
+// Article 11: Why Technology Matters
+const WhyTechnologyMattersContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg mb-8">
+      <p className="text-orange-800 font-medium m-0">
+        <strong>Summary:</strong> Family caregiving has changed dramatically. Longer life expectancy and more complex care needs mean families need better tools. Digital care coordination platforms help prevent breakdowns, improve communication, support documentation, and reduce caregiver mental overload.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        Family caregiving has changed. Longer life expectancy, more complex medical conditions, and increased reliance on in-home support mean families are now managing responsibilities that once belonged solely to institutions. Yet most caregivers still rely on notebooks, scattered texts, and memory to handle critical information. That gap between responsibility and organization is exactly why technology like FamilyCare.Help is so important.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Zap className="w-6 h-6 text-orange-600" />
+        Care Is No Longer Simple
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Care is no longer simple. A single individual may have multiple doctors, therapy providers, medications, mobility needs, dietary considerations, and behavioral or cognitive support plans. Without a structured system, information can easily be lost, misunderstood, or delayed. Small oversights can lead to missed appointments, medication errors, or confusion between caregivers. A digital care coordination platform helps prevent these breakdowns by centralizing information and keeping everyone on the same page.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <MessageCircle className="w-6 h-6 text-orange-600" />
+        Communication Across Distance
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Another key reason this technology matters is communication. Families often share caregiving duties across households, cities, or even states. When updates are not shared consistently, stress and frustration grow. Technology creates real-time visibility so caregivers can see updates, log observations, and stay informed without constant phone calls or repeated explanations. This reduces conflict and builds trust among family members and support teams.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <BookOpen className="w-6 h-6 text-orange-600" />
+        Documentation Matters
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Documentation is also increasingly important. Healthcare providers, schools, therapists, and support agencies often need clear records to make decisions or adjust care plans. Having organized documentation of routines, symptoms, behaviors, or daily care activities helps professionals respond more accurately and efficiently. Technology transforms casual notes into useful, structured records.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Heart className="w-6 h-6 text-orange-600" />
+        Caregiver Well-Being
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Just as important is caregiver well-being. Mental overload is one of the biggest challenges caregivers face. Remembering every detail while managing daily life can be exhausting. A platform designed to organize tasks and information reduces that mental strain, helping caregivers feel more confident and less overwhelmed.
+      </p>
+    </section>
+
+    <section className="mb-4">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Shield className="w-6 h-6 text-orange-600" />
+        Safety and Quality of Life
+      </h2>
+      <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-500 p-6 rounded-r-xl">
+        <p className="text-lg text-orange-900 font-medium m-0">
+          Ultimately, technology like FamilyCare.Help supports both safety and quality of life. It strengthens coordination, improves communication, and provides structure in situations that can otherwise feel chaotic. As caregiving responsibilities continue to grow in complexity, having the right digital tools is no longer a luxury. It is becoming a necessity for families striving to provide consistent, compassionate care.
+        </p>
+      </div>
+    </section>
+  </div>
+);
+
+// Article 12: How We Help Every Day
+const HowWeHelpContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-8">
+      <p className="text-emerald-800 font-medium m-0">
+        <strong>Summary:</strong> A practical overview of how FamilyCare.Help takes the chaos out of caregiving and replaces it with clarity, coordination, and confidence through centralized information, shared access, health tracking, scheduling, and documentation.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        Caring for someone you love is important work, but it can get complicated fast. FamilyCare.Help is built to take the chaos out of caregiving and replace it with clarity, coordination, and confidence.
+      </p>
+    </section>
+
+    <div className="grid gap-6 mb-8">
+      <div className="bg-slate-50 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="text-2xl">🗂</div>
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-2">Centralizes Important Information</h3>
+            <p className="text-slate-700 m-0">
+              Instead of sticky notes, text threads, and scattered papers, everything lives in one organized place. Care details, routines, updates, and notes are easy to find when you need them. No more guessing or searching.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-slate-50 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="text-2xl">👨‍👩‍👧</div>
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-2">Keeps Everyone on the Same Page</h3>
+            <p className="text-slate-700 m-0">
+              When multiple people help with care, miscommunication is common. FamilyCare.Help allows approved family members and caregivers to see the same updates, schedules, and observations in real time. That means fewer mix-ups and smoother teamwork.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-slate-50 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="text-2xl">🩺</div>
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-2">Supports Health and Daily Care Tracking</h3>
+            <p className="text-slate-700 m-0">
+              Caregivers can log daily observations, medication reminders, behavior notes, mobility needs, or changes in condition. These records can be very helpful when talking with doctors, therapists, or support services.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-slate-50 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="text-2xl">📅</div>
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-2">Improves Scheduling and Coordination</h3>
+            <p className="text-slate-700 m-0">
+              Appointments, therapy sessions, and care routines can be tracked so nothing important gets missed. Everyone knows who is responsible and when.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-slate-50 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="text-2xl">🧠</div>
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-2">Reduces Caregiver Stress</h3>
+            <p className="text-slate-700 m-0">
+              Caregivers already carry a heavy mental load. By organizing tasks and information, the app helps reduce the pressure of remembering every detail. That leads to more confidence and less burnout.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-slate-50 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="text-2xl">🧾</div>
+          <div>
+            <h3 className="font-semibold text-slate-900 mb-2">Creates Useful Documentation</h3>
+            <p className="text-slate-700 m-0">
+              Structured records help families communicate clearly with healthcare providers, schools, or agencies. Instead of trying to remember everything, families have information ready and organized.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section className="mb-4">
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-l-4 border-emerald-500 p-6 rounded-r-xl">
+        <div className="flex items-start gap-4">
+          <div className="text-2xl">❤️</div>
+          <div>
+            <h3 className="font-semibold text-emerald-900 mb-2">Helps Families Focus on What Matters</h3>
+            <p className="text-emerald-800 m-0">
+              Less time managing logistics means more time spent connecting, supporting, and sharing meaningful moments with loved ones.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+);
+
+// Article 13: Features and Benefits
+const FeaturesBenefitsContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-sky-50 border-l-4 border-sky-500 p-4 rounded-r-lg mb-8">
+      <p className="text-sky-800 font-medium m-0">
+        <strong>Summary:</strong> A deep dive into FamilyCare.Help features including centralized organization, shared access, scheduling, and documentation tools, along with real family experiences using the platform.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        Modern caregiving involves far more than good intentions. It requires organization, communication, documentation, and emotional resilience. FamilyCare.Help was developed to support families managing care for seniors, individuals with disabilities, or loved ones with ongoing needs by bringing all those elements into one simple digital space.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Star className="w-6 h-6 text-sky-600" />
+        Core Platform Features
+      </h2>
+      <div className="bg-slate-50 rounded-xl p-6">
+        <ul className="space-y-3 m-0 list-none p-0">
+          {[
+            { title: 'Centralized Care Organization', desc: 'Store important notes, daily care details, and observations in one secure place.' },
+            { title: 'Shared Access', desc: 'Authorized users stay informed in real time, reducing misunderstandings.' },
+            { title: 'Scheduling Support', desc: 'Track appointments, routines, and care responsibilities so nothing slips through.' },
+            { title: 'Documentation Tools', desc: 'Log changes in condition, behaviors, medication notes, or daily activities.' },
+          ].map((feature, index) => (
+            <li key={index} className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-sky-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="text-slate-900 font-medium">{feature.title}:</span>
+                <span className="text-slate-700"> {feature.desc}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <MessageCircle className="w-6 h-6 text-sky-600" />
+        What Families Are Saying
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Families who use the platform often describe relief and improved communication:
+      </p>
+      <div className="space-y-4">
+        <div className="bg-sky-50 rounded-xl p-5 border-l-4 border-sky-400">
+          <p className="text-sky-900 italic m-0">
+            "Having everything in one place helped me feel less anxious and more in control of my father's daily care."
+          </p>
+          <p className="text-sky-700 text-sm mt-2 m-0">— Family Caregiver</p>
+        </div>
+        <div className="bg-sky-50 rounded-xl p-5 border-l-4 border-sky-400">
+          <p className="text-sky-900 italic m-0">
+            "Being able to see updates without constant phone calls reduced stress and arguments among siblings."
+          </p>
+          <p className="text-sky-700 text-sm mt-2 m-0">— Family Member</p>
+        </div>
+        <div className="bg-sky-50 rounded-xl p-5 border-l-4 border-sky-400">
+          <p className="text-sky-900 italic m-0">
+            "Tracking therapy observations helped conversations with providers feel more productive and focused."
+          </p>
+          <p className="text-sky-700 text-sm mt-2 m-0">— Parent of a Child with Special Needs</p>
+        </div>
+      </div>
+    </section>
+
+    <section className="mb-4">
+      <div className="bg-gradient-to-r from-sky-50 to-cyan-50 border-l-4 border-sky-500 p-6 rounded-r-xl">
+        <p className="text-lg text-sky-900 font-medium m-0">
+          FamilyCare.Help is designed to reduce mental overload, strengthen teamwork, and improve the quality of care families can provide. By combining organization, communication, and documentation in one system, the app helps caregivers feel supported rather than overwhelmed.
+        </p>
+      </div>
+    </section>
+  </div>
+);
+
+// Article 14: Worth the Cost
+const WorthTheCostContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-slate-100 border-l-4 border-slate-500 p-4 rounded-r-lg mb-8">
+      <p className="text-slate-800 font-medium m-0">
+        <strong>Summary:</strong> Understanding the true value of FamilyCare.Help: time savings, mistake prevention, improved collaboration, better documentation, and peace of mind make it a worthwhile investment for families providing care.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        When families begin managing care for a loved one, they often focus on medical bills, supplies, and support services. What is less visible — but just as real — is the cost of disorganization, stress, and miscommunication. FamilyCare.Help addresses those hidden challenges, which is why many families find the platform well worth the investment.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Clock className="w-6 h-6 text-slate-600" />
+        Time Is Your Most Valuable Resource
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Caregiving takes time, and time is one of the most valuable resources families have. Coordinating schedules, tracking medications, updating relatives, and remembering important details can consume hours each week. Without a structured system, caregivers often rely on memory, notebooks, or scattered messages. FamilyCare.Help brings everything into one organized space, saving time and reducing the mental energy spent searching for information. Over weeks and months, those saved hours add up in a meaningful way.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Shield className="w-6 h-6 text-slate-600" />
+        Preventing Costly Mistakes
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        The platform also helps prevent costly mistakes. Missed appointments, forgotten updates, or miscommunications between caregivers can lead to stress, confusion, or even health complications. By providing shared visibility and structured tracking, the app helps families stay aligned. Preventing just one serious oversight can easily justify the subscription cost.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Users className="w-6 h-6 text-slate-600" />
+        Improved Collaboration
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Another major benefit is improved collaboration. Care often involves multiple people, and disagreements or misunderstandings are common when information is not shared clearly. FamilyCare.Help creates transparency, allowing everyone involved to see updates, responsibilities, and care notes. This reduces tension and strengthens teamwork, which has real emotional value for families already under pressure.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <BookOpen className="w-6 h-6 text-slate-600" />
+        Documentation That Delivers Results
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        Documentation is another area where the platform proves its worth. Organized records help families communicate more effectively with healthcare providers, therapists, schools, or support agencies. Having clear information can lead to better decisions and improved care outcomes, something that is difficult to put a price on.
+      </p>
+    </section>
+
+    <section className="mb-4">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Heart className="w-6 h-6 text-slate-600" />
+        Peace of Mind
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Perhaps most importantly, the app offers peace of mind. Caregivers often carry a heavy mental load, worrying about what they might forget. A reliable system reduces that anxiety and helps caregivers feel more confident and in control.
+      </p>
+      <div className="bg-gradient-to-r from-slate-100 to-slate-50 border-l-4 border-slate-500 p-6 rounded-r-xl">
+        <p className="text-lg text-slate-900 font-medium m-0">
+          When considering its impact on time savings, stress reduction, improved coordination, and better care support, FamilyCare.Help becomes more than a subscription. It becomes an investment in clarity, confidence, and quality of life for both caregivers and their loved ones.
+        </p>
+      </div>
+    </section>
+  </div>
+);
+
 // Map article IDs to their content components
 const articleContentMap = {
   'building-bridges': BuildingBridgesContent,
@@ -1029,6 +1547,12 @@ const articleContentMap = {
   'virtual-reality-dementia': VirtualRealityDementiaContent,
   'exercise-seniors': ExerciseSeniorsContent,
   'circle-of-care': CircleOfCareContent,
+  'familycare-intro': FamilyCareIntroContent,
+  'familycare-disabilities': FamilyCareDisabilitiesContent,
+  'why-technology-matters': WhyTechnologyMattersContent,
+  'how-we-help': HowWeHelpContent,
+  'features-benefits': FeaturesBenefitsContent,
+  'worth-the-cost': WorthTheCostContent,
 };
 
 // Color mapping for article cards
@@ -1041,6 +1565,12 @@ const colorClasses = {
   pink: { bg: 'bg-pink-100', hoverBg: 'group-hover:bg-pink-200', icon: 'text-pink-600', header: 'from-pink-50 to-rose-50', border: 'border-pink-500' },
   green: { bg: 'bg-green-100', hoverBg: 'group-hover:bg-green-200', icon: 'text-green-600', header: 'from-green-50 to-teal-50', border: 'border-green-500' },
   cyan: { bg: 'bg-cyan-100', hoverBg: 'group-hover:bg-cyan-200', icon: 'text-cyan-600', header: 'from-cyan-50 to-teal-50', border: 'border-cyan-500' },
+  rose: { bg: 'bg-rose-100', hoverBg: 'group-hover:bg-rose-200', icon: 'text-rose-600', header: 'from-rose-50 to-pink-50', border: 'border-rose-500' },
+  violet: { bg: 'bg-violet-100', hoverBg: 'group-hover:bg-violet-200', icon: 'text-violet-600', header: 'from-violet-50 to-purple-50', border: 'border-violet-500' },
+  orange: { bg: 'bg-orange-100', hoverBg: 'group-hover:bg-orange-200', icon: 'text-orange-600', header: 'from-orange-50 to-amber-50', border: 'border-orange-500' },
+  emerald: { bg: 'bg-emerald-100', hoverBg: 'group-hover:bg-emerald-200', icon: 'text-emerald-600', header: 'from-emerald-50 to-teal-50', border: 'border-emerald-500' },
+  sky: { bg: 'bg-sky-100', hoverBg: 'group-hover:bg-sky-200', icon: 'text-sky-600', header: 'from-sky-50 to-cyan-50', border: 'border-sky-500' },
+  slate: { bg: 'bg-slate-200', hoverBg: 'group-hover:bg-slate-300', icon: 'text-slate-600', header: 'from-slate-100 to-slate-50', border: 'border-slate-500' },
 };
 
 export default function Resources() {
@@ -1082,6 +1612,43 @@ export default function Resources() {
     );
   }
 
+  // Separate articles by category
+  const caregiverArticles = articles.filter(a => !a.category);
+  const platformArticles = articles.filter(a => a.category === 'platform');
+
+  const renderArticleCard = (article) => {
+    const IconComponent = article.icon;
+    const colors = colorClasses[article.color] || colorClasses.teal;
+    return (
+      <Card
+        key={article.id}
+        className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+        onClick={() => setSelectedArticle(article)}
+      >
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 ${colors.hoverBg} transition-colors`}>
+              <IconComponent className={`w-6 h-6 ${colors.icon}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                <Clock className="w-4 h-4" />
+                {article.readTime}
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-teal-700 transition-colors">
+                {article.title}
+              </h3>
+              <p className="text-slate-600 text-sm">
+                {article.description}
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="max-w-4xl mx-auto px-4 md:px-8">
@@ -1093,59 +1660,33 @@ export default function Resources() {
           </p>
         </div>
 
-        {/* Articles Grid */}
-        <div className="mb-8">
+        {/* Caregiver Resources Section */}
+        <div className="mb-10">
           <h2 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-teal-600" />
-            Featured Articles
+            Caregiver Resources
           </h2>
-
+          <p className="text-slate-500 text-sm mb-4">
+            Educational articles about caregiving, disabilities, senior care, and support.
+          </p>
           <div className="grid gap-4">
-            {articles.map((article) => {
-              const IconComponent = article.icon;
-              const colors = colorClasses[article.color] || colorClasses.teal;
-              return (
-                <Card
-                  key={article.id}
-                  className="border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                  onClick={() => setSelectedArticle(article)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 ${colors.hoverBg} transition-colors`}>
-                        <IconComponent className={`w-6 h-6 ${colors.icon}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                          <Clock className="w-4 h-4" />
-                          {article.readTime}
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-teal-700 transition-colors">
-                          {article.title}
-                        </h3>
-                        <p className="text-slate-600 text-sm">
-                          {article.description}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {caregiverArticles.map(renderArticleCard)}
           </div>
         </div>
 
-        {/* Coming Soon */}
-        <Card className="border-slate-200 shadow-sm bg-gradient-to-r from-slate-50 to-teal-50">
-          <CardContent className="p-6 text-center">
-            <Sparkles className="w-8 h-8 text-teal-500 mx-auto mb-3" />
-            <h3 className="font-semibold text-slate-900 mb-1">More Resources Coming Soon</h3>
-            <p className="text-sm text-slate-600">
-              We're adding more helpful guides for caregivers. Check back soon!
-            </p>
-          </CardContent>
-        </Card>
+        {/* About FamilyCare.Help Section */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <Layout className="w-5 h-5 text-rose-600" />
+            About FamilyCare.Help
+          </h2>
+          <p className="text-slate-500 text-sm mb-4">
+            Learn how our platform helps families coordinate care more effectively.
+          </p>
+          <div className="grid gap-4">
+            {platformArticles.map(renderArticleCard)}
+          </div>
+        </div>
       </div>
     </div>
   );
