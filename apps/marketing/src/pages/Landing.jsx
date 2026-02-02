@@ -615,6 +615,27 @@ export default function Landing() {
               </motion.div>
             ))}
           </motion.div>
+
+          {/* Testimonial Disclaimer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-10 text-center max-w-3xl mx-auto"
+          >
+            <p
+              className="text-xs leading-relaxed"
+              style={{ color: "#9CA3AF", fontFamily: "var(--font-body)" }}
+            >
+              <strong>Testimonial Disclaimer:</strong> The testimonials shown represent individual
+              experiences and opinions of FamilyCare.Help users. These statements do not constitute
+              medical advice, diagnosis, or treatment, and FamilyCare.Help does not provide healthcare
+              services. Individual experiences may vary. Any names, images, or identifying details
+              have been changed to protect privacy and comply with applicable privacy and data
+              protection standards.
+            </p>
+          </motion.div>
         </div>
       </section>
 
