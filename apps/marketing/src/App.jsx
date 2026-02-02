@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Landing from "./pages/Landing";
 import About from "./pages/About";
+import Pricing from "./pages/Pricing";
 import FAQ from "./pages/FAQ";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -19,6 +20,14 @@ function App() {
           element={
             <MarketingLayout>
               <About />
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/pricing"
+          element={
+            <MarketingLayout>
+              <Pricing />
             </MarketingLayout>
           }
         />
