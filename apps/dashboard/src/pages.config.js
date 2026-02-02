@@ -23,6 +23,7 @@ import { ReceiptsPage as Receipts } from "./pages/Receipts";
 import RecipientProfile from "./pages/RecipientProfile";
 import Refills from "./pages/Refills";
 import Reports from "./pages/Reports";
+import Resources from "./pages/Resources";
 import Scheduling from "./pages/Scheduling";
 import Settings from "./pages/Settings";
 import ShiftHandoff from "./pages/ShiftHandoff";
@@ -59,6 +60,7 @@ export const PAGES = {
   RecipientProfile,
   Refills,
   Reports,
+  Resources,
   Scheduling,
   Settings,
   ShiftHandoff,
