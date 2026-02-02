@@ -8,6 +8,7 @@ import TermsOfService from "./pages/TermsOfService";
 import CookiePolicy from "./pages/CookiePolicy";
 import LegalDisclosure from "./pages/LegalDisclosure";
 import RecordRetentionPolicy from "./pages/RecordRetentionPolicy";
+import TestimonialDisclaimer from "./pages/TestimonialDisclaimer";
 import MarketingLayout from "./components/MarketingLayout";
 
 function App() {
@@ -76,6 +77,14 @@ function App() {
           element={
             <MarketingLayout>
               <RecordRetentionPolicy />
+            </MarketingLayout>
+          }
+        />
+        <Route
+          path="/testimonial-disclaimer"
+          element={
+            <MarketingLayout>
+              <TestimonialDisclaimer />
             </MarketingLayout>
           }
         />

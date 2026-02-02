@@ -28,6 +28,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
     { name: "Cookie Policy", path: "/cookies" },
     { name: "Legal Disclosure", path: "/legal" },
     { name: "Record Retention", path: "/retention-policy" },
+    { name: "Testimonial Disclaimer", path: "/testimonial-disclaimer" },
   ];
 
   return (

@@ -628,12 +628,16 @@ export default function Landing() {
               className="text-xs leading-relaxed"
               style={{ color: "#9CA3AF", fontFamily: "var(--font-body)" }}
             >
-              <strong>Testimonial Disclaimer:</strong> The testimonials shown represent individual
-              experiences and opinions of FamilyCare.Help users. These statements do not constitute
-              medical advice, diagnosis, or treatment, and FamilyCare.Help does not provide healthcare
-              services. Individual experiences may vary. Any names, images, or identifying details
-              have been changed to protect privacy and comply with applicable privacy and data
-              protection standards.
+              <Link to="/testimonial-disclaimer" className="hover:underline" style={{ color: "#6B7280" }}>
+                <strong>Testimonial Disclaimer:</strong>
+              </Link>{" "}
+              The testimonials shown represent individual experiences and opinions of FamilyCare.Help
+              users. These statements do not constitute medical advice, diagnosis, or treatment, and
+              FamilyCare.Help does not provide healthcare services. Individual experiences may vary.
+              Any names, images, or identifying details have been changed to protect privacy.{" "}
+              <Link to="/testimonial-disclaimer" className="hover:underline" style={{ color: "#6B7280" }}>
+                Read full disclaimer →
+              </Link>
             </p>
           </motion.div>
         </div>
