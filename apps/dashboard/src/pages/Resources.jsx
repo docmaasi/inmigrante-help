@@ -77,6 +77,14 @@ const articles = [
     color: 'green',
     readTime: '7 min read',
   },
+  {
+    id: 'circle-of-care',
+    title: 'Circle of Care Helps Seniors and Disabled Adults Live Healthier, Happier, and Longer Lives',
+    description: 'Learn how comprehensive home care services enable seniors to live independently in their own homes.',
+    icon: Home,
+    color: 'cyan',
+    readTime: '8 min read',
+  },
 ];
 
 // Article 1: Building Bridges
@@ -865,6 +873,152 @@ const ExerciseSeniorsContent = () => (
   </div>
 );
 
+// Article 8: Circle of Care
+const CircleOfCareContent = () => (
+  <div className="prose prose-slate max-w-none">
+    <div className="bg-cyan-50 border-l-4 border-cyan-500 p-4 rounded-r-lg mb-8">
+      <p className="text-cyan-800 font-medium m-0">
+        <strong>Summary:</strong> Circle of Care, serving the greater Toronto area since 1974, provides comprehensive home care services to seniors and disabled adults, enabling them to live independently and comfortably in their own homes. With a dedicated team of staff and volunteers, they offer personal care, transportation, meals, counseling, and more, focusing on enhancing quality of life and supporting both clients and caregivers.
+      </p>
+    </div>
+
+    <section className="mb-8">
+      <p className="text-slate-700 leading-relaxed">
+        Living healthier, happier, and longer lives in our own homes is a goal many of us share as we age or face changing circumstances. However, as we grow older, maintaining independence can become challenging, and finding the right support services can be overwhelming, especially when multiple services are needed from different sources.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Home className="w-6 h-6 text-cyan-600" />
+        About Circle of Care
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Circle of Care is a leading one-stop provider of home care supports for seniors and disabled adults in the greater Toronto area. Established in 1974, Circle of Care has been serving the community for nearly 40 years. The organization boasts a dedicated team of 500 staff members and 350 exceptional volunteers who assist over 5,000 clients.
+      </p>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Their mission is to enable clients to live at home longer by offering a unique combination of services that enrich quality of life, optimize independence, and empower both clients and their caregivers.
+      </p>
+      <div className="bg-gradient-to-r from-cyan-50 to-teal-50 border-l-4 border-cyan-500 p-6 rounded-r-xl">
+        <div className="flex gap-3">
+          <Quote className="w-8 h-8 text-cyan-400 flex-shrink-0" />
+          <p className="text-lg text-cyan-900 italic font-medium m-0">
+            "With Circle of Care, it's good to be home."
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Heart className="w-6 h-6 text-cyan-600" />
+        The Importance of Home Care
+      </h2>
+      <p className="text-slate-700 leading-relaxed">
+        As people age or face illness, the ability to carry out ordinary daily tasks may lessen. Despite these challenges, the overwhelming majority prefer to remain in their own homes rather than move to institutions. Circle of Care emphasizes keeping people in their homes as long as possible, helping them maintain independence. Whether clients need home care or assistance with daily activities, Circle of Care provides comprehensive support tailored to individual needs.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <BookOpen className="w-6 h-6 text-cyan-600" />
+        Personal Stories from Clients
+      </h2>
+      <div className="space-y-4">
+        <div className="bg-slate-50 rounded-xl p-6">
+          <h3 className="font-semibold text-slate-900 mb-2">Living with Multiple Sclerosis</h3>
+          <p className="text-slate-700 m-0">
+            One client with multiple sclerosis, who has been with Circle of Care for the last 10 years, shares how the organization helps her stay active in the community and continue with her daily life. She highlights the transportation service, personal care such as showering and hair washing, and the support in maintaining her home environment.
+          </p>
+        </div>
+        <div className="bg-slate-50 rounded-xl p-6">
+          <h3 className="font-semibold text-slate-900 mb-2">Support for Mr. Campbell</h3>
+          <p className="text-slate-700 m-0">
+            A personal support worker visits Mr. Campbell six times a week, assisting him with dressing, attending programs, banking, grocery shopping, bathing, personal care, meal preparation, laundry, and companionship. Their relationship goes beyond care, involving meaningful conversations and emotional support.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Sparkles className="w-6 h-6 text-cyan-600" />
+        Comprehensive Services Offered
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Circle of Care offers a wide range of programs designed to help clients live healthier, happier, and longer lives in their homes:
+      </p>
+      <div className="bg-slate-50 rounded-xl p-6">
+        <ul className="space-y-2 m-0 list-none p-0">
+          {[
+            'Personal care',
+            'Homemaking and respite care',
+            'Transportation services',
+            'Meals on Wheels',
+            'Information about community support services',
+            'Individual and group counseling',
+            'Community case management',
+            'Crisis intervention, including support for seniors facing abuse and Holocaust survivors',
+          ].map((service, index) => (
+            <li key={index} className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-cyan-500 flex-shrink-0 mt-0.5" />
+              <span className="text-slate-700">{service}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="text-slate-700 leading-relaxed mt-4">
+        The organization's staff and volunteers are deeply committed to their clients, placing them at the center of all activities to enhance their quality of life with dignity and safety.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <Users className="w-6 h-6 text-cyan-600" />
+        The Role of Personal Support Workers (PSWs)
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Personal support workers are the backbone of Circle of Care's services. Many PSWs have long-standing relationships with the organization, some working for over 25 years. They find their work rewarding because it allows them to make a significant difference in clients' lives by enabling them to stay at home rather than moving to institutions.
+      </p>
+      <p className="text-slate-700 leading-relaxed">
+        PSWs provide care with compassion, forming unique bonds not only with clients but also with their families. They support clients' physical needs and offer emotional support, creating a positive and uplifting environment.
+      </p>
+    </section>
+
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <MessageCircle className="w-6 h-6 text-cyan-600" />
+        Testimonials from Clients and Caregivers
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Clients and their families express deep appreciation for the care they receive. One client notes that the PSWs treat her like a human being, which is sometimes hard to find. Another caregiver shares how the PSW supports both the client and the family, fostering mutual learning and health.
+      </p>
+      <p className="text-slate-700 leading-relaxed">
+        The connection between PSWs and clients often transcends professional boundaries, with some clients considering their caregivers as close as family members.
+      </p>
+    </section>
+
+    <section className="mb-4">
+      <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-4">
+        <HandHeart className="w-6 h-6 text-cyan-600" />
+        Conclusion
+      </h2>
+      <p className="text-slate-700 leading-relaxed mb-4">
+        Circle of Care exemplifies a holistic approach to home care, focusing on supporting individual independence and enhancing quality of life within the community. Their comprehensive services, dedicated staff, and compassionate volunteers work together to help seniors and disabled adults live healthier, happier, and longer lives in the comfort and safety of their own homes.
+      </p>
+      <div className="bg-gradient-to-r from-cyan-50 to-teal-50 border-l-4 border-cyan-500 p-6 rounded-r-xl">
+        <p className="text-lg text-cyan-900 font-medium m-0">
+          With Circle of Care, clients are not alone; they are part of a caring community that values their dignity and well-being.
+        </p>
+      </div>
+    </section>
+
+    <div className="text-sm text-slate-500 pt-4 border-t border-slate-200 mt-8">
+      <p className="m-0">Source: Galaxy.ai YouTube Summarizer</p>
+    </div>
+  </div>
+);
+
 // Map article IDs to their content components
 const articleContentMap = {
   'building-bridges': BuildingBridgesContent,
@@ -874,6 +1028,7 @@ const articleContentMap = {
   'fall-prevention': FallPreventionContent,
   'virtual-reality-dementia': VirtualRealityDementiaContent,
   'exercise-seniors': ExerciseSeniorsContent,
+  'circle-of-care': CircleOfCareContent,
 };
 
 // Color mapping for article cards
@@ -885,6 +1040,7 @@ const colorClasses = {
   amber: { bg: 'bg-amber-100', hoverBg: 'group-hover:bg-amber-200', icon: 'text-amber-600', header: 'from-amber-50 to-orange-50', border: 'border-amber-500' },
   pink: { bg: 'bg-pink-100', hoverBg: 'group-hover:bg-pink-200', icon: 'text-pink-600', header: 'from-pink-50 to-rose-50', border: 'border-pink-500' },
   green: { bg: 'bg-green-100', hoverBg: 'group-hover:bg-green-200', icon: 'text-green-600', header: 'from-green-50 to-teal-50', border: 'border-green-500' },
+  cyan: { bg: 'bg-cyan-100', hoverBg: 'group-hover:bg-cyan-200', icon: 'text-cyan-600', header: 'from-cyan-50 to-teal-50', border: 'border-cyan-500' },
 };
 
 export default function Resources() {
