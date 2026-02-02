@@ -20,6 +20,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
   }, []);
 
   const footerNavItems = [
+    { name: "About Us", path: "/about" },
     { name: "FAQ", path: "/faq" },
     { name: "Privacy Policy", path: "/privacy" },
     { name: "Terms of Service", path: "/terms" },
