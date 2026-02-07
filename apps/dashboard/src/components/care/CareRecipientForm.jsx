@@ -108,6 +108,8 @@ export function CareRecipientForm({ recipient, onClose }) {
 
     const dataToSave = {
       ...formData,
+      // Combine first + last name into full_name for display in dropdowns
+      full_name: `${formData.first_name} ${formData.last_name}`.trim(),
       conditions_diagnoses: JSON.stringify(conditions),
       medical_history: JSON.stringify(medicalHistory),
       // Convert allergies string to array format the database expects

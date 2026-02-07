@@ -177,7 +177,7 @@ export function MedicationForm({ medication, recipients, onClose }) {
               <SelectContent>
                 {recipients.map(recipient => (
                   <SelectItem key={recipient.id} value={recipient.id}>
-                    {recipient.full_name}
+                    {recipient.full_name || `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 'Unknown'}
                   </SelectItem>
                 ))}
               </SelectContent>
