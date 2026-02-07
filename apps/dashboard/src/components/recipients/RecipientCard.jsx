@@ -6,7 +6,12 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 
 export default function RecipientCard({ recipient }) {
-  const age = recipient.date_of_birth 
+  // Use full_name if available, otherwise combine first + last name
+  const displayName = recipient.full_name
+    || [recipient.first_name, recipient.last_name].filter(Boolean).join(' ')
+    || 'Unnamed';
+
+  const age = recipient.date_of_birth
     ? differenceInYears(new Date(), parseISO(recipient.date_of_birth))
     : null;
 
@@ -28,7 +33,7 @@ export default function RecipientCard({ recipient }) {
           {recipient.photo_url ? (
             <img 
               src={recipient.photo_url} 
-              alt={recipient.full_name}
+              alt={displayName}
               className="w-full h-full rounded-2xl object-cover"
             />
           ) : (
@@ -36,7 +41,7 @@ export default function RecipientCard({ recipient }) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-1 truncate">{recipient.full_name}</h3>
+          <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-1 truncate">{displayName}</h3>
           {age && (
             <span className="text-sm text-slate-500">{age} years old</span>
           )}

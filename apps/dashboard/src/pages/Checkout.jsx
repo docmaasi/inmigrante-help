@@ -1,10 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle, Shield, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Shield, CheckCircle, CreditCard, Loader2 } from 'lucide-react';
 
 export function Checkout() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+
+  const handleManageSubscription = async () => {
+    setIsLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-portal-session', {
+        body: { returnUrl: window.location.href }
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Failed to open billing portal:', error);
+      setIsLoadingPortal(false);
+    }
+  };
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -46,19 +65,25 @@ export function Checkout() {
             </CardContent>
           </Card>
 
-          <div className="mt-6">
-            <a
-              href="https://billing.stripe.com/p/login/aFaaEX04IcA44E1cjF4AU00"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-            >
-              Manage Your Subscription
-            </a>
-            <p className="text-xs text-slate-500 mt-2">
-              Additional members can be added here
-            </p>
-          </div>
+          {profile?.stripe_customer_id && (
+            <div className="mt-6">
+              <Button
+                onClick={handleManageSubscription}
+                disabled={isLoadingPortal}
+                className="px-6 py-3 text-base font-semibold bg-teal-600 hover:bg-teal-700 shadow-sm hover:shadow-md transition-all duration-200"
+                size="lg"
+              >
+                {isLoadingPortal ? (
+                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Opening...</>
+                ) : (
+                  <><CreditCard className="w-5 h-5 mr-2" /> Manage Your Subscription</>
+                )}
+              </Button>
+              <p className="text-xs text-slate-500 mt-2">
+                Additional members can be added here
+              </p>
+            </div>
+          )}
         </div>
 
         <Card className="border border-slate-200 shadow-sm overflow-hidden">

@@ -32,13 +32,55 @@ serve(async (req) => {
         const customerId = subscription.customer as string;
 
         // Find user by stripe_customer_id
-        const { data: profile } = await supabase
+        let { data: profile } = await supabase
           .from('profiles')
           .select('id, is_archived, deletion_status')
           .eq('stripe_customer_id', customerId)
           .single();
 
+        // Fallback: if not found by stripe_customer_id, look up by email
+        // This handles the case where users subscribe via the Stripe Pricing Table
+        // which creates the customer in Stripe but never saves the ID to our DB
+        let needsCustomerIdUpdate = false;
+        if (!profile) {
+          try {
+            const customer = await stripe.customers.retrieve(customerId);
+            if (customer && !customer.deleted && customer.email) {
+              const { data: emailProfile } = await supabase
+                .from('profiles')
+                .select('id, is_archived, deletion_status')
+                .eq('email', customer.email)
+                .single();
+
+              if (emailProfile) {
+                profile = emailProfile;
+                needsCustomerIdUpdate = true;
+                console.log(`Found user ${emailProfile.id} by email ${customer.email}, will save stripe_customer_id`);
+              }
+            }
+          } catch (lookupErr) {
+            console.error('Email fallback lookup failed:', lookupErr);
+          }
+        }
+
         if (profile) {
+          // Calculate max_care_recipients from subscription items
+          // Base plan = 1 care recipient, each additional add-on item adds to the count
+          let maxCareRecipients = 1;
+          for (const item of subscription.items.data) {
+            const quantity = item.quantity || 1;
+            // The first item is the base plan (1 recipient)
+            // Additional items (quantity > 1 on base, or separate add-on line items) add more
+            if (item !== subscription.items.data[0]) {
+              maxCareRecipients += quantity;
+            } else if (quantity > 1) {
+              // If base plan has quantity > 1, extra units are additional recipients
+              maxCareRecipients += (quantity - 1);
+            }
+          }
+          // Cap at 10
+          maxCareRecipients = Math.min(maxCareRecipients, 10);
+
           await supabase.from('subscriptions').upsert({
             user_id: profile.id,
             stripe_subscription_id: subscription.id,
@@ -53,29 +95,40 @@ serve(async (req) => {
             onConflict: 'stripe_subscription_id',
           });
 
+          // Build the profile update object
+          const profileUpdate: Record<string, any> = {
+            subscription_status: subscription.status,
+            max_care_recipients: maxCareRecipients,
+          };
+
+          // Save stripe_customer_id if found via email fallback
+          if (needsCustomerIdUpdate) {
+            profileUpdate.stripe_customer_id = customerId;
+          }
+
           // If account was archived/pending deletion, restore it on new subscription
           if (profile.is_archived || profile.deletion_status === 'pending') {
+            profileUpdate.is_archived = false;
+            profileUpdate.deletion_status = null;
+            profileUpdate.deletion_requested_at = null;
+            profileUpdate.deletion_scheduled_at = null;
+            profileUpdate.deletion_reason = null;
+            profileUpdate.restored_at = new Date().toISOString();
+
             await supabase
               .from('profiles')
-              .update({
-                subscription_status: subscription.status,
-                is_archived: false,
-                deletion_status: null,
-                deletion_requested_at: null,
-                deletion_scheduled_at: null,
-                deletion_reason: null,
-                restored_at: new Date().toISOString(),
-              })
+              .update(profileUpdate)
               .eq('id', profile.id);
 
             console.log(`Account ${profile.id} restored via new subscription`);
           } else {
-            // Just update subscription status
             await supabase
               .from('profiles')
-              .update({ subscription_status: subscription.status })
+              .update(profileUpdate)
               .eq('id', profile.id);
           }
+
+          console.log(`Updated profile ${profile.id}: status=${subscription.status}, max_care_recipients=${maxCareRecipients}`);
         }
         break;
       }
@@ -92,35 +145,69 @@ serve(async (req) => {
           .eq('stripe_subscription_id', subscription.id);
 
         // Find and update profile
-        const customerId = subscription.customer as string;
-        const { data: profile } = await supabase
+        const delCustomerId = subscription.customer as string;
+        let { data: delProfile } = await supabase
           .from('profiles')
           .select('id')
-          .eq('stripe_customer_id', customerId)
+          .eq('stripe_customer_id', delCustomerId)
           .single();
 
-        if (profile) {
+        // Fallback: find by email if not found by stripe_customer_id
+        if (!delProfile) {
+          try {
+            const customer = await stripe.customers.retrieve(delCustomerId);
+            if (customer && !customer.deleted && customer.email) {
+              const { data: emailProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', customer.email)
+                .single();
+              delProfile = emailProfile;
+            }
+          } catch (e) {
+            console.error('Email fallback failed for subscription.deleted:', e);
+          }
+        }
+
+        if (delProfile) {
           await supabase
             .from('profiles')
-            .update({ subscription_status: 'free' })
-            .eq('id', profile.id);
+            .update({ subscription_status: 'free', max_care_recipients: 1 })
+            .eq('id', delProfile.id);
         }
         break;
       }
 
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
-        const customerId = invoice.customer as string;
+        const invCustomerId = invoice.customer as string;
 
-        const { data: profile } = await supabase
+        let { data: invProfile } = await supabase
           .from('profiles')
           .select('id')
-          .eq('stripe_customer_id', customerId)
+          .eq('stripe_customer_id', invCustomerId)
           .single();
 
-        if (profile) {
+        // Fallback: find by email if not found by stripe_customer_id
+        if (!invProfile) {
+          try {
+            const customer = await stripe.customers.retrieve(invCustomerId);
+            if (customer && !customer.deleted && customer.email) {
+              const { data: emailProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', customer.email)
+                .single();
+              invProfile = emailProfile;
+            }
+          } catch (e) {
+            console.error('Email fallback failed for invoice.paid:', e);
+          }
+        }
+
+        if (invProfile) {
           await supabase.from('receipts').insert({
-            user_id: profile.id,
+            user_id: invProfile.id,
             stripe_invoice_id: invoice.id,
             stripe_payment_intent_id: invoice.payment_intent as string,
             amount: invoice.amount_paid,
@@ -136,18 +223,35 @@ serve(async (req) => {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        const customerId = invoice.customer as string;
+        const failCustomerId = invoice.customer as string;
 
-        const { data: profile } = await supabase
+        let { data: failProfile } = await supabase
           .from('profiles')
           .select('id')
-          .eq('stripe_customer_id', customerId)
+          .eq('stripe_customer_id', failCustomerId)
           .single();
 
-        if (profile) {
+        // Fallback: find by email if not found by stripe_customer_id
+        if (!failProfile) {
+          try {
+            const customer = await stripe.customers.retrieve(failCustomerId);
+            if (customer && !customer.deleted && customer.email) {
+              const { data: emailProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', customer.email)
+                .single();
+              failProfile = emailProfile;
+            }
+          } catch (e) {
+            console.error('Email fallback failed for invoice.payment_failed:', e);
+          }
+        }
+
+        if (failProfile) {
           // Create notification for failed payment
           await supabase.from('notifications').insert({
-            user_id: profile.id,
+            user_id: failProfile.id,
             title: 'Payment Failed',
             message: 'Your subscription payment failed. Please update your payment method.',
             type: 'billing',
