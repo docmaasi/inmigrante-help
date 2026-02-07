@@ -28,7 +28,7 @@ export default function ShiftHandoff() {
 
   const { data: recentHandoffs = [] } = useCareNotes(formData.care_recipient_id || undefined);
   const handoffNotes = recentHandoffs
-    .filter(note => note.note_type === 'shift_handoff')
+    .filter(note => note.category === 'shift_handoff')
     .slice(0, 5);
 
   const createCareNoteMutation = useCreateCareNote();
@@ -57,12 +57,10 @@ ${formData.next_shift_notes ? `**Next Shift Notes:** ${formData.next_shift_notes
     try {
       await createCareNoteMutation.mutateAsync({
         care_recipient_id: formData.care_recipient_id,
-        note_type: 'shift_handoff',
+        category: 'shift_handoff',
         title: `Shift Handoff - ${format(new Date(), 'MMM d, h:mm a')}`,
         content: handoffContent,
-        date: new Date().toISOString().split('T')[0],
-        time: format(new Date(), 'HH:mm'),
-        is_flagged: !!formData.concerns
+        is_private: !!formData.concerns
       });
 
       toast.success('Shift handoff logged');

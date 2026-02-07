@@ -43,9 +43,9 @@ export function AppointmentForm({ appointment, recipients, onClose }) {
       start_time: formData.date && formData.time
         ? `${formData.date}T${formData.time}:00`
         : formData.date ? `${formData.date}T00:00:00` : null,
-      location: formData.location,
-      provider_name: formData.provider_name,
-      notes: formData.notes,
+      location: formData.location || null,
+      provider_name: formData.provider_name || null,
+      notes: formData.notes || null,
       status: formData.status
     };
 

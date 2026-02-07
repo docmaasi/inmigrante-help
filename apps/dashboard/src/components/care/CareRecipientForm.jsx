@@ -12,27 +12,39 @@ import { format, parseISO } from 'date-fns';
 
 export function CareRecipientForm({ recipient, onClose }) {
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState(recipient || {
-    first_name: '',
-    last_name: '',
-    date_of_birth: '',
-    photo_url: '',
-    primary_condition: '',
-    conditions_diagnoses: '[]',
-    medical_history: '[]',
-    allergies: '',
-    dietary_restrictions: '',
-    emergency_contact_name: '',
-    emergency_contact_relationship: '',
-    emergency_contact_phone: '',
-    emergency_contact_email: '',
-    secondary_emergency_contact_name: '',
-    secondary_emergency_contact_relationship: '',
-    secondary_emergency_contact_phone: '',
-    secondary_emergency_contact_email: '',
-    primary_physician: '',
-    physician_phone: '',
-    notes: ''
+  const [formData, setFormData] = useState(() => {
+    if (recipient) {
+      return {
+        ...recipient,
+        // Convert allergies array from DB back to comma-separated string for the form
+        allergies: Array.isArray(recipient.allergies)
+          ? recipient.allergies.join(', ')
+          : recipient.allergies || '',
+        date_of_birth: recipient.date_of_birth || '',
+      };
+    }
+    return {
+      first_name: '',
+      last_name: '',
+      date_of_birth: '',
+      photo_url: '',
+      primary_condition: '',
+      conditions_diagnoses: '[]',
+      medical_history: '[]',
+      allergies: '',
+      dietary_restrictions: '',
+      emergency_contact_name: '',
+      emergency_contact_relationship: '',
+      emergency_contact_phone: '',
+      emergency_contact_email: '',
+      secondary_emergency_contact_name: '',
+      secondary_emergency_contact_relationship: '',
+      secondary_emergency_contact_phone: '',
+      secondary_emergency_contact_email: '',
+      primary_physician: '',
+      physician_phone: '',
+      notes: '',
+    };
   });
 
   const [conditions, setConditions] = useState(() => {
@@ -97,7 +109,13 @@ export function CareRecipientForm({ recipient, onClose }) {
     const dataToSave = {
       ...formData,
       conditions_diagnoses: JSON.stringify(conditions),
-      medical_history: JSON.stringify(medicalHistory)
+      medical_history: JSON.stringify(medicalHistory),
+      // Convert allergies string to array format the database expects
+      allergies: formData.allergies
+        ? formData.allergies.split(',').map(a => a.trim()).filter(Boolean)
+        : null,
+      // Convert empty date to null so the database doesn't reject it
+      date_of_birth: formData.date_of_birth || null,
     };
 
     try {

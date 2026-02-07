@@ -40,10 +40,10 @@ export default function NewConversationDialog({ open, onClose, recipients }) {
 
     createMutation.mutate(
       {
-        name: formData.name,
+        title: formData.name,
         care_recipient_id: formData.care_recipient_id,
-        conversation_type: formData.conversation_type,
-        participants: JSON.stringify(formData.participants),
+        type: formData.conversation_type,
+        participant_ids: formData.participants,
         last_message_at: new Date().toISOString(),
       },
       {

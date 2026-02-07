@@ -59,12 +59,14 @@ export default function Team() {
     setEditingMember(member);
     setFormData({
       email: member.email || '',
-      care_recipient_id: member.care_recipient_id || '',
+      care_recipient_id: Array.isArray(member.care_recipient_ids)
+        ? member.care_recipient_ids[0] || ''
+        : member.care_recipient_id || '',
       role: member.role || 'caregiver',
       full_name: member.full_name || '',
-      relationship: member.relationship || '',
+      relationship: '',
       phone: member.phone || '',
-      specialties: member.specialties || ''
+      specialties: ''
     });
     setShowAddDialog(true);
   };
@@ -76,12 +78,12 @@ export default function Team() {
         {
           id: editingMember.id,
           email: formData.email,
-          care_recipient_id: formData.care_recipient_id,
+          care_recipient_ids: formData.care_recipient_id
+            ? [formData.care_recipient_id]
+            : [],
           role: formData.role,
           full_name: formData.full_name,
-          relationship: formData.relationship,
-          phone: formData.phone,
-          specialties: formData.specialties,
+          phone: formData.phone || null,
         },
         {
           onSuccess: () => {
@@ -97,12 +99,12 @@ export default function Team() {
       inviteMutation.mutate(
         {
           email: formData.email,
-          care_recipient_id: formData.care_recipient_id,
+          care_recipient_ids: formData.care_recipient_id
+            ? [formData.care_recipient_id]
+            : [],
           role: formData.role,
           full_name: formData.full_name,
-          relationship: formData.relationship,
-          phone: formData.phone,
-          specialties: formData.specialties,
+          phone: formData.phone || null,
         },
         {
           onSuccess: () => {
@@ -274,7 +276,11 @@ export default function Team() {
                       )}
                       <div className="flex items-start gap-2 text-slate-600">
                         <Users className="w-4 h-4 text-slate-400 mt-0.5" />
-                        <span>Caring for: {getRecipientName(member.care_recipient_id)}</span>
+                        <span>Caring for: {getRecipientName(
+                          Array.isArray(member.care_recipient_ids)
+                            ? member.care_recipient_ids[0]
+                            : member.care_recipient_id
+                        )}</span>
                       </div>
                     </div>
 

@@ -43,8 +43,11 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
     }
 
     const dataToSave = {
-      ...formData,
-      goals: goals,
+      care_recipient_id: formData.care_recipient_id,
+      title: formData.title,
+      description: formData.description || null,
+      status: formData.status,
+      goals: goals.filter(g => g.trim() !== ''),
     };
 
     if (plan?.id) {

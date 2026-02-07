@@ -126,15 +126,16 @@ export function MedicationForm({ medication, recipients, onClose }) {
       care_recipient_id: formData.care_recipient_id,
       name: formData.name,
       dosage: formData.dosage,
-      frequency: formData.frequency,
-      time_of_day: formData.time_of_day,
-      purpose: formData.purpose,
-      prescribing_doctor: formData.prescribing_doctor,
+      frequency: formData.frequency || null,
+      schedule_times: formData.time_of_day
+        ? [formData.time_of_day]
+        : null,
+      notes: formData.purpose || null,
+      prescriber: formData.prescribing_doctor || null,
       start_date: formData.start_date || null,
-      refill_date: formData.refill_date || null,
-      pharmacy: formData.pharmacy,
-      special_instructions: formData.special_instructions,
-      photo_url: formData.photo_url,
+      end_date: formData.refill_date || null,
+      pharmacy: formData.pharmacy || null,
+      instructions: formData.special_instructions || null,
       is_active: formData.is_active
     };
 

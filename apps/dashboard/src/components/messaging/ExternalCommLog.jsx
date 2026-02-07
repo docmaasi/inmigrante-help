@@ -43,7 +43,7 @@ export function ExternalCommLog() {
       const { data, error } = await supabase
         .from('external_communications')
         .select('*')
-        .order('communication_date', { ascending: false });
+        .order('occurred_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -109,18 +109,23 @@ export function ExternalCommLog() {
 
   const handleEdit = (log) => {
     setEditingLog(log);
+    const occurredAt = log.occurred_at ? new Date(log.occurred_at) : null;
     setFormData({
       care_recipient_id: log.care_recipient_id,
       contact_type: log.contact_type,
       contact_name: log.contact_name,
-      contact_phone: log.contact_phone || '',
-      contact_email: log.contact_email || '',
-      communication_date: log.communication_date,
-      communication_time: log.communication_time || '',
-      method: log.method,
-      regarding: log.regarding,
-      notes: log.notes || '',
-      follow_up_needed: log.follow_up_needed || false,
+      contact_phone: log.contact_info || '',
+      contact_email: '',
+      communication_date: occurredAt
+        ? occurredAt.toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0],
+      communication_time: occurredAt
+        ? format(occurredAt, 'HH:mm')
+        : '',
+      method: log.communication_type || 'phone',
+      regarding: log.subject || '',
+      notes: log.content || '',
+      follow_up_needed: log.follow_up_required || false,
       follow_up_date: log.follow_up_date || ''
     });
     setShowDialog(true);
@@ -128,7 +133,22 @@ export function ExternalCommLog() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const data = { ...formData, logged_by: user?.email };
+    // Map form field names to actual database column names
+    const data = {
+      care_recipient_id: formData.care_recipient_id,
+      contact_type: formData.contact_type,
+      contact_name: formData.contact_name,
+      contact_info: [formData.contact_phone, formData.contact_email]
+        .filter(Boolean).join(', ') || null,
+      communication_type: formData.method,
+      subject: formData.regarding,
+      content: formData.notes || null,
+      occurred_at: formData.communication_time
+        ? `${formData.communication_date}T${formData.communication_time}:00`
+        : `${formData.communication_date}T00:00:00`,
+      follow_up_required: formData.follow_up_needed,
+      follow_up_date: formData.follow_up_date || null,
+    };
 
     if (editingLog) {
       updateMutation.mutate({ id: editingLog.id, data });
@@ -209,7 +229,7 @@ export function ExternalCommLog() {
         <div className="space-y-3">
           {logs.map(log => {
             const Icon = getContactIcon(log.contact_type);
-            const MethodIcon = getMethodIcon(log.method);
+            const MethodIcon = getMethodIcon(log.communication_type);
 
             return (
               <Card key={log.id} className="hover:shadow-md transition-shadow">
@@ -233,27 +253,27 @@ export function ExternalCommLog() {
                         <div className="flex items-center gap-4 flex-wrap text-slate-600">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            {format(parseISO(log.communication_date), 'MMM d, yyyy')}
+                            {log.occurred_at && format(new Date(log.occurred_at), 'MMM d, yyyy')}
                           </span>
-                          {log.communication_time && (
+                          {log.occurred_at && (
                             <span className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              {log.communication_time}
+                              {format(new Date(log.occurred_at), 'h:mm a')}
                             </span>
                           )}
                           <span className="flex items-center gap-1">
                             <MethodIcon className="w-4 h-4" />
-                            {log.method}
+                            {log.communication_type}
                           </span>
                         </div>
 
-                        <p className="font-medium text-slate-700">Re: {log.regarding}</p>
+                        <p className="font-medium text-slate-700">Re: {log.subject}</p>
 
-                        {log.notes && (
-                          <p className="text-slate-600 bg-slate-50 rounded p-2 text-xs">{log.notes}</p>
+                        {log.content && (
+                          <p className="text-slate-600 bg-slate-50 rounded p-2 text-xs">{log.content}</p>
                         )}
 
-                        {log.follow_up_needed && (
+                        {log.follow_up_required && (
                           <div className="flex items-center gap-2 text-orange-600 bg-orange-50 rounded p-2">
                             <AlertCircle className="w-4 h-4" />
                             <span className="text-xs font-medium">

@@ -41,9 +41,17 @@ export default function ShiftForm({ shift, careRecipients, teamMembers, onClose 
       return;
     }
 
+    // Only send fields that exist in the caregiver_shifts table
     const payload = {
-      ...formData,
-      recurring_days: selectedDays
+      team_member_id: formData.team_member_id,
+      care_recipient_id: formData.care_recipient_id,
+      start_time: formData.start_time
+        ? (formData.start_time.length <= 16 ? formData.start_time + ':00' : formData.start_time)
+        : null,
+      end_time: formData.end_time
+        ? (formData.end_time.length <= 16 ? formData.end_time + ':00' : formData.end_time)
+        : null,
+      notes: formData.notes || null,
     };
 
     try {

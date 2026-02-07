@@ -65,8 +65,12 @@ export default function Appointments() {
       title: formData.title,
       appointment_type: formData.appointment_type,
       description: formData.description || null,
-      start_time: formData.start_time,
-      end_time: formData.end_time || null,
+      start_time: formData.start_time
+        ? (formData.start_time.length <= 16 ? formData.start_time + ':00' : formData.start_time)
+        : null,
+      end_time: formData.end_time
+        ? (formData.end_time.length <= 16 ? formData.end_time + ':00' : formData.end_time)
+        : null,
       location: formData.location || null,
       provider_name: formData.provider_name || null,
       notes: formData.notes || null,
