@@ -10,13 +10,16 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import TaskCommentsDialog from './TaskCommentsDialog';
 
-export default function TaskAssignmentList({ careRecipientId }) {
+export default function TaskAssignmentList({ careRecipientId, careRecipientIds }) {
   const queryClient = useQueryClient();
   const { user, profile } = useAuth();
   const [selectedTask, setSelectedTask] = useState(null);
   const [commentsOpen, setCommentsOpen] = useState(false);
 
-  const { data: tasks = [] } = useTasks({ careRecipientId });
+  const { data: tasks = [] } = useTasks({
+    careRecipientId,
+    careRecipientIds,
+  });
   const { data: teamMembers = [] } = useTeamMembers();
 
   const completeTaskMutation = useCompleteTask();

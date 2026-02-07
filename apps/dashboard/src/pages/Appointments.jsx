@@ -8,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 const typeColors = {
   doctor: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -24,7 +26,7 @@ const typeColors = {
 export default function Appointments() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
-    care_recipient_id: '',
+    care_recipient_ids: [],
     title: '',
     appointment_type: 'doctor',
     description: '',
@@ -44,7 +46,7 @@ export default function Appointments() {
 
   const resetForm = () => {
     setFormData({
-      care_recipient_id: '',
+      care_recipient_ids: [],
       title: '',
       appointment_type: 'doctor',
       description: '',
@@ -60,8 +62,16 @@ export default function Appointments() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (formData.care_recipient_ids.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
     const appointmentData = {
-      care_recipient_id: formData.care_recipient_id,
+      // Send first selected as care_recipient_id for backward compatibility
+      care_recipient_id: formData.care_recipient_ids[0],
+      // Send full array for multi-recipient support
+      care_recipient_ids: formData.care_recipient_ids,
       title: formData.title,
       appointment_type: formData.appointment_type,
       description: formData.description || null,
@@ -88,7 +98,7 @@ export default function Appointments() {
   const getRecipientName = (id) => {
     const recipient = recipients.find(r => r.id === id);
     if (recipient) {
-      return `${recipient.first_name} ${recipient.last_name}`;
+      return recipient.full_name || `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 'Unknown';
     }
     return 'Unknown';
   };
@@ -134,23 +144,34 @@ export default function Appointments() {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label>Care Recipient *</Label>
-                  <Select
-                    value={formData.care_recipient_id}
-                    onValueChange={(value) => setFormData({...formData, care_recipient_id: value})}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select recipient" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {recipients?.map(recipient => (
-                        <SelectItem key={recipient.id} value={recipient.id}>
-                          {recipient.first_name} {recipient.last_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Care Recipient(s) *</Label>
+                  <div className="border border-slate-200 rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
+                    {recipients?.length === 0 ? (
+                      <p className="text-sm text-slate-500">No care recipients added yet</p>
+                    ) : (
+                      recipients?.map(recipient => (
+                        <label key={recipient.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 rounded p-1">
+                          <Checkbox
+                            checked={formData.care_recipient_ids.includes(recipient.id)}
+                            onCheckedChange={(checked) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                care_recipient_ids: checked
+                                  ? [...prev.care_recipient_ids, recipient.id]
+                                  : prev.care_recipient_ids.filter(id => id !== recipient.id)
+                              }));
+                            }}
+                          />
+                          <span className="text-sm text-slate-700">
+                            {recipient.full_name || `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 'Unknown'}
+                          </span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  {formData.care_recipient_ids.length > 0 && (
+                    <p className="text-xs text-slate-500">{formData.care_recipient_ids.length} selected</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -307,7 +328,12 @@ export default function Appointments() {
                       </Badge>
                     </div>
                     <p className="text-sm text-slate-600">
-                      For: {apt.care_recipients ? `${apt.care_recipients.first_name} ${apt.care_recipients.last_name}` : getRecipientName(apt.care_recipient_id)}
+                      For: {Array.isArray(apt.care_recipient_ids) && apt.care_recipient_ids.length > 0
+                        ? apt.care_recipient_ids.map(id => getRecipientName(id)).join(', ')
+                        : apt.care_recipients
+                          ? `${apt.care_recipients.first_name} ${apt.care_recipients.last_name}`
+                          : getRecipientName(apt.care_recipient_id)
+                      }
                     </p>
                   </div>
                   <button

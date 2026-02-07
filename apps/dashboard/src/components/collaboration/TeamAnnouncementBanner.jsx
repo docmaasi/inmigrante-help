@@ -13,7 +13,7 @@ import { Megaphone, Plus, X, AlertCircle, Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function TeamAnnouncementBanner({ careRecipientId }) {
+export default function TeamAnnouncementBanner({ careRecipientId, careRecipientIds }) {
   const [showDialog, setShowDialog] = useState(false);
   const { user, profile } = useAuth();
   const [formData, setFormData] = useState({
@@ -51,7 +51,7 @@ export default function TeamAnnouncementBanner({ careRecipientId }) {
         title: formData.title,
         message: formData.message,
         priority: formData.priority,
-        care_recipient_id: careRecipientId,
+        care_recipient_id: careRecipientIds?.[0] || careRecipientId,
         read_by: [user?.id]
       });
       setShowDialog(false);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Users } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import {
@@ -14,14 +14,20 @@ import TeamAnnouncementBanner from '../components/collaboration/TeamAnnouncement
 
 export default function Collaboration() {
   const { user } = useAuth();
-  const [selectedRecipientId, setSelectedRecipientId] = useState('');
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
 
   const { data: recipients = [] } = useCareRecipients();
   const { data: allTeamMembers = [] } = useTeamMembers();
 
-  // Filter team members by selected recipient
-  const teamMembers = selectedRecipientId
-    ? allTeamMembers.filter(m => m.care_recipient_id === selectedRecipientId && m.status !== 'removed')
+  // Filter team members by selected recipients
+  const teamMembers = selectedRecipientIds.length > 0
+    ? allTeamMembers.filter(m => {
+        if (m.status === 'removed') return false;
+        // Check if any of the member's care_recipient_ids overlap with selected
+        const memberIds = Array.isArray(m.care_recipient_ids) ? m.care_recipient_ids : [];
+        return memberIds.some(id => selectedRecipientIds.includes(id)) ||
+          selectedRecipientIds.includes(m.care_recipient_id);
+      })
     : [];
 
   // Transform recipients to match expected format
@@ -30,14 +36,22 @@ export default function Collaboration() {
     full_name: `${r.first_name || ''} ${r.last_name || ''}`.trim(),
   }));
 
-  // Set first recipient as default
+  // Select all recipients by default
   useEffect(() => {
-    if (formattedRecipients.length > 0 && !selectedRecipientId) {
-      setSelectedRecipientId(formattedRecipients[0].id);
+    if (formattedRecipients.length > 0 && selectedRecipientIds.length === 0) {
+      setSelectedRecipientIds(formattedRecipients.map(r => r.id));
     }
-  }, [formattedRecipients, selectedRecipientId]);
+  }, [formattedRecipients, selectedRecipientIds]);
 
-  const selectedRecipient = formattedRecipients.find(r => r.id === selectedRecipientId);
+  const handleToggleRecipient = (recipientId, checked) => {
+    setSelectedRecipientIds(prev =>
+      checked
+        ? [...prev, recipientId]
+        : prev.filter(id => id !== recipientId)
+    );
+  };
+
+  const hasSelection = selectedRecipientIds.length > 0;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -53,32 +67,34 @@ export default function Collaboration() {
         {/* Care Recipient Selector */}
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <div className="max-w-xs">
-              <label className="text-sm font-medium text-slate-700 block mb-2">
-                Select Care Recipient
-              </label>
-              <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select recipient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {formattedRecipients.map(recipient => (
-                    <SelectItem key={recipient.id} value={recipient.id}>
-                      {recipient.full_name || `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 'Unknown'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <label className="text-sm font-medium text-slate-700 block mb-2">
+              Select Care Recipient(s)
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {formattedRecipients.map(recipient => (
+                <label key={recipient.id} className="flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 transition-colors">
+                  <Checkbox
+                    checked={selectedRecipientIds.includes(recipient.id)}
+                    onCheckedChange={(checked) => handleToggleRecipient(recipient.id, checked)}
+                  />
+                  <span className="text-sm text-slate-700">
+                    {recipient.full_name || `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 'Unknown'}
+                  </span>
+                </label>
+              ))}
             </div>
+            {selectedRecipientIds.length > 0 && (
+              <p className="text-xs text-slate-500 mt-2">{selectedRecipientIds.length} of {formattedRecipients.length} selected</p>
+            )}
           </CardContent>
         </Card>
 
-        {selectedRecipient && (
+        {hasSelection && (
           <>
             {/* Team Announcements */}
             <Card className="mb-6 border border-slate-200">
               <CardContent className="pt-6">
-                <TeamAnnouncementBanner careRecipientId={selectedRecipientId} />
+                <TeamAnnouncementBanner careRecipientIds={selectedRecipientIds} />
               </CardContent>
             </Card>
 
@@ -115,13 +131,13 @@ export default function Collaboration() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Tasks & Calendar */}
               <div className="lg:col-span-2 space-y-6">
-                <TaskAssignmentList careRecipientId={selectedRecipientId} />
-                <SharedCalendarView careRecipientId={selectedRecipientId} />
+                <TaskAssignmentList careRecipientIds={selectedRecipientIds} />
+                <SharedCalendarView careRecipientIds={selectedRecipientIds} />
               </div>
 
               {/* Activity Log */}
               <div>
-                <CaregiverActivityLog careRecipientId={selectedRecipientId} limit={30} />
+                <CaregiverActivityLog careRecipientIds={selectedRecipientIds} limit={30} />
               </div>
             </div>
           </>

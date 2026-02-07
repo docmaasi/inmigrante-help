@@ -5,16 +5,18 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, CheckCircle2 } from 'lucide-react';
 import { format, getDay, getDaysInMonth, startOfMonth } from 'date-fns';
 
-export default function SharedCalendarView({ careRecipientId }) {
+export default function SharedCalendarView({ careRecipientId, careRecipientIds }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const { data: appointments = [] } = useAppointments({
     careRecipientId,
+    careRecipientIds,
     status: 'scheduled'
   });
 
   const { data: tasks = [] } = useTasks({
     careRecipientId,
+    careRecipientIds,
     status: 'pending'
   });
 

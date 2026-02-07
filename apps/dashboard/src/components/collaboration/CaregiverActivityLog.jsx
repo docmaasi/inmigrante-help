@@ -28,21 +28,32 @@ const ACTION_COLORS = {
   message_sent: 'bg-slate-100 text-slate-800'
 };
 
-export default function CaregiverActivityLog({ careRecipientId, limit = 20 }) {
+export default function CaregiverActivityLog({ careRecipientId, careRecipientIds, limit = 20 }) {
   const { user } = useAuth();
 
-  const { data: activities = [] } = useQuery({
-    queryKey: ['action-log', careRecipientId, limit],
-    queryFn: async () => {
-      if (!careRecipientId) return [];
+  // Support both single ID and array of IDs
+  const ids = careRecipientIds && careRecipientIds.length > 0
+    ? careRecipientIds
+    : careRecipientId ? [careRecipientId] : [];
 
-      const { data, error } = await supabase
+  const { data: activities = [] } = useQuery({
+    queryKey: ['action-log', ids, limit],
+    queryFn: async () => {
+      if (ids.length === 0) return [];
+
+      let query = supabase
         .from('action_logs')
         .select('*, profiles:actor_id(full_name)')
-        .eq('care_recipient_id', careRecipientId)
         .order('created_at', { ascending: false })
         .limit(limit);
 
+      if (ids.length === 1) {
+        query = query.eq('care_recipient_id', ids[0]);
+      } else {
+        query = query.in('care_recipient_id', ids);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data.map(item => ({
         ...item,
@@ -50,7 +61,7 @@ export default function CaregiverActivityLog({ careRecipientId, limit = 20 }) {
         created_date: item.created_at
       }));
     },
-    enabled: !!user && !!careRecipientId
+    enabled: !!user && ids.length > 0
   });
 
   const groupedByDate = activities.reduce((groups, activity) => {
