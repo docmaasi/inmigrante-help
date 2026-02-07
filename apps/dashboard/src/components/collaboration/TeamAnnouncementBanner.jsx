@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTeamAnnouncements, useCreateAnnouncement } from '@/hooks';
+import { useTeamAnnouncements, useCreateAnnouncement, useTeamMembers } from '@/hooks';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { Card } from '@/components/ui/card';
@@ -18,12 +18,13 @@ export default function TeamAnnouncementBanner({ careRecipientId, careRecipientI
   const { user, profile } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
-    message: '',
+    content: '',
     priority: 'normal'
   });
   const queryClient = useQueryClient();
 
   const { data: announcements = [] } = useTeamAnnouncements();
+  const { data: teamMembers = [] } = useTeamMembers();
 
   const createAnnouncementMutation = useCreateAnnouncement();
 
@@ -41,22 +42,60 @@ export default function TeamAnnouncementBanner({ careRecipientId, careRecipientI
   });
 
   const handleSubmit = async () => {
-    if (!formData.title.trim() || !formData.message.trim()) {
+    if (!formData.title.trim() || !formData.content.trim()) {
       toast.error('Please fill in all fields');
       return;
     }
 
     try {
-      await createAnnouncementMutation.mutateAsync({
+      const announcement = await createAnnouncementMutation.mutateAsync({
         title: formData.title,
-        message: formData.message,
+        content: formData.content,
         priority: formData.priority,
-        care_recipient_id: careRecipientIds?.[0] || careRecipientId,
+        care_recipient_id: careRecipientIds?.[0] || careRecipientId || null,
         read_by: [user?.id]
       });
+
+      // Create in-app notifications for all active team members with accounts
+      const activeMembers = teamMembers.filter(m =>
+        m.status !== 'removed' && m.invited_user_id && m.invited_user_id !== user?.id
+      );
+
+      if (activeMembers.length > 0) {
+        const notifications = activeMembers.map(member => ({
+          user_id: member.invited_user_id,
+          title: `Team Announcement: ${formData.title}`,
+          message: formData.content,
+          type: 'announcement',
+          reference_type: 'team_announcements',
+          reference_id: announcement?.id || null,
+        }));
+
+        await supabase.from('notifications').insert(notifications);
+      }
+
+      // Send email notifications to all team members via edge function
+      const allMemberEmails = teamMembers
+        .filter(m => m.status !== 'removed' && m.email)
+        .map(m => ({ email: m.email, name: m.full_name, phone: m.phone }));
+
+      if (allMemberEmails.length > 0) {
+        supabase.functions.invoke('notify-team-announcement', {
+          body: {
+            announcement_title: formData.title,
+            announcement_content: formData.content,
+            announcement_priority: formData.priority,
+            author_name: profile?.full_name || user?.email,
+            team_members: allMemberEmails,
+          }
+        }).catch(() => {
+          // Email notification is best-effort, don't block the UI
+        });
+      }
+
       setShowDialog(false);
-      setFormData({ title: '', message: '', priority: 'normal' });
-      toast.success('Announcement posted');
+      setFormData({ title: '', content: '', priority: 'normal' });
+      toast.success('Announcement posted and team notified');
     } catch (error) {
       toast.error('Failed to post announcement');
     }
@@ -134,7 +173,7 @@ export default function TeamAnnouncementBanner({ careRecipientId, careRecipientI
                         {priorityIcons[announcement.priority]}
                         <h4 className="font-semibold text-sm">{announcement.title}</h4>
                       </div>
-                      <p className="text-xs mb-2">{announcement.message}</p>
+                      <p className="text-xs mb-2">{announcement.content}</p>
                       <div className="flex items-center gap-3 text-xs text-slate-600">
                         <span className="font-medium">{authorName}</span>
                         <span>&bull;</span>
@@ -176,8 +215,8 @@ export default function TeamAnnouncementBanner({ careRecipientId, careRecipientI
               <label className="text-sm font-medium text-slate-700 mb-2 block">Message</label>
               <Textarea
                 placeholder="Your announcement message"
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 rows={4}
               />
             </div>
