@@ -200,38 +200,46 @@ export default function Settings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <Link
-                  to={createPageUrl('TermsOfService')}
+                <a
+                  href="https://familycare.help/TermsOfService"
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <FileText className="w-4 h-4" />
                   View Terms of Service
-                </Link>
-                <Link
-                  to={createPageUrl('PrivacyPolicy')}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://familycare.help/PrivacyPolicy"
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <Shield className="w-4 h-4" />
                   View Privacy Policy
-                </Link>
-                <Link
-                  to={createPageUrl('CookiePolicy')}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://familycare.help/CookiePolicy"
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <FileText className="w-4 h-4" />
                   View Cookie Policy
-                </Link>
-                <Link
-                  to={createPageUrl('LegalDisclosure')}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://familycare.help/LegalDisclosure"
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <FileText className="w-4 h-4" />
                   View Legal Disclosure
-                </Link>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
 
               {needsReacceptance() && (
@@ -342,22 +350,26 @@ export default function Settings() {
             </p>
 
             <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
-              <Link
-                to={createPageUrl('TermsOfService')}
+              <a
+                href="https://familycare.help/TermsOfService"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
               >
                 <FileText className="w-4 h-4" />
                 Terms of Service (v{CURRENT_VERSIONS.terms_of_service})
-              </Link>
-              <Link
-                to={createPageUrl('PrivacyPolicy')}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <a
+                href="https://familycare.help/PrivacyPolicy"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
               >
                 <Shield className="w-4 h-4" />
                 Privacy Policy (v{CURRENT_VERSIONS.privacy_policy})
-              </Link>
+                <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
 
             <div className="flex items-start gap-3 pt-2">

@@ -11,6 +11,7 @@ import { X, Loader2, Search, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import FileUpload from '../shared/FileUpload';
 import { errorHandlers } from "@/lib/error-handler";
+import { filterDosageOptions, filterFrequencyOptions, DOSAGE_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/medication-options';
 
 const searchMedications = async (query) => {
   try {
@@ -70,6 +71,16 @@ export function MedicationForm({ medication, recipients, onClose }) {
   const [recipientZipCode, setRecipientZipCode] = useState('');
   const pharmacyTimeoutRef = useRef(null);
   const pharmacyRef = useRef(null);
+
+  // Dosage autocomplete state
+  const [dosageSuggestions, setDosageSuggestions] = useState([]);
+  const [showDosageSuggestions, setShowDosageSuggestions] = useState(false);
+  const dosageRef = useRef(null);
+
+  // Frequency autocomplete state
+  const [frequencySuggestions, setFrequencySuggestions] = useState([]);
+  const [showFrequencySuggestions, setShowFrequencySuggestions] = useState(false);
+  const frequencyRef = useRef(null);
 
   const createMutation = useCreateMedication();
   const updateMutation = useUpdateMedication();
@@ -164,6 +175,12 @@ export function MedicationForm({ medication, recipients, onClose }) {
       }
       if (pharmacyRef.current && !pharmacyRef.current.contains(event.target)) {
         setShowPharmacySuggestions(false);
+      }
+      if (dosageRef.current && !dosageRef.current.contains(event.target)) {
+        setShowDosageSuggestions(false);
+      }
+      if (frequencyRef.current && !frequencyRef.current.contains(event.target)) {
+        setShowFrequencySuggestions(false);
       }
     };
 
@@ -335,24 +352,101 @@ export function MedicationForm({ medication, recipients, onClose }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 relative" ref={dosageRef}>
               <Label htmlFor="dosage">Dosage *</Label>
               <Input
                 id="dosage"
                 value={formData.dosage}
-                onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, dosage: val });
+                  setDosageSuggestions(filterDosageOptions(val));
+                  if (val.length >= 1) {
+                    setShowDosageSuggestions(true);
+                  } else {
+                    setShowDosageSuggestions(false);
+                  }
+                }}
+                onFocus={() => {
+                  // Show all common options when field is empty, or filtered results
+                  if (formData.dosage) {
+                    const filtered = filterDosageOptions(formData.dosage);
+                    if (filtered.length > 0) {
+                      setDosageSuggestions(filtered);
+                      setShowDosageSuggestions(true);
+                    }
+                  } else {
+                    setDosageSuggestions(DOSAGE_OPTIONS.slice(0, 12));
+                    setShowDosageSuggestions(true);
+                  }
+                }}
                 placeholder="e.g., 10mg, 2 tablets"
                 required
               />
+              {showDosageSuggestions && dosageSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {dosageSuggestions.map((option, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, dosage: option });
+                        setShowDosageSuggestions(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 border-b border-slate-100 last:border-b-0 transition-colors text-sm text-slate-800"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative" ref={frequencyRef}>
               <Label htmlFor="frequency">Frequency</Label>
               <Input
                 id="frequency"
                 value={formData.frequency}
-                onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, frequency: val });
+                  setFrequencySuggestions(filterFrequencyOptions(val));
+                  if (val.length >= 1) {
+                    setShowFrequencySuggestions(true);
+                  } else {
+                    setShowFrequencySuggestions(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (formData.frequency) {
+                    const filtered = filterFrequencyOptions(formData.frequency);
+                    if (filtered.length > 0) {
+                      setFrequencySuggestions(filtered);
+                      setShowFrequencySuggestions(true);
+                    }
+                  } else {
+                    setFrequencySuggestions(FREQUENCY_OPTIONS.slice(0, 10));
+                    setShowFrequencySuggestions(true);
+                  }
+                }}
                 placeholder="e.g., Once daily, Twice daily"
               />
+              {showFrequencySuggestions && frequencySuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {frequencySuggestions.map((option, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, frequency: option });
+                        setShowFrequencySuggestions(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 border-b border-slate-100 last:border-b-0 transition-colors text-sm text-slate-800"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

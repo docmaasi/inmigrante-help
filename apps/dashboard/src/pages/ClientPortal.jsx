@@ -96,13 +96,13 @@ export function ClientPortal() {
 
   React.useEffect(() => {
     if (!authLoading && !user) {
-      navigate(createPageUrl('Dashboard'));
+      navigate('/');
     }
   }, [authLoading, user, navigate]);
 
   React.useEffect(() => {
     if (!accessLoading && user && !access) {
-      navigate(createPageUrl('Dashboard'));
+      navigate('/');
     }
   }, [accessLoading, user, access, navigate]);
 

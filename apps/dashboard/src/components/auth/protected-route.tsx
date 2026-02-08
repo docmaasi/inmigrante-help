@@ -16,7 +16,7 @@ export function ProtectedRoute({
   children,
   requiredRole,
   requiredPermission,
-  redirectTo = '/dashboard',
+  redirectTo = '/',
 }: ProtectedRouteProps): ReactNode {
   const { isAuthenticated, isLoading } = useAuth();
   const { role, hasPermission, isRole } = usePermissions();

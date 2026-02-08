@@ -30,7 +30,7 @@ export default function CareRecipients() {
   const handleManageSubscription = async () => {
     // If user has no stripe_customer_id, send them to Checkout to subscribe first
     if (!profile?.stripe_customer_id) {
-      window.location.href = createPageUrl('Checkout');
+      window.location.href = '/Checkout';
       return;
     }
     setIsLoadingPortal(true);
@@ -45,7 +45,7 @@ export default function CareRecipients() {
     } catch (error) {
       console.error('Failed to open billing portal:', error);
       // Fallback to checkout page
-      window.location.href = createPageUrl('Checkout');
+      window.location.href = '/Checkout';
     } finally {
       setIsLoadingPortal(false);
     }
