@@ -53,8 +53,8 @@ export default function Refills() {
     createRefillMutation.mutate({
       medication_id: formData.medication_id,
       requested_date: formData.requested_date,
-      pharmacy: formData.pharmacy,
-      notes: formData.notes,
+      pharmacy: formData.pharmacy || null,
+      notes: formData.notes || null,
       status: 'pending'
     }, {
       onSuccess: () => {
@@ -97,7 +97,7 @@ export default function Refills() {
     const newRefills = medicationsNeedingRefills.map(m => ({
       medication_id: m.id,
       requested_date: m.refill_date,
-      pharmacy: m.pharmacy || '',
+      pharmacy: m.pharmacy || null,
       status: 'pending'
     }));
 

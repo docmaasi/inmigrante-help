@@ -17,7 +17,7 @@ export default function ClientTasks() {
   useEffect(() => {
     if (isAuthLoading) return;
     if (!user) {
-      navigate(createPageUrl('Dashboard'));
+      navigate('/');
       return;
     }
 
@@ -29,7 +29,7 @@ export default function ClientTasks() {
         .limit(1);
 
       if (error || !accesses || accesses.length === 0) {
-        navigate(createPageUrl('Dashboard'));
+        navigate('/');
         return;
       }
 

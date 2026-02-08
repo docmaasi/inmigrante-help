@@ -3,8 +3,19 @@ import { Badge } from '../ui/badge';
 import { Calendar, Pill, CheckSquare, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function MessageThread({ messages, currentUserEmail }) {
+export default function MessageThread({ messages, currentUserEmail, searchQuery = '' }) {
   const messagesEndRef = useRef(null);
+
+  // Highlight search matches in text
+  const highlightText = (text, query) => {
+    if (!query || !text) return text;
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, i) =>
+      part.toLowerCase() === query.toLowerCase()
+        ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
+        : part
+    );
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,7 +65,9 @@ export default function MessageThread({ messages, currentUserEmail }) {
                       </Badge>
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {searchQuery ? highlightText(message.content, searchQuery) : message.content}
+                  </p>
                 </div>
                 <div className={`text-xs mt-1 ${isOwn ? 'text-slate-500' : 'text-slate-400'}`}>
                   {format(new Date(message.created_date), 'h:mm a')}

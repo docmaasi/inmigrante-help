@@ -7,10 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2 } from 'lucide-react';
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
+import { errorHandlers } from "@/lib/error-handler";
 import {
   useTeamMembers,
   useInviteTeamMember,
@@ -25,7 +27,7 @@ export default function Team() {
   const [editingMember, setEditingMember] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
-    care_recipient_id: '',
+    care_recipient_ids: [],
     role: 'caregiver',
     full_name: '',
     relationship: '',
@@ -45,7 +47,7 @@ export default function Team() {
     setEditingMember(null);
     setFormData({
       email: '',
-      care_recipient_id: '',
+      care_recipient_ids: [],
       role: 'caregiver',
       full_name: '',
       relationship: '',
@@ -58,29 +60,33 @@ export default function Team() {
     setEditingMember(member);
     setFormData({
       email: member.email || '',
-      care_recipient_id: member.care_recipient_id || '',
+      care_recipient_ids: Array.isArray(member.care_recipient_ids)
+        ? member.care_recipient_ids
+        : [],
       role: member.role || 'caregiver',
       full_name: member.full_name || '',
-      relationship: member.relationship || '',
+      relationship: '',
       phone: member.phone || '',
-      specialties: member.specialties || ''
+      specialties: ''
     });
     setShowAddDialog(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (formData.care_recipient_ids.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
     if (editingMember) {
       updateMutation.mutate(
         {
           id: editingMember.id,
           email: formData.email,
-          care_recipient_id: formData.care_recipient_id,
+          care_recipient_ids: formData.care_recipient_ids,
           role: formData.role,
           full_name: formData.full_name,
-          relationship: formData.relationship,
-          phone: formData.phone,
-          specialties: formData.specialties,
+          phone: formData.phone || null,
         },
         {
           onSuccess: () => {
@@ -88,7 +94,7 @@ export default function Team() {
             handleCloseDialog();
           },
           onError: (error) => {
-            toast.error(error.message || 'Failed to update team member');
+            errorHandlers.save('team member', error);
           },
         }
       );
@@ -96,12 +102,10 @@ export default function Team() {
       inviteMutation.mutate(
         {
           email: formData.email,
-          care_recipient_id: formData.care_recipient_id,
+          care_recipient_ids: formData.care_recipient_ids,
           role: formData.role,
           full_name: formData.full_name,
-          relationship: formData.relationship,
-          phone: formData.phone,
-          specialties: formData.specialties,
+          phone: formData.phone || null,
         },
         {
           onSuccess: () => {
@@ -109,7 +113,7 @@ export default function Team() {
             handleCloseDialog();
           },
           onError: (error) => {
-            toast.error(error.message || 'Failed to add team member');
+            errorHandlers.save('team member', error);
           },
         }
       );
@@ -273,7 +277,11 @@ export default function Team() {
                       )}
                       <div className="flex items-start gap-2 text-slate-600">
                         <Users className="w-4 h-4 text-slate-400 mt-0.5" />
-                        <span>Caring for: {getRecipientName(member.care_recipient_id)}</span>
+                        <span>Caring for: {
+                          Array.isArray(member.care_recipient_ids) && member.care_recipient_ids.length > 0
+                            ? member.care_recipient_ids.map(id => getRecipientName(id)).join(', ')
+                            : 'Not assigned'
+                        }</span>
                       </div>
                     </div>
 
@@ -355,19 +363,34 @@ export default function Team() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="care_recipient_id">Care Recipient *</Label>
-                <Select value={formData.care_recipient_id} onValueChange={(value) => setFormData({...formData, care_recipient_id: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select recipient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {formattedRecipients.map(recipient => (
-                      <SelectItem key={recipient.id} value={recipient.id}>
-                        {recipient.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Care Recipient(s) *</Label>
+                <div className="mt-2 space-y-2 border border-slate-200 rounded-lg p-3 max-h-40 overflow-y-auto">
+                  {formattedRecipients.length === 0 ? (
+                    <p className="text-sm text-slate-500">No care recipients added yet</p>
+                  ) : (
+                    formattedRecipients.map(recipient => (
+                      <label key={recipient.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 rounded p-1">
+                        <Checkbox
+                          checked={formData.care_recipient_ids.includes(recipient.id)}
+                          onCheckedChange={(checked) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              care_recipient_ids: checked
+                                ? [...prev.care_recipient_ids, recipient.id]
+                                : prev.care_recipient_ids.filter(id => id !== recipient.id)
+                            }));
+                          }}
+                        />
+                        <span className="text-sm text-slate-700">
+                          {recipient.full_name || `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 'Unknown'}
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                {formData.care_recipient_ids.length > 0 && (
+                  <p className="text-xs text-slate-500 mt-1">{formData.care_recipient_ids.length} selected</p>
+                )}
               </div>
             </div>
 

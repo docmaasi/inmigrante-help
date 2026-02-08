@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, X, ExternalLink } from 'lucide-react';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
 
 export function CancellationReminder({ userId }) {
   const [dismissed, setDismissed] = useState(false);
@@ -79,17 +78,17 @@ export function CancellationReminder({ userId }) {
               <p>- Export any records you need for personal, medical, or legal purposes</p>
             </div>
             <div className="flex gap-3 flex-wrap">
-              <Link to={createPageUrl('Checkout')}>
+              <Link to="/Checkout">
                 <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                   Renew Subscription
                 </Button>
               </Link>
-              <Link to={createPageUrl('RecordRetentionPolicy')}>
+              <a href="https://familycare.help/RecordRetentionPolicy" target="_blank" rel="noopener noreferrer">
                 <Button size="sm" variant="outline">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   View Policy
                 </Button>
-              </Link>
+              </a>
             </div>
           </AlertDescription>
         </div>

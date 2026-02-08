@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Loader2, Search } from 'lucide-react';
+import { X, Loader2, Search, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import FileUpload from '../shared/FileUpload';
+import { errorHandlers } from "@/lib/error-handler";
+import { filterDosageOptions, filterFrequencyOptions, DOSAGE_OPTIONS, FREQUENCY_OPTIONS } from '@/lib/medication-options';
 
 const searchMedications = async (query) => {
   try {
@@ -20,6 +22,19 @@ const searchMedications = async (query) => {
     return data?.results || [];
   } catch (error) {
     console.error('Medication search error:', error);
+    return [];
+  }
+};
+
+const searchPharmacies = async (zipCode, query) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('search-pharmacies', {
+      body: { zip_code: zipCode, query }
+    });
+    if (error) throw error;
+    return data?.results || [];
+  } catch (error) {
+    console.error('Pharmacy search error:', error);
     return [];
   }
 };
@@ -48,6 +63,25 @@ export function MedicationForm({ medication, recipients, onClose }) {
   const searchTimeoutRef = useRef(null);
   const suggestionsRef = useRef(null);
 
+  // Pharmacy search state
+  const [pharmacyQuery, setPharmacyQuery] = useState(formData.pharmacy || '');
+  const [pharmacySuggestions, setPharmacySuggestions] = useState([]);
+  const [showPharmacySuggestions, setShowPharmacySuggestions] = useState(false);
+  const [isSearchingPharmacy, setIsSearchingPharmacy] = useState(false);
+  const [recipientZipCode, setRecipientZipCode] = useState('');
+  const pharmacyTimeoutRef = useRef(null);
+  const pharmacyRef = useRef(null);
+
+  // Dosage autocomplete state
+  const [dosageSuggestions, setDosageSuggestions] = useState([]);
+  const [showDosageSuggestions, setShowDosageSuggestions] = useState(false);
+  const dosageRef = useRef(null);
+
+  // Frequency autocomplete state
+  const [frequencySuggestions, setFrequencySuggestions] = useState([]);
+  const [showFrequencySuggestions, setShowFrequencySuggestions] = useState(false);
+  const frequencyRef = useRef(null);
+
   const createMutation = useCreateMedication();
   const updateMutation = useUpdateMedication();
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -70,7 +104,8 @@ export function MedicationForm({ medication, recipients, onClose }) {
         setSuggestions(results);
         setShowSuggestions(true);
       } catch (error) {
-        toast.error('Failed to search medications');
+        // Silent fail for search - user can still enter manually
+        console.error('Medication search failed:', error);
       } finally {
         setIsSearching(false);
       }
@@ -83,10 +118,69 @@ export function MedicationForm({ medication, recipients, onClose }) {
     };
   }, [searchQuery]);
 
+  // Look up recipient's zip code when they select a care recipient
+  useEffect(() => {
+    if (formData.care_recipient_id && recipients) {
+      const recipient = recipients.find(r => r.id === formData.care_recipient_id);
+      if (recipient?.zip_code) {
+        setRecipientZipCode(recipient.zip_code);
+        // Auto-load pharmacies near the recipient
+        searchPharmacies(recipient.zip_code).then(results => {
+          setPharmacySuggestions(results);
+        });
+      } else {
+        setRecipientZipCode('');
+        setPharmacySuggestions([]);
+      }
+    }
+  }, [formData.care_recipient_id, recipients]);
+
+  // Pharmacy search with debounce
+  useEffect(() => {
+    if (pharmacyTimeoutRef.current) {
+      clearTimeout(pharmacyTimeoutRef.current);
+    }
+
+    if (!recipientZipCode) return;
+
+    if (pharmacyQuery.length >= 2) {
+      setIsSearchingPharmacy(true);
+      pharmacyTimeoutRef.current = setTimeout(async () => {
+        try {
+          const results = await searchPharmacies(recipientZipCode, pharmacyQuery);
+          setPharmacySuggestions(results);
+          setShowPharmacySuggestions(true);
+        } catch {
+          // Silent fail
+        } finally {
+          setIsSearchingPharmacy(false);
+        }
+      }, 300);
+    } else if (pharmacyQuery.length === 0 && recipientZipCode) {
+      // Show all nearby pharmacies when field is empty
+      searchPharmacies(recipientZipCode).then(results => {
+        setPharmacySuggestions(results);
+      });
+    }
+
+    return () => {
+      if (pharmacyTimeoutRef.current) clearTimeout(pharmacyTimeoutRef.current);
+    };
+  }, [pharmacyQuery, recipientZipCode]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
         setShowSuggestions(false);
+      }
+      if (pharmacyRef.current && !pharmacyRef.current.contains(event.target)) {
+        setShowPharmacySuggestions(false);
+      }
+      if (dosageRef.current && !dosageRef.current.contains(event.target)) {
+        setShowDosageSuggestions(false);
+      }
+      if (frequencyRef.current && !frequencyRef.current.contains(event.target)) {
+        setShowFrequencySuggestions(false);
       }
     };
 
@@ -98,47 +192,74 @@ export function MedicationForm({ medication, recipients, onClose }) {
     setFormData({
       ...formData,
       name: med.name,
-      dosage: med.dosage || formData.dosage
+      dosage: med.dosage || formData.dosage,
+      generic_name: med.generic_name || formData.generic_name || '',
+      form: med.form || formData.form || '',
+      route: med.route || formData.route || '',
     });
     setSearchQuery(med.name);
     setShowSuggestions(false);
     setSuggestions([]);
   };
 
+  const handlePharmacySelect = (pharmacy) => {
+    const pharmacyDisplay = `${pharmacy.name} - ${pharmacy.address}, ${pharmacy.city}, ${pharmacy.state} ${pharmacy.zip}`;
+    setFormData({
+      ...formData,
+      pharmacy: pharmacyDisplay,
+      pharmacy_phone: pharmacy.phone || '',
+    });
+    setPharmacyQuery(pharmacyDisplay);
+    setShowPharmacySuggestions(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.care_recipient_id || !formData.name || !formData.dosage) {
-      toast.error('Please fill in all required fields');
+    if (!formData.care_recipient_id) {
+      toast.error('Please select who this medication is for.');
+      return;
+    }
+    if (!formData.name) {
+      toast.error('Please enter the medication name.');
+      return;
+    }
+    if (!formData.dosage) {
+      toast.error('Please enter the dosage (e.g., 10mg, 2 tablets).');
       return;
     }
 
     const dataToSave = {
       care_recipient_id: formData.care_recipient_id,
       name: formData.name,
+      generic_name: formData.generic_name || null,
       dosage: formData.dosage,
-      frequency: formData.frequency,
-      time_of_day: formData.time_of_day,
-      purpose: formData.purpose,
-      prescribing_doctor: formData.prescribing_doctor,
+      form: formData.form || null,
+      route: formData.route || null,
+      frequency: formData.frequency || null,
+      schedule_times: formData.time_of_day
+        ? [formData.time_of_day]
+        : null,
+      notes: formData.purpose || null,
+      prescriber: formData.prescribing_doctor || null,
       start_date: formData.start_date || null,
-      refill_date: formData.refill_date || null,
-      pharmacy: formData.pharmacy,
-      special_instructions: formData.special_instructions,
-      photo_url: formData.photo_url,
+      end_date: formData.refill_date || null,
+      pharmacy: formData.pharmacy || null,
+      pharmacy_phone: formData.pharmacy_phone || null,
+      instructions: formData.special_instructions || null,
       is_active: formData.is_active
     };
 
     try {
       if (medication?.id) {
         await updateMutation.mutateAsync({ id: medication.id, ...dataToSave });
-        toast.success('Medication updated');
+        toast.success('Medication updated successfully!');
       } else {
         await createMutation.mutateAsync(dataToSave);
-        toast.success('Medication added');
+        toast.success('Medication added successfully!');
       }
       onClose();
     } catch (error) {
-      toast.error(error.message || 'Failed to save medication');
+      errorHandlers.save('medication', error);
     }
   };
 
@@ -166,7 +287,7 @@ export function MedicationForm({ medication, recipients, onClose }) {
               <SelectContent>
                 {recipients.map(recipient => (
                   <SelectItem key={recipient.id} value={recipient.id}>
-                    {recipient.full_name}
+                    {recipient.full_name || `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 'Unknown'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -231,24 +352,101 @@ export function MedicationForm({ medication, recipients, onClose }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 relative" ref={dosageRef}>
               <Label htmlFor="dosage">Dosage *</Label>
               <Input
                 id="dosage"
                 value={formData.dosage}
-                onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, dosage: val });
+                  setDosageSuggestions(filterDosageOptions(val));
+                  if (val.length >= 1) {
+                    setShowDosageSuggestions(true);
+                  } else {
+                    setShowDosageSuggestions(false);
+                  }
+                }}
+                onFocus={() => {
+                  // Show all common options when field is empty, or filtered results
+                  if (formData.dosage) {
+                    const filtered = filterDosageOptions(formData.dosage);
+                    if (filtered.length > 0) {
+                      setDosageSuggestions(filtered);
+                      setShowDosageSuggestions(true);
+                    }
+                  } else {
+                    setDosageSuggestions(DOSAGE_OPTIONS.slice(0, 12));
+                    setShowDosageSuggestions(true);
+                  }
+                }}
                 placeholder="e.g., 10mg, 2 tablets"
                 required
               />
+              {showDosageSuggestions && dosageSuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {dosageSuggestions.map((option, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, dosage: option });
+                        setShowDosageSuggestions(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 border-b border-slate-100 last:border-b-0 transition-colors text-sm text-slate-800"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative" ref={frequencyRef}>
               <Label htmlFor="frequency">Frequency</Label>
               <Input
                 id="frequency"
                 value={formData.frequency}
-                onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, frequency: val });
+                  setFrequencySuggestions(filterFrequencyOptions(val));
+                  if (val.length >= 1) {
+                    setShowFrequencySuggestions(true);
+                  } else {
+                    setShowFrequencySuggestions(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (formData.frequency) {
+                    const filtered = filterFrequencyOptions(formData.frequency);
+                    if (filtered.length > 0) {
+                      setFrequencySuggestions(filtered);
+                      setShowFrequencySuggestions(true);
+                    }
+                  } else {
+                    setFrequencySuggestions(FREQUENCY_OPTIONS.slice(0, 10));
+                    setShowFrequencySuggestions(true);
+                  }
+                }}
                 placeholder="e.g., Once daily, Twice daily"
               />
+              {showFrequencySuggestions && frequencySuggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {frequencySuggestions.map((option, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, frequency: option });
+                        setShowFrequencySuggestions(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 border-b border-slate-100 last:border-b-0 transition-colors text-sm text-slate-800"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -304,14 +502,62 @@ export function MedicationForm({ medication, recipients, onClose }) {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 relative" ref={pharmacyRef}>
             <Label htmlFor="pharmacy">Pharmacy</Label>
-            <Input
-              id="pharmacy"
-              value={formData.pharmacy}
-              onChange={(e) => setFormData({ ...formData, pharmacy: e.target.value })}
-              placeholder="Pharmacy name and location"
-            />
+            {recipientZipCode && (
+              <p className="text-xs text-teal-600 flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                Showing pharmacies near zip code {recipientZipCode}
+              </p>
+            )}
+            <div className="relative">
+              <Input
+                id="pharmacy"
+                value={pharmacyQuery}
+                onChange={(e) => {
+                  setPharmacyQuery(e.target.value);
+                  setFormData({ ...formData, pharmacy: e.target.value });
+                }}
+                onFocus={() => {
+                  if (pharmacySuggestions.length > 0 && recipientZipCode) {
+                    setShowPharmacySuggestions(true);
+                  }
+                }}
+                placeholder={recipientZipCode ? "Start typing pharmacy name..." : "Add zip code to care recipient for pharmacy lookup"}
+              />
+              {isSearchingPharmacy && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                </div>
+              )}
+            </div>
+
+            {showPharmacySuggestions && pharmacySuggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {pharmacySuggestions.map((pharmacy, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handlePharmacySelect(pharmacy)}
+                    className="w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-slate-100 last:border-b-0 transition-colors"
+                  >
+                    <div className="font-medium text-slate-900">{pharmacy.name}</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {pharmacy.address}, {pharmacy.city}, {pharmacy.state} {pharmacy.zip}
+                    </div>
+                    {pharmacy.phone && (
+                      <div className="text-xs text-teal-600 mt-0.5">{pharmacy.phone}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {!recipientZipCode && formData.care_recipient_id && (
+              <p className="text-xs text-amber-600 mt-1">
+                Add a zip code to this care recipient's profile to see nearby pharmacies
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

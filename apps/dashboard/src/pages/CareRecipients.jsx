@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useCareRecipients } from '@/hooks';
 import { useAuth } from '@/lib/auth-context';
-import { Plus, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { Plus, AlertCircle, CreditCard, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Skeleton } from '../components/ui/skeleton';
 import RecipientCard from '../components/recipients/RecipientCard';
@@ -12,6 +13,7 @@ import ShareQRCode from '../components/shared/ShareQRCode';
 export default function CareRecipients() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showLimitError, setShowLimitError] = useState(false);
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 
   const { profile } = useAuth();
   const { data: recipients = [], isLoading } = useCareRecipients();
@@ -20,10 +22,33 @@ export default function CareRecipients() {
     const maxAllowed = profile?.max_care_recipients || 1;
     if (recipients.length >= maxAllowed) {
       setShowLimitError(true);
-      setTimeout(() => setShowLimitError(false), 5000);
       return;
     }
     setShowAddForm(true);
+  };
+
+  const handleManageSubscription = async () => {
+    // If user has no stripe_customer_id, send them to Checkout to subscribe first
+    if (!profile?.stripe_customer_id) {
+      window.location.href = '/Checkout';
+      return;
+    }
+    setIsLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-portal-session', {
+        body: { returnUrl: window.location.href }
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Failed to open billing portal:', error);
+      // Fallback to checkout page
+      window.location.href = '/Checkout';
+    } finally {
+      setIsLoadingPortal(false);
+    }
   };
 
   if (showAddForm) {
@@ -41,18 +66,32 @@ export default function CareRecipients() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Care Recipients</h1>
             <p className="text-sm md:text-base text-slate-600">
-              Manage profiles for your loved ones ({recipients.length}/{profile?.max_care_recipients || 1} used)
+              Manage profiles for your loved ones — {recipients.length} of {profile?.max_care_recipients || 1} spot{(profile?.max_care_recipients || 1) !== 1 ? 's' : ''} used
             </p>
           </div>
           {showLimitError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-red-800">Care Recipient Limit Reached</p>
-                <p className="text-sm text-red-600 mt-1">
-                  You've reached your plan limit of {profile?.max_care_recipients || 1} care recipient(s).
-                  <a href={createPageUrl('Checkout')} className="underline font-medium ml-1">Upgrade your plan</a> to add more.
-                </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-amber-800">Care Recipient Limit Reached</p>
+                  <p className="text-sm text-amber-700 mt-1">
+                    You're using {recipients.length} of {profile?.max_care_recipients || 1} care recipient spot{(profile?.max_care_recipients || 1) > 1 ? 's' : ''}.
+                    Add more care recipients for <span className="font-semibold">$5/month each</span> (up to 10 total).
+                  </p>
+                  <Button
+                    onClick={handleManageSubscription}
+                    disabled={isLoadingPortal}
+                    className="mt-3 bg-teal-600 hover:bg-teal-700"
+                    size="sm"
+                  >
+                    {isLoadingPortal ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening...</>
+                    ) : (
+                      <><CreditCard className="w-4 h-4 mr-2" /> Manage Subscription</>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           )}

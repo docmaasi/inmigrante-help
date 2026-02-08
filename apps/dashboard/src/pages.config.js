@@ -14,6 +14,7 @@ import Collaboration from "./pages/Collaboration";
 import CommunicationHub from "./pages/CommunicationHub";
 import Documents from "./pages/Documents";
 import Emergency from "./pages/Emergency";
+import Help from "./pages/Help";
 import EmergencyProfile from "./pages/EmergencyProfile";
 import MedicationLog from "./pages/MedicationLog";
 import Medications from "./pages/Medications";
@@ -22,6 +23,7 @@ import { ReceiptsPage as Receipts } from "./pages/Receipts";
 import RecipientProfile from "./pages/RecipientProfile";
 import Refills from "./pages/Refills";
 import Reports from "./pages/Reports";
+import Resources from "./pages/Resources";
 import Scheduling from "./pages/Scheduling";
 import Settings from "./pages/Settings";
 import ShiftHandoff from "./pages/ShiftHandoff";
@@ -50,6 +52,7 @@ export const PAGES = {
   Documents,
   Emergency,
   EmergencyProfile,
+  Help,
   MedicationLog,
   Medications,
   Messages,
@@ -57,6 +60,7 @@ export const PAGES = {
   RecipientProfile,
   Refills,
   Reports,
+  Resources,
   Scheduling,
   Settings,
   ShiftHandoff,

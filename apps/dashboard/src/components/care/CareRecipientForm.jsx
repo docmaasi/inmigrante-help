@@ -9,27 +9,47 @@ import { Label } from "@/components/ui/label";
 import { X, Upload, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
+import MedicalAutocomplete from '../shared/MedicalAutocomplete';
 
 export function CareRecipientForm({ recipient, onClose }) {
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState(recipient || {
-    full_name: '',
-    date_of_birth: '',
-    photo_url: '',
-    primary_condition: '',
-    conditions_diagnoses: '[]',
-    medical_history: '[]',
-    allergies: '',
-    dietary_restrictions: '',
-    emergency_contact_name: '',
-    emergency_contact_relationship: '',
-    emergency_contact_phone: '',
-    emergency_contact_email: '',
-    secondary_emergency_contact_name: '',
-    secondary_emergency_contact_phone: '',
-    primary_physician: '',
-    physician_phone: '',
-    notes: ''
+  const [formData, setFormData] = useState(() => {
+    if (recipient) {
+      return {
+        ...recipient,
+        // Convert allergies array from DB back to comma-separated string for the form
+        allergies: Array.isArray(recipient.allergies)
+          ? recipient.allergies.join(', ')
+          : recipient.allergies || '',
+        date_of_birth: recipient.date_of_birth || '',
+      };
+    }
+    return {
+      first_name: '',
+      last_name: '',
+      date_of_birth: '',
+      photo_url: '',
+      address: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      primary_condition: '',
+      conditions_diagnoses: '[]',
+      medical_history: '[]',
+      allergies: '',
+      dietary_restrictions: '',
+      emergency_contact_name: '',
+      emergency_contact_relationship: '',
+      emergency_contact_phone: '',
+      emergency_contact_email: '',
+      secondary_emergency_contact_name: '',
+      secondary_emergency_contact_relationship: '',
+      secondary_emergency_contact_phone: '',
+      secondary_emergency_contact_email: '',
+      primary_physician: '',
+      physician_phone: '',
+      notes: '',
+    };
   });
 
   const [conditions, setConditions] = useState(() => {
@@ -86,15 +106,23 @@ export function CareRecipientForm({ recipient, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.full_name) {
-      toast.error('Please enter a name');
+    if (!formData.first_name || !formData.last_name) {
+      toast.error('Please enter first and last name');
       return;
     }
 
     const dataToSave = {
       ...formData,
+      // Combine first + last name into full_name for display in dropdowns
+      full_name: `${formData.first_name} ${formData.last_name}`.trim(),
       conditions_diagnoses: JSON.stringify(conditions),
-      medical_history: JSON.stringify(medicalHistory)
+      medical_history: JSON.stringify(medicalHistory),
+      // Convert allergies string to array format the database expects
+      allergies: formData.allergies
+        ? formData.allergies.split(',').map(a => a.trim()).filter(Boolean)
+        : null,
+      // Convert empty date to null so the database doesn't reject it
+      date_of_birth: formData.date_of_birth || null,
     };
 
     try {
@@ -184,12 +212,22 @@ export function CareRecipientForm({ recipient, onClose }) {
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="first_name">First Name *</Label>
               <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                placeholder="Enter full name"
+                id="first_name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="Enter first name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="last_name">Last Name *</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                placeholder="Enter last name"
                 required
               />
             </div>
@@ -204,26 +242,72 @@ export function CareRecipientForm({ recipient, onClose }) {
             </div>
           </div>
 
+          {/* Address */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Address</h3>
+            <div className="space-y-2">
+              <Label htmlFor="address">Street Address</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                placeholder="123 Main Street"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  placeholder="City"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  value={formData.state}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                  placeholder="State"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="zip_code">Zip Code</Label>
+                <Input
+                  id="zip_code"
+                  value={formData.zip_code}
+                  onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                  placeholder="12345"
+                  maxLength={10}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Medical Info */}
           <div className="space-y-4">
             <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Medical Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="primary_condition">Primary Condition</Label>
-                <Input
+                <MedicalAutocomplete
+                  type="condition"
                   id="primary_condition"
                   value={formData.primary_condition}
-                  onChange={(e) => setFormData({ ...formData, primary_condition: e.target.value })}
-                  placeholder="e.g., Alzheimer's, Diabetes"
+                  onChange={(val) => setFormData({ ...formData, primary_condition: val })}
+                  placeholder="Start typing... e.g., Alzheimer's, Diabetes"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="allergies">Allergies</Label>
-                <Input
+                <MedicalAutocomplete
+                  type="allergy"
                   id="allergies"
                   value={formData.allergies}
-                  onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
-                  placeholder="List any allergies"
+                  onChange={(val) => setFormData({ ...formData, allergies: val })}
+                  placeholder="Start typing... e.g., Penicillin, Peanuts"
                 />
               </div>
             </div>
@@ -232,10 +316,11 @@ export function CareRecipientForm({ recipient, onClose }) {
             <div className="space-y-2">
               <Label>Conditions & Diagnoses</Label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <Input
-                  placeholder="Condition name"
+                <MedicalAutocomplete
+                  type="condition"
                   value={newCondition.condition}
-                  onChange={(e) => setNewCondition({ ...newCondition, condition: e.target.value })}
+                  onChange={(val) => setNewCondition({ ...newCondition, condition: val })}
+                  placeholder="Start typing condition..."
                 />
                 <Input
                   type="date"
@@ -273,10 +358,11 @@ export function CareRecipientForm({ recipient, onClose }) {
             <div className="space-y-2">
               <Label>Medical History (Surgeries, Illnesses)</Label>
               <div className="grid grid-cols-1 gap-2">
-                <Input
-                  placeholder="Event (e.g., Hip replacement surgery)"
+                <MedicalAutocomplete
+                  type="medical_event"
                   value={newHistory.event}
-                  onChange={(e) => setNewHistory({ ...newHistory, event: e.target.value })}
+                  onChange={(val) => setNewHistory({ ...newHistory, event: val })}
+                  placeholder="Start typing... e.g., Hip replacement surgery"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <Input
@@ -318,12 +404,12 @@ export function CareRecipientForm({ recipient, onClose }) {
 
             <div className="space-y-2">
               <Label htmlFor="dietary_restrictions">Dietary Restrictions/Preferences</Label>
-              <Textarea
+              <MedicalAutocomplete
+                type="dietary"
                 id="dietary_restrictions"
                 value={formData.dietary_restrictions}
-                onChange={(e) => setFormData({ ...formData, dietary_restrictions: e.target.value })}
-                placeholder="e.g., Diabetic diet, Low sodium, Vegetarian, Food allergies..."
-                rows={2}
+                onChange={(val) => setFormData({ ...formData, dietary_restrictions: val })}
+                placeholder="Start typing... e.g., Diabetic Diet, Low Sodium, Gluten-Free"
               />
             </div>
           </div>
@@ -408,12 +494,31 @@ export function CareRecipientForm({ recipient, onClose }) {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="secondary_emergency_contact_relationship">Relationship</Label>
+                <Input
+                  id="secondary_emergency_contact_relationship"
+                  value={formData.secondary_emergency_contact_relationship}
+                  onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_relationship: e.target.value })}
+                  placeholder="Son, Daughter, Spouse..."
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="secondary_emergency_contact_phone">Contact Phone</Label>
                 <Input
                   id="secondary_emergency_contact_phone"
                   value={formData.secondary_emergency_contact_phone}
                   onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_phone: e.target.value })}
                   placeholder="(555) 987-6543"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secondary_emergency_contact_email">Contact Email</Label>
+                <Input
+                  id="secondary_emergency_contact_email"
+                  type="email"
+                  value={formData.secondary_emergency_contact_email}
+                  onChange={(e) => setFormData({ ...formData, secondary_emergency_contact_email: e.target.value })}
+                  placeholder="jane@example.com"
                 />
               </div>
             </div>

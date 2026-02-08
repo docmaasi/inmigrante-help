@@ -38,8 +38,12 @@ export default function CareNoteForm({ note, recipients, onClose }) {
     }
 
     const dataToSave = {
-      ...formData,
+      care_recipient_id: formData.care_recipient_id,
       category: formData.category || 'daily_log',
+      title: formData.title || null,
+      content: formData.content,
+      mood: formData.mood || null,
+      is_private: formData.is_private,
     };
 
     if (note?.id) {

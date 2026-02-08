@@ -20,12 +20,15 @@ export function MarketingLayout({ children, fullWidth = false }) {
   }, []);
 
   const footerNavItems = [
+    { name: "About Us", path: "/about" },
+    { name: "Pricing", path: "/pricing" },
     { name: "FAQ", path: "/faq" },
     { name: "Privacy Policy", path: "/privacy" },
     { name: "Terms of Service", path: "/terms" },
     { name: "Cookie Policy", path: "/cookies" },
     { name: "Legal Disclosure", path: "/legal" },
     { name: "Record Retention", path: "/retention-policy" },
+    { name: "Testimonial Disclaimer", path: "/testimonial-disclaimer" },
   ];
 
   return (

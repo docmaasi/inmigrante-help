@@ -5,9 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
-import { Shield, FileText } from 'lucide-react';
+import { Shield, FileText, ExternalLink } from 'lucide-react';
 
 export function LegalAcceptanceModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -83,22 +81,26 @@ export function LegalAcceptanceModal() {
           </p>
 
           <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
-            <Link
-              to={createPageUrl('TermsOfService')}
+            <a
+              href="https://familycare.help/TermsOfService"
               target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
             >
               <FileText className="w-4 h-4" />
               Terms of Service
-            </Link>
-            <Link
-              to={createPageUrl('PrivacyPolicy')}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
+              href="https://familycare.help/PrivacyPolicy"
               target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
             >
               <Shield className="w-4 h-4" />
               Privacy Policy
-            </Link>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
 
           <div className="flex items-start gap-3 pt-2">

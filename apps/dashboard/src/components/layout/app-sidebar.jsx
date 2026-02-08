@@ -30,7 +30,9 @@ import {
   CalendarClock,
   BarChart3,
   ShieldCheck,
-  History
+  History,
+  HelpCircle,
+  BookOpen
 } from 'lucide-react';
 import {
   Sidebar,
@@ -105,6 +107,8 @@ const NAV_GROUPS = [
 ];
 
 const BOTTOM_ITEMS = [
+  { name: 'Resources', icon: BookOpen, path: 'Resources' },
+  { name: 'Help', icon: HelpCircle, path: 'Help' },
   { name: 'Settings', icon: Settings, path: 'Settings' },
   { name: 'Subscribe', icon: CreditCard, path: 'Checkout', special: true }
 ];

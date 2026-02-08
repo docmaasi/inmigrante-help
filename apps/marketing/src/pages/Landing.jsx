@@ -11,6 +11,8 @@ import {
   MessageCircle,
   FileText,
   Bell,
+  Star,
+  Quote,
 } from "lucide-react";
 import MarketingLayout from "../components/MarketingLayout";
 
@@ -75,6 +77,39 @@ const FEATURES = [
     title: "Privacy First",
     description:
       "HIPAA-aligned security to protect sensitive health information.",
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    quote: "Finally, everything is in one place.",
+    text: "FamilyCare.Help took the stress out of managing my mom's care. Appointments, notes, reminders — all organized and shared with the family. I didn't realize how much mental weight I was carrying until this simplified everything.",
+    name: "Angela R.",
+    role: "Daughter & Caregiver",
+  },
+  {
+    quote: "Perfect for families who live in different cities.",
+    text: "My siblings and I live in three different states. FamilyCare.Help keeps us on the same page without constant phone calls or confusion. Everyone knows what's going on, and nothing slips through the cracks anymore.",
+    name: "Marcus T.",
+    role: "Family Care Coordinator",
+  },
+  {
+    quote: "It brought peace of mind.",
+    text: "Caring for my husband while managing work was overwhelming. FamilyCare.Help helped me stay organized and feel confident that I wasn't missing anything important. It truly reduced my stress.",
+    name: "Linda S.",
+    role: "Spouse & Primary Caregiver",
+  },
+  {
+    quote: "Simple, clear, and actually helpful.",
+    text: "I've tried other tools that were too complicated. FamilyCare.Help is easy to use and does exactly what families need — no clutter, no confusion, just support.",
+    name: "Daniel P.",
+    role: "Care Support Partner",
+  },
+  {
+    quote: "Every family dealing with care needs this.",
+    text: "Whether it's aging parents or a loved one with special needs, this platform helps keep everyone aligned. It feels like someone finally designed a tool that understands real family caregiving.",
+    name: "Renee W.",
+    role: "Family Advocate",
   },
 ];
 
@@ -376,6 +411,234 @@ export default function Landing() {
                 </p>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="section bg-[#FAF7F2] relative overflow-hidden">
+        <div
+          className="blob w-[500px] h-[500px] -top-32 -right-32"
+          style={{ background: "rgba(224, 122, 95, 0.1)" }}
+        />
+        <div
+          className="blob w-[400px] h-[400px] bottom-0 left-0"
+          style={{ background: "rgba(79, 70, 229, 0.08)", animationDelay: "-5s" }}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <span
+              className="inline-block px-4 py-2 rounded-full bg-[#E07A5F]/10 text-[#E07A5F] font-medium text-sm mb-4"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              Trusted by Families
+            </span>
+            <h3
+              className="text-4xl md:text-5xl font-bold text-[#1F2937] mb-4"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              What Families Are{" "}
+              <span className="underline-accent">Saying</span>
+            </h3>
+            <p
+              className="text-lg text-[#6B7280] max-w-2xl mx-auto"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              Real stories from caregivers who found clarity and peace of mind
+            </p>
+          </motion.div>
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {TESTIMONIALS.slice(0, 3).map((testimonial, index) => (
+              <motion.div
+                key={testimonial.name}
+                variants={itemVariants}
+                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative"
+              >
+                {/* Stars */}
+                <div className="flex gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className="w-5 h-5 text-[#F59E0B]"
+                      fill="currentColor"
+                    />
+                  ))}
+                </div>
+
+                {/* Quote Icon */}
+                <div
+                  className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center opacity-20"
+                  style={{ backgroundColor: index % 2 === 0 ? "#4F46E5" : "#E07A5F" }}
+                >
+                  <Quote className="w-5 h-5 text-white" />
+                </div>
+
+                {/* Quote Title */}
+                <h4
+                  className="text-xl font-bold text-[#1F2937] mb-3"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  "{testimonial.quote}"
+                </h4>
+
+                {/* Quote Text */}
+                <p
+                  className="text-[#6B7280] leading-relaxed mb-6"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  {testimonial.text}
+                </p>
+
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
+                    style={{
+                      background: index % 3 === 0
+                        ? "linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)"
+                        : index % 3 === 1
+                        ? "linear-gradient(135deg, #E07A5F 0%, #F4A261 100%)"
+                        : "linear-gradient(135deg, #84A98C 0%, #A3B18A 100%)",
+                    }}
+                  >
+                    {testimonial.name.split(" ").map(n => n[0]).join("")}
+                  </div>
+                  <div>
+                    <p
+                      className="font-semibold text-[#1F2937]"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      {testimonial.name}
+                    </p>
+                    <p
+                      className="text-sm text-[#6B7280]"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      {testimonial.role}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Second Row - 2 testimonials centered */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-2 gap-6 mt-6 max-w-4xl mx-auto"
+          >
+            {TESTIMONIALS.slice(3, 5).map((testimonial, index) => (
+              <motion.div
+                key={testimonial.name}
+                variants={itemVariants}
+                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative"
+              >
+                {/* Stars */}
+                <div className="flex gap-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className="w-5 h-5 text-[#F59E0B]"
+                      fill="currentColor"
+                    />
+                  ))}
+                </div>
+
+                {/* Quote Icon */}
+                <div
+                  className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center opacity-20"
+                  style={{ backgroundColor: index % 2 === 0 ? "#84A98C" : "#4F46E5" }}
+                >
+                  <Quote className="w-5 h-5 text-white" />
+                </div>
+
+                {/* Quote Title */}
+                <h4
+                  className="text-xl font-bold text-[#1F2937] mb-3"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  "{testimonial.quote}"
+                </h4>
+
+                {/* Quote Text */}
+                <p
+                  className="text-[#6B7280] leading-relaxed mb-6"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  {testimonial.text}
+                </p>
+
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
+                    style={{
+                      background: index % 2 === 0
+                        ? "linear-gradient(135deg, #84A98C 0%, #A3B18A 100%)"
+                        : "linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)",
+                    }}
+                  >
+                    {testimonial.name.split(" ").map(n => n[0]).join("")}
+                  </div>
+                  <div>
+                    <p
+                      className="font-semibold text-[#1F2937]"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      {testimonial.name}
+                    </p>
+                    <p
+                      className="text-sm text-[#6B7280]"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      {testimonial.role}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Testimonial Disclaimer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-10 text-center max-w-3xl mx-auto"
+          >
+            <p
+              className="text-xs leading-relaxed"
+              style={{ color: "#9CA3AF", fontFamily: "var(--font-body)" }}
+            >
+              <Link to="/testimonial-disclaimer" className="hover:underline" style={{ color: "#6B7280" }}>
+                <strong>Testimonial Disclaimer:</strong>
+              </Link>{" "}
+              The testimonials shown represent individual experiences and opinions of FamilyCare.Help
+              users. These statements do not constitute medical advice, diagnosis, or treatment, and
+              FamilyCare.Help does not provide healthcare services. Individual experiences may vary.
+              Any names, images, or identifying details have been changed to protect privacy.{" "}
+              <Link to="/testimonial-disclaimer" className="hover:underline" style={{ color: "#6B7280" }}>
+                Read full disclaimer →
+              </Link>
+            </p>
           </motion.div>
         </div>
       </section>

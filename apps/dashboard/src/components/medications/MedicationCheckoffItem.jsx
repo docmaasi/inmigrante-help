@@ -31,7 +31,7 @@ export function MedicationCheckoffItem({ medication, recipientName }) {
       care_recipient_id: medication.care_recipient_id,
       scheduled_time: `${today}T${currentTime}:00`,
       status: status,
-      notes: notes || undefined
+      notes: notes || null
     };
 
     logMutation.mutate(logData, {

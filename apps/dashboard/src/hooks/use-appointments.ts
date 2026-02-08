@@ -7,6 +7,7 @@ const QUERY_KEY = 'appointments';
 
 interface AppointmentFilters {
   careRecipientId?: string;
+  careRecipientIds?: string[];
   startDate?: string;
   endDate?: string;
   status?: string;
@@ -23,7 +24,9 @@ export function useAppointments(filters?: AppointmentFilters) {
         .select('*, care_recipients(first_name, last_name)')
         .order('start_time', { ascending: true });
 
-      if (filters?.careRecipientId) {
+      if (filters?.careRecipientIds && filters.careRecipientIds.length > 0) {
+        query = query.in('care_recipient_id', filters.careRecipientIds);
+      } else if (filters?.careRecipientId) {
         query = query.eq('care_recipient_id', filters.careRecipientId);
       }
       if (filters?.status) {

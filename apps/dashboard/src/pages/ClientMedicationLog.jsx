@@ -19,7 +19,7 @@ export default function ClientMedicationLog() {
 
   useEffect(() => {
     if (!accessCode) {
-      navigate(createPageUrl('Dashboard'));
+      navigate('/');
       return;
     }
 
@@ -28,7 +28,7 @@ export default function ClientMedicationLog() {
         setRecipientId(access.care_recipient_id);
       },
       onError: () => {
-        navigate(createPageUrl('Dashboard'));
+        navigate('/');
       }
     });
   }, [accessCode]);

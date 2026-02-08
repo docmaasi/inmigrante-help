@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Heart, Mail, Lock, User, Eye, EyeOff, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 
 const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'http://localhost:3000';
 
@@ -114,7 +114,11 @@ export default function Signup() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Heart className="w-12 h-12 text-teal-600" fill="currentColor" />
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
+              alt="FamilyCare.Help Logo"
+              className="w-14 h-14 object-contain rounded-lg shadow-sm"
+            />
           </div>
           <h1
             className="text-3xl font-bold tracking-tight"
@@ -237,6 +241,42 @@ export default function Signup() {
                   required
                 />
               </div>
+            </div>
+
+            {/* Terms Notice */}
+            <p
+              className="text-xs text-gray-500 text-center"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
+            >
+              By creating an account, you agree to our{' '}
+              <a
+                href={`${MARKETING_URL}/terms`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-teal-600 hover:text-teal-700 underline"
+              >
+                Terms of Service
+              </a>{' '}
+              and{' '}
+              <a
+                href={`${MARKETING_URL}/privacy`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-teal-600 hover:text-teal-700 underline"
+              >
+                Privacy Policy
+              </a>.
+            </p>
+
+            {/* HIPAA Notice */}
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <p
+                className="text-xs text-amber-800 text-center"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                <strong>Note:</strong> This platform is for care coordination only and is{' '}
+                <strong>not HIPAA compliant</strong>. Do not use it to store protected health information.
+              </p>
             </div>
 
             <Button

@@ -7,6 +7,7 @@ const QUERY_KEY = 'tasks';
 
 interface TaskFilters {
   careRecipientId?: string;
+  careRecipientIds?: string[];
   status?: string;
   assignedTo?: string;
   priority?: string;
@@ -25,7 +26,9 @@ export function useTasks(filters?: TaskFilters) {
         )
         .order('due_date', { ascending: true, nullsFirst: false });
 
-      if (filters?.careRecipientId) {
+      if (filters?.careRecipientIds && filters.careRecipientIds.length > 0) {
+        query = query.in('care_recipient_id', filters.careRecipientIds);
+      } else if (filters?.careRecipientId) {
         query = query.eq('care_recipient_id', filters.careRecipientId);
       }
       if (filters?.status) {

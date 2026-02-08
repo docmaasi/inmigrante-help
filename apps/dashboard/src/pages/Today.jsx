@@ -54,7 +54,7 @@ export default function Today() {
     ), [tasks]);
 
   const activeMedications = useMemo(() =>
-    medications.filter(med => med.active), [medications]);
+    medications.filter(med => med.is_active !== false), [medications]);
 
   const unreadNotifications = useMemo(() =>
     notifications.filter(n => !n.is_read), [notifications]);

@@ -158,7 +158,7 @@ export function AdminSidebar({ userRole }: AdminSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Back to Dashboard">
               <Link
-                to="/dashboard"
+                to="/"
                 className="text-slate-300 hover:bg-slate-800 hover:text-white"
               >
                 <ChevronLeft className="w-5 h-5 text-slate-400" />

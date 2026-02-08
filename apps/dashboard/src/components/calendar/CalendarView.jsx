@@ -491,12 +491,14 @@ export function CalendarView() {
       {editingAppointment && (
         <AppointmentForm
           appointment={editingAppointment}
+          recipients={recipients}
           onClose={() => setEditingAppointment(null)}
         />
       )}
       {editingTask && (
         <TaskForm
           task={editingTask}
+          recipients={recipients}
           onClose={() => setEditingTask(null)}
         />
       )}
