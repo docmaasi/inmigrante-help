@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCareRecipients, useDocuments, useCreateDocument, useDeleteDocument, useUploadDocument } from '@/hooks';
 import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -261,7 +262,10 @@ export default function Documents() {
                       size="sm"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => window.open(doc.file_path, '_blank')}
+                      onClick={() => {
+                        const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(doc.file_path);
+                        window.open(publicUrl, '_blank');
+                      }}
                     >
                       <Download className="w-4 h-4 mr-1" />
                       View
