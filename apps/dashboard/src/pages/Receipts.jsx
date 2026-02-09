@@ -19,10 +19,10 @@ export function ReceiptsPage() {
   const [selectedRecipient, setSelectedRecipient] = useState('all');
 
   const { data: receipts = [] } = useQuery({
-    queryKey: ['receipts'],
+    queryKey: ['expenses'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('receipts')
+        .from('expenses')
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -157,7 +157,7 @@ function ReceiptForm({ recipients, receipt, onClose }) {
       const dataToSave = { ...data, amount: parseFloat(data.amount) || 0 };
       if (receipt?.id) {
         const { data: updated, error } = await supabase
-          .from('receipts')
+          .from('expenses')
           .update(dataToSave)
           .eq('id', receipt.id)
           .select()
@@ -166,7 +166,7 @@ function ReceiptForm({ recipients, receipt, onClose }) {
         return updated;
       }
       const { data: created, error } = await supabase
-        .from('receipts')
+        .from('expenses')
         .insert(dataToSave)
         .select()
         .single();
@@ -174,7 +174,7 @@ function ReceiptForm({ recipients, receipt, onClose }) {
       return created;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['receipts'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast.success(receipt ? 'Receipt updated' : 'Receipt added');
       onClose();
     },
@@ -329,13 +329,13 @@ function ReceiptCard({ receipt, recipients }) {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
-        .from('receipts')
+        .from('expenses')
         .delete()
         .eq('id', receipt.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['receipts'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast.success('Receipt deleted');
     },
     onError: (error) => {
