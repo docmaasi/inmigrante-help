@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useCreateCareRecipient, useUpdateCareRecipient } from '@/hooks';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { format, parseISO } from 'date-fns';
 import MedicalAutocomplete from '../shared/MedicalAutocomplete';
 
 export function CareRecipientForm({ recipient, onClose }) {
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState(() => {
     if (recipient) {
@@ -105,16 +107,16 @@ export function CareRecipientForm({ recipient, onClose }) {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `care-recipients/${fileName}`;
+      const filePath = `${user?.id}/care-recipients/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('uploads')
+        .from('documents')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('uploads')
+        .from('documents')
         .getPublicUrl(filePath);
 
       setFormData({ ...formData, photo_url: publicUrl });
