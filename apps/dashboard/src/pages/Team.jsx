@@ -12,6 +12,7 @@ import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2 } from 
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
+import { RequirePermission } from '@/components/auth';
 import { errorHandlers } from "@/lib/error-handler";
 import {
   useTeamMembers,
@@ -169,13 +170,15 @@ export default function Team() {
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Care Team</h1>
           <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregivers, family members, and their roles</p>
         </div>
-        <Button
-          onClick={() => setShowAddDialog(true)}
-          className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Team Member
-        </Button>
+        <RequirePermission permission="canManageTeam">
+          <Button
+            onClick={() => setShowAddDialog(true)}
+            className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Team Member
+          </Button>
+        </RequirePermission>
       </div>
 
       {/* Role Legend */}
@@ -229,13 +232,15 @@ export default function Team() {
             </div>
             <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Team Members</h3>
             <p className="text-sm md:text-base text-slate-500 mb-6">Add team members to coordinate care</p>
-            <Button
-              onClick={() => setShowAddDialog(true)}
-              className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Team Member
-            </Button>
+            <RequirePermission permission="canManageTeam">
+              <Button
+                onClick={() => setShowAddDialog(true)}
+                className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Team Member
+              </Button>
+            </RequirePermission>
           </CardContent>
         </Card>
       ) : (
@@ -293,25 +298,27 @@ export default function Team() {
                     )}
                   </div>
 
-                  <div className="flex gap-2 pt-3 border-t border-slate-100">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEdit(member)}
-                      className="flex-1"
-                    >
-                      <Edit2 className="w-3 h-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDelete(member)}
-                      className="text-red-600 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <RequirePermission permission="canManageTeam">
+                    <div className="flex gap-2 pt-3 border-t border-slate-100">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(member)}
+                        className="flex-1"
+                      >
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(member)}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </RequirePermission>
                 </CardContent>
               </Card>
             );

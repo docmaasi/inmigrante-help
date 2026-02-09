@@ -29,9 +29,9 @@ export default function ConversationList({ conversations, selectedId, onSelect, 
   return (
     <div className="space-y-2">
       {conversations.map(conv => {
-        const Icon = getTypeIcon(conv.conversation_type);
-        const participants = JSON.parse(conv.participants || '[]');
-        
+        const Icon = getTypeIcon(conv.type);
+        const participantCount = conv.participant_ids?.length || 0;
+
         return (
           <Button
             key={conv.id}
@@ -40,16 +40,16 @@ export default function ConversationList({ conversations, selectedId, onSelect, 
             onClick={() => onSelect(conv.id)}
           >
             <div className="flex items-start gap-3 w-full text-left">
-              <div className={`p-2 rounded-lg ${selectedId === conv.id ? 'bg-blue-700' : getTypeColor(conv.conversation_type)}`}>
+              <div className={`p-2 rounded-lg ${selectedId === conv.id ? 'bg-blue-700' : getTypeColor(conv.type)}`}>
                 <Icon className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{conv.name}</div>
+                <div className="font-medium truncate">{conv.title}</div>
                 <div className={`text-xs ${selectedId === conv.id ? 'text-blue-100' : 'text-slate-500'}`}>
                   {getRecipientName(conv.care_recipient_id)}
                 </div>
                 <div className={`text-xs mt-1 ${selectedId === conv.id ? 'text-blue-200' : 'text-slate-400'}`}>
-                  {participants.length} participants
+                  {participantCount} participants
                   {conv.last_message_at && ` • ${formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true })}`}
                 </div>
               </div>

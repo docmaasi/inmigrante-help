@@ -27,6 +27,7 @@ interface AuthContextValue extends AuthState {
   signUp: (email: string, password: string, fullName?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -188,6 +189,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+  };
+
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!state.user) throw new Error('No user logged in');
 
@@ -209,6 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signOut,
         signInWithOAuth,
+        resetPassword,
         updateProfile,
         refreshProfile,
       }}

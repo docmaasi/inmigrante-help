@@ -53,10 +53,12 @@ export default function Messages() {
   const handleCreateConversation = () => {
     createConversationMutation.mutate(
       {
-        name: newConvData.name,
+        title: newConvData.name,
         care_recipient_id: newConvData.care_recipient_id,
-        conversation_type: newConvData.conversation_type,
-        participants: newConvData.participants,
+        type: newConvData.conversation_type,
+        participant_ids: newConvData.participants.length > 0
+          ? newConvData.participants
+          : null,
         last_message_at: new Date().toISOString(),
       },
       {
@@ -65,6 +67,9 @@ export default function Messages() {
           setShowNewConvDialog(false);
           toast.success('Conversation created');
           setNewConvData({ name: '', care_recipient_id: '', conversation_type: 'general', participants: [] });
+        },
+        onError: (error) => {
+          toast.error('Failed to create conversation: ' + error.message);
         },
       }
     );
@@ -109,7 +114,7 @@ export default function Messages() {
   // Filter conversations based on search query
   const filteredConversations = searchQuery.trim()
     ? conversations.filter(conv => {
-        const nameMatch = conv.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        const nameMatch = conv.title?.toLowerCase().includes(searchQuery.toLowerCase());
         const recipientName = formattedRecipients.find(r => r.id === conv.care_recipient_id)?.full_name || '';
         const recipientMatch = recipientName.toLowerCase().includes(searchQuery.toLowerCase());
         return nameMatch || recipientMatch;
@@ -218,7 +223,7 @@ export default function Messages() {
                 {selectedConversationId ? (
                   <>
                     <CardHeader className="border-b border-slate-100">
-                      <CardTitle className="text-lg">{selectedConversation?.name}</CardTitle>
+                      <CardTitle className="text-lg">{selectedConversation?.title}</CardTitle>
                       <p className="text-sm text-slate-500">
                         {formattedRecipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
                       </p>
@@ -315,7 +320,7 @@ export default function Messages() {
                 </SelectTrigger>
                 <SelectContent>
                   {teamMembers.map(tm => (
-                    <SelectItem key={tm.id} value={tm.email || tm.id}>
+                    <SelectItem key={tm.id} value={tm.id}>
                       {tm.full_name} ({tm.relationship || tm.role})
                     </SelectItem>
                   ))}
@@ -324,7 +329,7 @@ export default function Messages() {
               {newConvData.participants.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {newConvData.participants.map(participantId => {
-                    const member = teamMembers.find(tm => (tm.email || tm.id) === participantId);
+                    const member = teamMembers.find(tm => tm.id === participantId);
                     return (
                       <div key={participantId} className="px-2 py-1 bg-slate-100 rounded text-sm flex items-center gap-1">
                         {member?.full_name || participantId}

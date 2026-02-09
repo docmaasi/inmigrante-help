@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useCareRecipients, useCarePlans } from '@/hooks';
+import { useCareRecipients, useCarePlans, useDeleteCarePlan } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import { Skeleton } from '../components/ui/skeleton';
 import CarePlanForm from '../components/careplan/CarePlanForm';
 import CarePlanCard from '../components/careplan/CarePlanCard';
@@ -13,6 +14,15 @@ export default function CarePlanBuilder() {
 
   const { data: recipients = [], isLoading: loadingRecipients } = useCareRecipients();
   const { data: carePlans = [], isLoading: loadingPlans } = useCarePlans();
+  const deleteMutation = useDeleteCarePlan();
+
+  const handleDelete = (plan) => {
+    if (!confirm(`Delete care plan "${plan.title}"? This cannot be undone.`)) return;
+    deleteMutation.mutate(plan.id, {
+      onSuccess: () => toast.success('Care plan deleted'),
+      onError: (err) => toast.error(err.message || 'Failed to delete care plan'),
+    });
+  };
 
   const handleEdit = (plan) => {
     setEditingPlan(plan);
@@ -92,6 +102,7 @@ export default function CarePlanBuilder() {
                 plan={plan}
                 recipients={recipients}
                 onEdit={handleEdit}
+                onDelete={handleDelete}
               />
             ))}
           </div>

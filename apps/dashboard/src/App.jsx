@@ -9,6 +9,8 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import AuthCallback from './pages/AuthCallback';
 import { ProtectedRoute } from '@/components/auth';
 import { AdminLayout } from '@/components/layout/admin-layout';
@@ -194,6 +196,12 @@ function AppRoutes() {
           <Signup />
         </PublicRoute>
       } />
+      <Route path="/forgot-password" element={
+        <PublicRoute>
+          <ForgotPassword />
+        </PublicRoute>
+      } />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>

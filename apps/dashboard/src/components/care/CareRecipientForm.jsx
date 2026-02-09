@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useCreateCareRecipient, useUpdateCareRecipient } from '@/hooks';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +75,28 @@ export function CareRecipientForm({ recipient, onClose }) {
   const updateMutation = useUpdateCareRecipient();
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  const handleZipChange = useCallback(async (zip) => {
+    setFormData((prev) => ({ ...prev, zip_code: zip }));
+    const cleanZip = zip.replace(/\D/g, '');
+    if (cleanZip.length !== 5) return;
+
+    try {
+      const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const place = data.places?.[0];
+      if (place) {
+        setFormData((prev) => ({
+          ...prev,
+          city: place['place name'],
+          state: place['state abbreviation'],
+        }));
+      }
+    } catch {
+      // Silently fail — user can still type city/state manually
+    }
+  }, []);
+
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -111,12 +133,20 @@ export function CareRecipientForm({ recipient, onClose }) {
       return;
     }
 
+    // Auto-include any typed-but-not-added condition or history item
+    const finalConditions = newCondition.condition.trim()
+      ? [...conditions, newCondition]
+      : conditions;
+    const finalHistory = newHistory.event.trim()
+      ? [...medicalHistory, newHistory]
+      : medicalHistory;
+
     const dataToSave = {
       ...formData,
       // Combine first + last name into full_name for display in dropdowns
       full_name: `${formData.first_name} ${formData.last_name}`.trim(),
-      conditions_diagnoses: JSON.stringify(conditions),
-      medical_history: JSON.stringify(medicalHistory),
+      conditions_diagnoses: JSON.stringify(finalConditions),
+      medical_history: JSON.stringify(finalHistory),
       // Convert allergies string to array format the database expects
       allergies: formData.allergies
         ? formData.allergies.split(',').map(a => a.trim()).filter(Boolean)
@@ -278,7 +308,7 @@ export function CareRecipientForm({ recipient, onClose }) {
                 <Input
                   id="zip_code"
                   value={formData.zip_code}
-                  onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                  onChange={(e) => handleZipChange(e.target.value)}
                   placeholder="12345"
                   maxLength={10}
                 />

@@ -2,11 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Edit, Printer, Clock, Target, Users, AlertCircle } from 'lucide-react';
+import { FileText, Edit, Printer, Clock, Target, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import CarePlanPrint from './CarePlanPrint';
 
-export default function CarePlanCard({ plan, recipients, onEdit }) {
+export default function CarePlanCard({ plan, recipients, onEdit, onDelete }) {
   const recipient = recipients.find(r => r.id === plan.care_recipient_id);
   const recipientName = recipient
     ? `${recipient.first_name} ${recipient.last_name}`
@@ -112,6 +112,14 @@ export default function CarePlanCard({ plan, recipients, onEdit }) {
             >
               <Printer className="w-4 h-4 mr-1" />
               Print
+            </Button>
+            <Button
+              onClick={() => onDelete(plan)}
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         </div>

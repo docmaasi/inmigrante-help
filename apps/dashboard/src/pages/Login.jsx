@@ -145,6 +145,16 @@ export default function Login() {
               </div>
             </div>
 
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-teal-600 hover:text-teal-700 transition-colors duration-200"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                Forgot Password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               className="w-full h-12 rounded-xl font-semibold text-white bg-teal-600 hover:bg-teal-700 transition-colors duration-200"

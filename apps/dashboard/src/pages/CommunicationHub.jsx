@@ -175,7 +175,7 @@ export default function CommunicationHub() {
                 {selectedConversationId ? (
                   <>
                     <CardHeader className="border-b border-slate-100 pb-4">
-                      <CardTitle className="text-lg font-semibold text-slate-800">{selectedConversation?.name}</CardTitle>
+                      <CardTitle className="text-lg font-semibold text-slate-800">{selectedConversation?.title}</CardTitle>
                       <p className="text-sm text-slate-500">
                         {formattedRecipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
                       </p>

@@ -43,7 +43,9 @@ export default function NewConversationDialog({ open, onClose, recipients }) {
         title: formData.name,
         care_recipient_id: formData.care_recipient_id,
         type: formData.conversation_type,
-        participant_ids: formData.participants,
+        participant_ids: formData.participants.length > 0
+          ? formData.participants
+          : null,
         last_message_at: new Date().toISOString(),
       },
       {
@@ -56,6 +58,11 @@ export default function NewConversationDialog({ open, onClose, recipients }) {
             participants: [],
           });
           onClose();
+        },
+        onError: (error) => {
+          toast.error(
+            'Failed to create conversation: ' + error.message
+          );
         },
       }
     );
@@ -143,7 +150,7 @@ export default function NewConversationDialog({ open, onClose, recipients }) {
               </SelectTrigger>
               <SelectContent>
                 {teamMembers.map((tm) => (
-                  <SelectItem key={tm.id} value={tm.email || tm.id}>
+                  <SelectItem key={tm.id} value={tm.id}>
                     {tm.full_name} ({tm.relationship || tm.role})
                   </SelectItem>
                 ))}
@@ -152,19 +159,19 @@ export default function NewConversationDialog({ open, onClose, recipients }) {
 
             {formData.participants.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {formData.participants.map((email) => {
+                {formData.participants.map((id) => {
                   const member = teamMembers.find(
-                    (tm) => (tm.email || tm.id) === email
+                    (tm) => tm.id === id
                   );
                   return (
                     <div
-                      key={email}
+                      key={id}
                       className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm flex items-center gap-2"
                     >
-                      {member?.full_name || email}
+                      {member?.full_name || id}
                       <button
                         type="button"
-                        onClick={() => removeParticipant(email)}
+                        onClick={() => removeParticipant(id)}
                         className="hover:text-blue-900"
                       >
                         <X className="w-3 h-3" />
