@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   Shield,
   Stethoscope,
+  HardDriveDownload,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -65,6 +66,11 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     name: 'Diagnostics',
     path: '/admin/diagnostics',
     icon: Stethoscope,
+  },
+  {
+    name: 'Data Export',
+    path: '/admin/export',
+    icon: HardDriveDownload,
   },
 ];
 

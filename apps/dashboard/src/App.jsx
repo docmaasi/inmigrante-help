@@ -52,6 +52,12 @@ const Diagnostics = lazy(() =>
   }))
 );
 
+const AdminExport = lazy(() =>
+  import('@/pages/admin/admin-export').then((module) => ({
+    default: module.AdminExport,
+  }))
+);
+
 function AdminLoadingFallback() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
@@ -156,6 +162,14 @@ const ProtectedRoutes = () => {
           element={
             <Suspense fallback={<AdminLoadingFallback />}>
               <Diagnostics />
+            </Suspense>
+          }
+        />
+        <Route
+          path="export"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <AdminExport />
             </Suspense>
           }
         />

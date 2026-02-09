@@ -18,6 +18,7 @@ const ROUTE_LABELS: Record<string, string> = {
   '/admin/activity': 'Activity Log',
   '/admin/subscriptions': 'Subscription Management',
   '/admin/diagnostics': 'System Diagnostics',
+  '/admin/export': 'Data Export',
 };
 
 function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
