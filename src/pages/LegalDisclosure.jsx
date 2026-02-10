@@ -78,7 +78,7 @@ export default function LegalDisclosure() {
             <section>
               <h2 className="text-2xl font-semibold text-slate-900 mt-8 mb-4">Contact Information</h2>
               <p>
-                For legal inquiries, please contact us at legal@familycare.help
+                For legal inquiries, please contact us at admin@familycare.help
               </p>
             </section>
           </div>

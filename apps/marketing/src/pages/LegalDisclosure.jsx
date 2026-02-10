@@ -86,7 +86,7 @@ export default function LegalDisclosure() {
         <h2>Contact Information</h2>
         <p>
           For legal inquiries, please contact us at{" "}
-          <a href="mailto:legal@familycare.help">legal@familycare.help</a>
+          <a href="mailto:admin@familycare.help">admin@familycare.help</a>
         </p>
       </section>
     </LegalPageLayout>

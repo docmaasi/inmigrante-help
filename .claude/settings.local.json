@@ -49,7 +49,8 @@
       "Bash(powershell -ExecutionPolicy Bypass -File \"kill-servers.ps1\")",
       "Bash(pnpm dev:*)",
       "Bash(pnpm typecheck:*)",
-      "mcp__plugin_supabase_supabase__get_logs"
+      "mcp__plugin_supabase_supabase__get_logs",
+      "Bash(pnpm add:*)"
     ]
   }
 }
