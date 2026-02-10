@@ -35,7 +35,7 @@ export default function CancellationReminder({ userEmail }) {
     return null;
   }
 
-  const urgencyLevel = daysRemaining <= 7 ? 'critical' : daysRemaining <= 30 ? 'warning' : 'info';
+  const urgencyLevel = daysRemaining <= 3 ? 'critical' : daysRemaining <= 7 ? 'warning' : 'info';
 
   return (
     <Alert 

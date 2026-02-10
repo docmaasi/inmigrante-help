@@ -106,6 +106,9 @@ serve(async (req) => {
             profileUpdate.stripe_customer_id = customerId;
           }
 
+          // Clear data deletion date since user subscribed
+          profileUpdate.data_deletion_scheduled_at = null;
+
           // If account was archived/pending deletion, restore it on new subscription
           if (profile.is_archived || profile.deletion_status === 'pending') {
             profileUpdate.is_archived = false;
@@ -126,6 +129,16 @@ serve(async (req) => {
               .from('profiles')
               .update(profileUpdate)
               .eq('id', profile.id);
+          }
+
+          // Remove from blocked emails list if they paid
+          const customer = await stripe.customers.retrieve(customerId);
+          if (customer && !customer.deleted && customer.email) {
+            await supabase
+              .from('blocked_trial_emails')
+              .delete()
+              .eq('email', customer.email);
+            console.log(`Removed ${customer.email} from blocked list (subscribed)`);
           }
 
           console.log(`Updated profile ${profile.id}: status=${subscription.status}, max_care_recipients=${maxCareRecipients}`);
@@ -170,10 +183,20 @@ serve(async (req) => {
         }
 
         if (delProfile) {
+          // Set 10-day grace period before data deletion
+          const deletionDate = new Date();
+          deletionDate.setDate(deletionDate.getDate() + 10);
+
           await supabase
             .from('profiles')
-            .update({ subscription_status: 'free', max_care_recipients: 1 })
+            .update({
+              subscription_status: 'free',
+              max_care_recipients: 1,
+              data_deletion_scheduled_at: deletionDate.toISOString(),
+            })
             .eq('id', delProfile.id);
+
+          console.log(`Profile ${delProfile.id} marked for deletion on ${deletionDate.toISOString()}`);
         }
         break;
       }

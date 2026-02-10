@@ -5,7 +5,7 @@ import { Send, Share2, Image, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-export default function MessageInput({ onSend, onShareUpdate, disabled }) {
+export default function MessageInput({ onSend, onShareUpdate, disabled, isSending }) {
   const [message, setMessage] = useState('');
   const [photos, setPhotos] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -55,7 +55,7 @@ export default function MessageInput({ onSend, onShareUpdate, disabled }) {
         <div className="flex gap-2 mb-3 flex-wrap">
           {photos.map((photo, index) => (
             <div key={index} className="relative">
-              <img src={photo} alt="" className="w-16 h-16 object-cover rounded border" />
+              <img src={photo} alt="" loading="lazy" className="w-16 h-16 object-cover rounded border" />
               <button
                 onClick={() => removePhoto(index)}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
@@ -100,7 +100,7 @@ export default function MessageInput({ onSend, onShareUpdate, disabled }) {
           </label>
           <Button
             onClick={handleSend}
-            disabled={disabled || (!message.trim() && photos.length === 0) || uploading}
+            disabled={disabled || (!message.trim() && photos.length === 0) || uploading || isSending}
             className="bg-blue-600 hover:bg-blue-700"
             size="icon"
           >

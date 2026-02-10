@@ -1,9 +1,40 @@
 import React, { useEffect, useRef } from 'react';
 import { Badge } from '../ui/badge';
-import { Calendar, Pill, CheckSquare, AlertCircle } from 'lucide-react';
+import { Button } from '../ui/button';
+import {
+  Calendar, Pill, CheckSquare, AlertCircle,
+  Check, Loader2, RotateCcw, XCircle,
+} from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function MessageThread({ messages, currentUserEmail }) {
+function MessageStatus({ status, onRetry }) {
+  if (status === 'sending') {
+    return <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />;
+  }
+  if (status === 'failed') {
+    return (
+      <div className="flex items-center gap-1">
+        <XCircle className="w-3 h-3 text-red-500" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRetry}
+          className="h-5 px-1 text-xs text-red-600 hover:text-red-700"
+        >
+          <RotateCcw className="w-3 h-3 mr-1" />
+          Retry
+        </Button>
+      </div>
+    );
+  }
+  return <Check className="w-3 h-3 text-slate-400" />;
+}
+
+export default function MessageThread({
+  messages,
+  currentUserEmail,
+  onRetry,
+}) {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -30,7 +61,8 @@ export default function MessageThread({ messages, currentUserEmail }) {
         messages.map((message) => {
           const isOwn = message.sender_email === currentUserEmail;
           const Icon = getMessageIcon(message.message_type);
-          
+          const isFailed = message.status === 'failed';
+
           return (
             <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
@@ -40,8 +72,10 @@ export default function MessageThread({ messages, currentUserEmail }) {
                   </div>
                 )}
                 <div className={`rounded-2xl px-4 py-2 ${
-                  isOwn 
-                    ? 'bg-blue-600 text-white' 
+                  isFailed
+                    ? 'bg-red-50 border border-red-200'
+                    : isOwn
+                    ? 'bg-blue-600 text-white'
                     : message.message_type !== 'text'
                     ? 'bg-orange-50 border border-orange-200'
                     : 'bg-slate-100 text-slate-800'
@@ -56,8 +90,16 @@ export default function MessageThread({ messages, currentUserEmail }) {
                   )}
                   <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                 </div>
-                <div className={`text-xs mt-1 ${isOwn ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {format(new Date(message.created_date), 'h:mm a')}
+                <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
+                  <span className={`text-xs ${isOwn ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {format(new Date(message.created_date), 'h:mm a')}
+                  </span>
+                  {isOwn && (
+                    <MessageStatus
+                      status={message.status}
+                      onRetry={() => onRetry?.(message)}
+                    />
+                  )}
                 </div>
               </div>
             </div>

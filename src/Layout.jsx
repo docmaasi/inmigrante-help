@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap, Mail, LogOut, LogIn } from 'lucide-react';
@@ -7,6 +8,7 @@ import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
+import TrialBanner from './components/subscription/TrialBanner';
 import ShareButton from './components/shared/ShareButton';
 import { Button } from '@/components/ui/button';
 
@@ -16,6 +18,12 @@ export default function Layout({ children, currentPageName }) {
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  const { data: subscriptions = [] } = useQuery({
+    queryKey: ['subscription', user?.email],
+    queryFn: () => base44.entities.Subscription.filter({ user_email: user.email }),
+    enabled: !!user?.email,
+  });
 
   const navItems = [
     { name: 'Dashboard', icon: Home, path: 'Dashboard', bg: 'bg-blue-50' },
@@ -79,9 +87,10 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-between">
             <Link to={createPageUrl('Dashboard')} className="flex items-center gap-3">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg" 
-                alt="FamilyCare.Help Logo" 
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
+                alt="FamilyCare.Help Logo"
+                loading="lazy"
                 className="w-10 h-10 object-contain"
               />
               <div>
@@ -120,6 +129,11 @@ export default function Layout({ children, currentPageName }) {
 
       <NotificationGenerator />
       <LegalAcceptanceModal />
+
+      {/* Trial Banner */}
+      {user && (
+        <TrialBanner user={user} subscriptions={subscriptions} />
+      )}
 
       {/* Cancellation Reminder */}
       {user && (

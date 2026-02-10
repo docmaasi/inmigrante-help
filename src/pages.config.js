@@ -1,86 +1,47 @@
-import Appointments from './pages/Appointments';
-import Calendar from './pages/Calendar';
-import CareNotes from './pages/CareNotes';
-import CarePlanBuilder from './pages/CarePlanBuilder';
-import CarePlans from './pages/CarePlans';
-import CareRecipients from './pages/CareRecipients';
-import Checkout from './pages/Checkout';
-import ClientAppointments from './pages/ClientAppointments';
-import ClientMedicationLog from './pages/ClientMedicationLog';
-import ClientPortal from './pages/ClientPortal';
-import ClientTasks from './pages/ClientTasks';
-import ClientUpdates from './pages/ClientUpdates';
-import Collaboration from './pages/Collaboration';
-import CommunicationHub from './pages/CommunicationHub';
-import CookiePolicy from './pages/CookiePolicy';
-import Dashboard from './pages/Dashboard';
-import Diagnostics from './pages/Diagnostics';
-import Documents from './pages/Documents';
-import Emergency from './pages/Emergency';
-import EmergencyProfile from './pages/EmergencyProfile';
-import FAQ from './pages/FAQ';
-import Landing from './pages/Landing';
-import LegalDisclosure from './pages/LegalDisclosure';
-import MedicationLog from './pages/MedicationLog';
-import Medications from './pages/Medications';
-import Messages from './pages/Messages';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import Receipts from './pages/Receipts';
-import RecipientProfile from './pages/RecipientProfile';
-import RecordRetentionPolicy from './pages/RecordRetentionPolicy';
-import Refills from './pages/Refills';
-import Reports from './pages/Reports';
-import Scheduling from './pages/Scheduling';
-import Settings from './pages/Settings';
-import ShiftHandoff from './pages/ShiftHandoff';
-import Tasks from './pages/Tasks';
-import Team from './pages/Team';
-import TermsOfService from './pages/TermsOfService';
-import Today from './pages/Today';
+import { lazy } from 'react';
 import __Layout from './Layout.jsx';
 
-
 export const PAGES = {
-    "Appointments": Appointments,
-    "Calendar": Calendar,
-    "CareNotes": CareNotes,
-    "CarePlanBuilder": CarePlanBuilder,
-    "CarePlans": CarePlans,
-    "CareRecipients": CareRecipients,
-    "Checkout": Checkout,
-    "ClientAppointments": ClientAppointments,
-    "ClientMedicationLog": ClientMedicationLog,
-    "ClientPortal": ClientPortal,
-    "ClientTasks": ClientTasks,
-    "ClientUpdates": ClientUpdates,
-    "Collaboration": Collaboration,
-    "CommunicationHub": CommunicationHub,
-    "CookiePolicy": CookiePolicy,
-    "Dashboard": Dashboard,
-    "Diagnostics": Diagnostics,
-    "Documents": Documents,
-    "Emergency": Emergency,
-    "EmergencyProfile": EmergencyProfile,
-    "FAQ": FAQ,
-    "Landing": Landing,
-    "LegalDisclosure": LegalDisclosure,
-    "MedicationLog": MedicationLog,
-    "Medications": Medications,
-    "Messages": Messages,
-    "PrivacyPolicy": PrivacyPolicy,
-    "Receipts": Receipts,
-    "RecipientProfile": RecipientProfile,
-    "RecordRetentionPolicy": RecordRetentionPolicy,
-    "Refills": Refills,
-    "Reports": Reports,
-    "Scheduling": Scheduling,
-    "Settings": Settings,
-    "ShiftHandoff": ShiftHandoff,
-    "Tasks": Tasks,
-    "Team": Team,
-    "TermsOfService": TermsOfService,
-    "Today": Today,
-}
+    "Appointments": lazy(() => import('./pages/Appointments')),
+    "Calendar": lazy(() => import('./pages/Calendar')),
+    "CareNotes": lazy(() => import('./pages/CareNotes')),
+    "CarePlanBuilder": lazy(() => import('./pages/CarePlanBuilder')),
+    "CarePlans": lazy(() => import('./pages/CarePlans')),
+    "CareRecipients": lazy(() => import('./pages/CareRecipients')),
+    "Checkout": lazy(() => import('./pages/Checkout')),
+    "ClientAppointments": lazy(() => import('./pages/ClientAppointments')),
+    "ClientMedicationLog": lazy(() => import('./pages/ClientMedicationLog')),
+    "ClientPortal": lazy(() => import('./pages/ClientPortal')),
+    "ClientTasks": lazy(() => import('./pages/ClientTasks')),
+    "ClientUpdates": lazy(() => import('./pages/ClientUpdates')),
+    "Collaboration": lazy(() => import('./pages/Collaboration')),
+    "CommunicationHub": lazy(() => import('./pages/CommunicationHub')),
+    "CookiePolicy": lazy(() => import('./pages/CookiePolicy')),
+    "Dashboard": lazy(() => import('./pages/Dashboard')),
+    "Diagnostics": lazy(() => import('./pages/Diagnostics')),
+    "Documents": lazy(() => import('./pages/Documents')),
+    "Emergency": lazy(() => import('./pages/Emergency')),
+    "EmergencyProfile": lazy(() => import('./pages/EmergencyProfile')),
+    "FAQ": lazy(() => import('./pages/FAQ')),
+    "Landing": lazy(() => import('./pages/Landing')),
+    "LegalDisclosure": lazy(() => import('./pages/LegalDisclosure')),
+    "MedicationLog": lazy(() => import('./pages/MedicationLog')),
+    "Medications": lazy(() => import('./pages/Medications')),
+    "Messages": lazy(() => import('./pages/Messages')),
+    "PrivacyPolicy": lazy(() => import('./pages/PrivacyPolicy')),
+    "Receipts": lazy(() => import('./pages/Receipts')),
+    "RecipientProfile": lazy(() => import('./pages/RecipientProfile')),
+    "RecordRetentionPolicy": lazy(() => import('./pages/RecordRetentionPolicy')),
+    "Refills": lazy(() => import('./pages/Refills')),
+    "Reports": lazy(() => import('./pages/Reports')),
+    "Scheduling": lazy(() => import('./pages/Scheduling')),
+    "Settings": lazy(() => import('./pages/Settings')),
+    "ShiftHandoff": lazy(() => import('./pages/ShiftHandoff')),
+    "Tasks": lazy(() => import('./pages/Tasks')),
+    "Team": lazy(() => import('./pages/Team')),
+    "TermsOfService": lazy(() => import('./pages/TermsOfService')),
+    "Today": lazy(() => import('./pages/Today')),
+};
 
 export const pagesConfig = {
     mainPage: "Dashboard",

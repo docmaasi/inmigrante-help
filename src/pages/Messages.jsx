@@ -96,13 +96,60 @@ export default function Messages() {
 
   const sendMessageMutation = useMutation({
     mutationFn: (data) => base44.entities.Message.create(data),
+    onMutate: async (newMessage) => {
+      await queryClient.cancelQueries(['messages', selectedConversationId]);
+      const previousMessages = queryClient.getQueryData(['messages', selectedConversationId]);
+
+      const optimisticMessage = {
+        ...newMessage,
+        id: `temp-${Date.now()}`,
+        created_date: new Date().toISOString(),
+        status: 'sending',
+      };
+
+      queryClient.setQueryData(
+        ['messages', selectedConversationId],
+        (old = []) => [...old, optimisticMessage]
+      );
+
+      return { previousMessages };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['messages', selectedConversationId]);
       base44.entities.Conversation.update(selectedConversationId, {
         last_message_at: new Date().toISOString()
       });
-    }
+    },
+    onError: (_err, newMessage, context) => {
+      // Restore previous messages and add the failed one
+      const failedMessage = {
+        ...newMessage,
+        id: `failed-${Date.now()}`,
+        created_date: new Date().toISOString(),
+        status: 'failed',
+      };
+      queryClient.setQueryData(
+        ['messages', selectedConversationId],
+        [...(context?.previousMessages || []), failedMessage]
+      );
+      toast.error('Message failed to send. Tap retry to try again.');
+    },
   });
+
+  const handleRetryMessage = (message) => {
+    // Remove the failed message from the list before retrying
+    queryClient.setQueryData(
+      ['messages', selectedConversationId],
+      (old = []) => old.filter((m) => m.id !== message.id)
+    );
+    sendMessageMutation.mutate({
+      conversation_id: message.conversation_id,
+      sender_email: message.sender_email,
+      sender_name: message.sender_name,
+      content: message.content,
+      message_type: message.message_type,
+    });
+  };
 
   const handleCreateConversation = () => {
     const data = {
@@ -215,11 +262,16 @@ export default function Messages() {
                         {recipients.find(r => r.id === selectedConversation?.care_recipient_id)?.full_name}
                       </p>
                     </CardHeader>
-                    <MessageThread messages={messages} currentUserEmail={user?.email} />
+                    <MessageThread
+                      messages={messages}
+                      currentUserEmail={user?.email}
+                      onRetry={handleRetryMessage}
+                    />
                     <MessageInput
                       onSend={handleSendMessage}
                       onShareUpdate={() => setShowShareDialog(true)}
                       disabled={!user}
+                      isSending={sendMessageMutation.isPending}
                     />
                   </>
                 ) : (

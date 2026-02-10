@@ -85,8 +85,8 @@ export default function Checkout() {
               <div>
                 <h3 className="font-semibold text-blue-900 text-sm mb-1">Data Retention Notice</h3>
                 <p className="text-sm text-blue-800 leading-relaxed">
-                  After cancellation, FamilyCare.Help retains records for up to 90 days. Access is not guaranteed during this period. 
-                  If you renew within 90 days, your data remains intact. After 90 days, records may be permanently deleted and cannot be recovered.
+                  After cancellation, FamilyCare.Help retains records for up to 10 days. Access is not guaranteed during this period.
+                  If you renew within 10 days, your data remains intact. After 10 days, records will be permanently deleted and cannot be recovered.
                 </p>
               </div>
             </div>

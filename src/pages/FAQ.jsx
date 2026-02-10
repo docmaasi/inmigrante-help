@@ -112,7 +112,7 @@ export default function FAQ() {
       questions: [
         {
           q: "Is there a free trial?",
-          a: "Yes. FamilyCare.Help offers a limited trial so you can explore features before subscribing."
+          a: "Yes. New users receive a 10-day free trial with full access to all features. After the trial ends, a paid subscription is required to continue using FamilyCare.Help. If no subscription is started within 10 days after the trial expires, all account data will be permanently deleted."
         },
         {
           q: "Can I cancel at any time?",
@@ -120,7 +120,7 @@ export default function FAQ() {
         },
         {
           q: "What happens to my data if I cancel?",
-          a: "After cancellation, records are retained for up to 90 days. If you renew within that period, your data remains intact. After 90 days, records may be permanently deleted."
+          a: "After cancellation, records are retained for up to 10 days. If you renew within that period, your data remains intact. After 10 days, records will be permanently deleted and cannot be recovered."
         }
       ]
     },

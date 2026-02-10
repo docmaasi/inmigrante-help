@@ -199,9 +199,10 @@ export default function Dashboard() {
                     idx === currentImageIndex ? 'ring-4 ring-blue-500' : ''
                   }`}
                 >
-                  <img 
+                  <img
                     src={img}
                     alt={`Care moment ${idx + 1}`}
+                    loading="lazy"
                     className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </motion.div>
