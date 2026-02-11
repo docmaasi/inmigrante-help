@@ -39,6 +39,32 @@ const searchPharmacies = async (zipCode, query) => {
   }
 };
 
+// Convert "14:30" → "2:30 PM"
+const formatTimeTo12h = (time24) => {
+  if (!time24) return '';
+  const [h, m] = time24.split(':').map(Number);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${String(m).padStart(2, '0')} ${suffix}`;
+};
+
+// Parse existing "Morning, 8:00 AM" into { period, time24 }
+const parseTimeOfDay = (value) => {
+  if (!value) return { period: '', time24: '' };
+  const parts = value.split(', ');
+  const period = parts[0] || '';
+  const timeStr = parts[1] || '';
+  // Convert "8:00 AM" → "08:00"
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return { period, time24: '' };
+  let hour = parseInt(match[1], 10);
+  const min = match[2];
+  const ampm = match[3].toUpperCase();
+  if (ampm === 'PM' && hour !== 12) hour += 12;
+  if (ampm === 'AM' && hour === 12) hour = 0;
+  return { period, time24: `${String(hour).padStart(2, '0')}:${min}` };
+};
+
 export function MedicationForm({ medication, recipients, onClose }) {
   const [formData, setFormData] = useState(medication || {
     care_recipient_id: '',
@@ -55,6 +81,14 @@ export function MedicationForm({ medication, recipients, onClose }) {
     photo_url: '',
     is_active: true
   });
+
+  // Time picker state — parse existing value if editing
+  const parsedTime = parseTimeOfDay(formData.time_of_day);
+  const [timePeriod, setTimePeriod] = useState(parsedTime.period);
+  const [timeValue, setTimeValue] = useState(parsedTime.time24);
+
+  // Zip code override state
+  const [zipSource, setZipSource] = useState('none'); // 'recipient' | 'custom' | 'none'
 
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -124,12 +158,14 @@ export function MedicationForm({ medication, recipients, onClose }) {
       const recipient = recipients.find(r => r.id === formData.care_recipient_id);
       if (recipient?.zip_code) {
         setRecipientZipCode(recipient.zip_code);
+        setZipSource('recipient');
         // Auto-load pharmacies near the recipient
         searchPharmacies(recipient.zip_code).then(results => {
           setPharmacySuggestions(results);
         });
       } else {
         setRecipientZipCode('');
+        setZipSource('none');
         setPharmacySuggestions([]);
       }
     }
@@ -452,13 +488,41 @@ export function MedicationForm({ medication, recipients, onClose }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="time_of_day">Time of Day</Label>
-              <Input
-                id="time_of_day"
-                value={formData.time_of_day}
-                onChange={(e) => setFormData({ ...formData, time_of_day: e.target.value })}
-                placeholder="e.g., Morning, 8:00 AM"
-              />
+              <Label>Time of Day</Label>
+              <div className="flex gap-2">
+                <Select
+                  value={timePeriod}
+                  onValueChange={(val) => {
+                    setTimePeriod(val);
+                    const display = timeValue ? formatTimeTo12h(timeValue) : '';
+                    setFormData({ ...formData, time_of_day: display ? `${val}, ${display}` : val });
+                  }}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Morning">Morning</SelectItem>
+                    <SelectItem value="Afternoon">Afternoon</SelectItem>
+                    <SelectItem value="Evening">Evening</SelectItem>
+                    <SelectItem value="Night">Night</SelectItem>
+                  </SelectContent>
+                </Select>
+                <input
+                  type="time"
+                  value={timeValue}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTimeValue(val);
+                    const display = val ? formatTimeTo12h(val) : '';
+                    const combined = timePeriod && display
+                      ? `${timePeriod}, ${display}`
+                      : timePeriod || display;
+                    setFormData({ ...formData, time_of_day: combined });
+                  }}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="prescribing_doctor">Prescribing Doctor</Label>
@@ -503,13 +567,36 @@ export function MedicationForm({ medication, recipients, onClose }) {
           </div>
 
           <div className="space-y-2 relative" ref={pharmacyRef}>
-            <Label htmlFor="pharmacy">Pharmacy</Label>
-            {recipientZipCode && (
-              <p className="text-xs text-teal-600 flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                Showing pharmacies near zip code {recipientZipCode}
-              </p>
-            )}
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <Label htmlFor="pharmacy">Pharmacy</Label>
+              </div>
+              <div className="w-[140px]">
+                <Label htmlFor="pharmacy_zip" className="text-xs">
+                  Zip Code
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="pharmacy_zip"
+                    value={recipientZipCode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 5);
+                      setRecipientZipCode(val);
+                      setZipSource(val ? 'custom' : 'none');
+                    }}
+                    placeholder="e.g. 90210"
+                    maxLength={5}
+                    className="pr-7"
+                  />
+                  <MapPin className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                </div>
+                {recipientZipCode && (
+                  <p className="text-[10px] mt-0.5 text-slate-500">
+                    {zipSource === 'recipient' ? 'From care recipient' : 'Custom zip code'}
+                  </p>
+                )}
+              </div>
+            </div>
             <div className="relative">
               <Input
                 id="pharmacy"
@@ -523,7 +610,7 @@ export function MedicationForm({ medication, recipients, onClose }) {
                     setShowPharmacySuggestions(true);
                   }
                 }}
-                placeholder={recipientZipCode ? "Start typing pharmacy name..." : "Add zip code to care recipient for pharmacy lookup"}
+                placeholder={recipientZipCode ? "Start typing pharmacy name..." : "Enter a zip code above to search pharmacies"}
               />
               {isSearchingPharmacy && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -555,7 +642,7 @@ export function MedicationForm({ medication, recipients, onClose }) {
 
             {!recipientZipCode && formData.care_recipient_id && (
               <p className="text-xs text-amber-600 mt-1">
-                Add a zip code to this care recipient's profile to see nearby pharmacies
+                Enter a zip code above to search for nearby pharmacies
               </p>
             )}
           </div>
