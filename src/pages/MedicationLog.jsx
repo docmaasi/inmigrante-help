@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useDoseGeneration } from '@/hooks/useDoseGeneration';
 import MedicationCheckoffItem from '../components/medications/MedicationCheckoffItem';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,9 @@ export default function MedicationLog() {
   };
 
   const activeMedications = medications.filter(med => med.active !== false);
+
+  // Auto-generate pending dose entries for today & mark past pending as missed
+  useDoseGeneration(activeMedications);
   const filteredMedications = selectedRecipientId === 'all'
     ? activeMedications
     : activeMedications.filter(med => med.care_recipient_id === selectedRecipientId);

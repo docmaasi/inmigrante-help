@@ -33,16 +33,19 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
     return logDate >= startDate && logDate <= endDate;
   });
 
+  // Exclude pending entries — today's unfinished doses shouldn't skew the math
+  const resolvedLogs = filteredLogs.filter(log => log.status !== 'pending');
+
   // Calculate adherence metrics
-  const totalDoses = filteredLogs.length;
-  const takenDoses = filteredLogs.filter(log => log.status === 'taken').length;
-  const skippedDoses = filteredLogs.filter(log => log.status === 'skipped').length;
-  const missedDoses = filteredLogs.filter(log => log.status === 'missed').length;
+  const totalDoses = resolvedLogs.length;
+  const takenDoses = resolvedLogs.filter(log => log.status === 'taken').length;
+  const skippedDoses = resolvedLogs.filter(log => log.status === 'skipped').length;
+  const missedDoses = resolvedLogs.filter(log => log.status === 'missed').length;
   const adherenceRate = totalDoses > 0 ? Math.round((takenDoses / totalDoses) * 100) : 0;
 
-  // Prepare chart data by date
+  // Prepare chart data by date (only resolved entries)
   const chartData = {};
-  filteredLogs.forEach(log => {
+  resolvedLogs.forEach(log => {
     const date = log.date_taken;
     if (!chartData[date]) {
       chartData[date] = { date, taken: 0, skipped: 0, missed: 0, total: 0 };
@@ -56,7 +59,7 @@ export default function MedicationAdherenceReport({ recipientId, recipientName, 
   // Medication-specific adherence
   const medicationAdherence = {};
   medications.forEach(med => {
-    const medLogs = filteredLogs.filter(log => log.medication_id === med.id);
+    const medLogs = resolvedLogs.filter(log => log.medication_id === med.id);
     const medTaken = medLogs.filter(log => log.status === 'taken').length;
     const medRate = medLogs.length > 0 ? Math.round((medTaken / medLogs.length) * 100) : 0;
     medicationAdherence[med.medication_name] = {
