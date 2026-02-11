@@ -8,41 +8,50 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
-export default function AvailabilityManager({ caregiverEmail, caregiverName, teamMemberId }) {
+const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export default function AvailabilityManager({
+  caregiverName,
+  teamMemberId,
+  isSelf = false,
+}) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  const queryKey = ['caregiver-availability', isSelf ? 'self' : teamMemberId];
 
   const { data: availability = [] } = useQuery({
-    queryKey: ['caregiver-availability', teamMemberId || caregiverEmail],
+    queryKey,
     queryFn: async () => {
-      let query = supabase
-        .from('caregiver_availability')
-        .select('*');
+      let query = supabase.from('caregiver_availability').select('*');
 
-      if (teamMemberId) {
+      if (isSelf) {
+        query = query
+          .eq('user_id', user.id)
+          .is('team_member_id', null);
+      } else if (teamMemberId) {
         query = query.eq('team_member_id', teamMemberId);
-      } else if (caregiverEmail) {
-        query = query.eq('caregiver_email', caregiverEmail);
+      } else {
+        return [];
       }
 
       const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!user && (!!teamMemberId || !!caregiverEmail)
+    enabled: !!user && (isSelf || !!teamMemberId),
   });
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      const insertData = {
+        ...data,
+        user_id: user.id,
+        team_member_id: isSelf ? null : teamMemberId,
+      };
       const { data: result, error } = await supabase
         .from('caregiver_availability')
-        .insert({
-          ...data,
-          user_id: user.id,
-          team_member_id: teamMemberId,
-          caregiver_email: caregiverEmail
-        })
+        .insert(insertData)
         .select()
         .single();
       if (error) throw error;
@@ -51,7 +60,7 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName, tea
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caregiver-availability'] });
       toast.success('Availability saved');
-    }
+    },
   });
 
   const updateMutation = useMutation({
@@ -65,7 +74,7 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName, tea
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caregiver-availability'] });
       toast.success('Availability updated');
-    }
+    },
   });
 
   const deleteMutation = useMutation({
@@ -79,50 +88,53 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName, tea
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['caregiver-availability'] });
       toast.success('Availability removed');
-    }
+    },
   });
 
   const handleToggleDay = async (dayIndex, existingSlot) => {
     if (existingSlot) {
       await updateMutation.mutateAsync({
         id: existingSlot.id,
-        data: { is_available: !existingSlot.is_available }
+        data: { is_available: !existingSlot.is_available },
       });
     } else {
       await createMutation.mutateAsync({
         day_of_week: dayIndex,
-        available_from: '09:00',
-        available_until: '17:00',
-        is_available: true
+        start_time: '09:00',
+        end_time: '17:00',
+        is_available: true,
       });
     }
   };
 
   const handleUpdateTime = async (dayIndex, field, value) => {
-    const existingSlot = availability.find(a => a.day_of_week === dayIndex);
+    const existingSlot = availability.find((a) => a.day_of_week === dayIndex);
     if (existingSlot) {
       await updateMutation.mutateAsync({
         id: existingSlot.id,
-        data: { [field]: value }
+        data: { [field]: value },
       });
     }
   };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{caregiverName}'s Availability</CardTitle>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">{caregiverName}&apos;s Availability</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {daysOfWeek.map((day, index) => {
-            const slot = availability.find(a => a.day_of_week === index);
+      <CardContent className="pt-0">
+        <div className="space-y-1.5">
+          {SHORT_DAYS.map((day, index) => {
+            const slot = availability.find((a) => a.day_of_week === index);
 
             return (
-              <div key={index} className="flex flex-wrap items-center gap-3 p-3 border border-slate-200 rounded-lg">
-                <div className="w-20">
-                  <span className="font-medium text-sm text-slate-800">{day}</span>
-                </div>
+              <div
+                key={index}
+                className="flex flex-wrap items-center gap-2 p-2 border border-slate-200 rounded-lg"
+              >
+                <span className="w-10 font-medium text-xs text-slate-800">
+                  {day}
+                </span>
 
                 <Switch
                   checked={slot?.is_available ?? false}
@@ -130,19 +142,23 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName, tea
                 />
 
                 {slot?.is_available && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Input
                       type="time"
-                      value={slot.available_from}
-                      onChange={(e) => handleUpdateTime(index, 'available_from', e.target.value)}
-                      className="w-24 text-sm font-medium"
+                      value={slot.start_time || ''}
+                      onChange={(e) =>
+                        handleUpdateTime(index, 'start_time', e.target.value)
+                      }
+                      className="w-20 text-xs font-medium h-7 px-1"
                     />
-                    <span className="text-sm text-slate-600 font-medium">to</span>
+                    <span className="text-xs text-slate-500">to</span>
                     <Input
                       type="time"
-                      value={slot.available_until}
-                      onChange={(e) => handleUpdateTime(index, 'available_until', e.target.value)}
-                      className="w-24 text-sm font-medium"
+                      value={slot.end_time || ''}
+                      onChange={(e) =>
+                        handleUpdateTime(index, 'end_time', e.target.value)
+                      }
+                      className="w-20 text-xs font-medium h-7 px-1"
                     />
                   </div>
                 )}
@@ -152,7 +168,7 @@ export default function AvailabilityManager({ caregiverEmail, caregiverName, tea
                     size="sm"
                     variant="ghost"
                     onClick={() => deleteMutation.mutate(slot.id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-auto h-7 px-2 text-xs"
                   >
                     Remove
                   </Button>

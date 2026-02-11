@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
 
-export default function ShiftCalendar({ careRecipientId }) {
+export default function ShiftCalendar({ careRecipientId, adminName }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const { data: shifts = [] } = useCaregiverShifts({ careRecipientId });
@@ -43,6 +43,9 @@ export default function ShiftCalendar({ careRecipientId }) {
   const getCaregiverName = (shift) => {
     if (shift.team_members?.full_name) {
       return shift.team_members.full_name;
+    }
+    if (!shift.team_member_id && adminName) {
+      return `${adminName} (Me)`;
     }
     return shift.caregiver_name || 'Unknown';
   };

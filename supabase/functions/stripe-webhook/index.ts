@@ -1,6 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+import { sendEmail } from '../_shared/send-email.ts';
+import {
+  subscriptionConfirmedHtml,
+  subscriptionCanceledHtml,
+} from '../_shared/email-templates.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   apiVersion: '2023-10-16',
@@ -142,6 +147,26 @@ serve(async (req) => {
           }
 
           console.log(`Updated profile ${profile.id}: status=${subscription.status}, max_care_recipients=${maxCareRecipients}`);
+
+          // Send subscription confirmation email (fire-and-forget)
+          if (subscription.status === 'active' && customer && !customer.deleted && customer.email) {
+            const { data: subProfile } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', profile.id)
+              .single();
+
+            const planName = subscription.items.data[0]?.price.nickname || 'Premium';
+
+            sendEmail({
+              to: customer.email,
+              subject: 'Your FamilyCare.Help subscription is active!',
+              html: subscriptionConfirmedHtml(
+                subProfile?.full_name || 'there',
+                planName
+              ),
+            }).catch((err) => console.error('Subscription email failed:', err));
+          }
         }
         break;
       }
@@ -197,6 +222,36 @@ serve(async (req) => {
             .eq('id', delProfile.id);
 
           console.log(`Profile ${delProfile.id} marked for deletion on ${deletionDate.toISOString()}`);
+
+          // Send cancellation warning email (fire-and-forget)
+          try {
+            const delCustomer = await stripe.customers.retrieve(delCustomerId);
+            if (delCustomer && !delCustomer.deleted && delCustomer.email) {
+              const { data: cancelProfile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', delProfile.id)
+                .single();
+
+              const formattedDeletion = deletionDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              });
+
+              sendEmail({
+                to: delCustomer.email,
+                subject: 'Your FamilyCare.Help subscription has been canceled',
+                html: subscriptionCanceledHtml(
+                  cancelProfile?.full_name || 'there',
+                  formattedDeletion
+                ),
+              }).catch((err) => console.error('Cancellation email failed:', err));
+            }
+          } catch (emailErr) {
+            console.error('Cancellation email lookup failed:', emailErr);
+          }
         }
         break;
       }

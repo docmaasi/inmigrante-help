@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
 
-export default function ShiftCalendar({ careRecipientId }) {
+export default function ShiftCalendar({ careRecipientId, adminName }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const { data: shifts = [] } = useQuery({
@@ -109,7 +109,11 @@ export default function ShiftCalendar({ careRecipientId }) {
                 <div key={shift.id} className="p-3 bg-green-50 border border-green-200 rounded">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-medium text-slate-800">{shift.caregiver_name}</p>
+                      <p className="font-medium text-slate-800">
+                        {!shift.team_member_id && adminName
+                          ? `${adminName} (Me)`
+                          : shift.caregiver_name || 'Unknown'}
+                      </p>
                       <p className="text-xs text-slate-600 mt-1">
                         {shift.start_time} - {shift.end_time}
                       </p>

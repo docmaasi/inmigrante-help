@@ -172,6 +172,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (error) throw error;
+
+    // Send welcome email (fire-and-forget — don't block signup)
+    supabase.functions.invoke('send-welcome-email').catch((err) => {
+      console.error('Welcome email failed:', err);
+    });
   };
 
   const signOut = async () => {

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import TaskCompletionModal from '../components/tasks/TaskCompletionModal';
 export default function Today() {
   const [showCustomize, setShowCustomize] = useState(false);
   const [completingTask, setCompletingTask] = useState(null);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile } = useAuth();
   const widgetManager = useWidgetManager(user ? { ...user, ...profile } : null);
@@ -144,28 +146,28 @@ export default function Today() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="shadow-sm border-slate-200">
+          <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-teal-300 transition-colors" onClick={() => navigate('/Appointments')}>
             <CardContent className="p-4 text-center">
               <Calendar className="w-6 h-6 text-teal-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{todayAppointments.length}</div>
               <div className="text-xs text-slate-500">Appointments</div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-slate-200">
+          <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-blue-300 transition-colors" onClick={() => navigate('/Tasks')}>
             <CardContent className="p-4 text-center">
               <ListTodo className="w-6 h-6 text-blue-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{todayTasks.length}</div>
               <div className="text-xs text-slate-500">Tasks Due</div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-slate-200">
+          <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-amber-300 transition-colors" onClick={() => navigate('/Tasks')}>
             <CardContent className="p-4 text-center">
               <AlertCircle className="w-6 h-6 text-amber-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{overdueTasks.length}</div>
               <div className="text-xs text-slate-500">Overdue</div>
             </CardContent>
           </Card>
-          <Card className="shadow-sm border-slate-200">
+          <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-green-300 transition-colors" onClick={() => navigate('/Medications')}>
             <CardContent className="p-4 text-center">
               <Pill className="w-6 h-6 text-green-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800">{activeMedications.length}</div>

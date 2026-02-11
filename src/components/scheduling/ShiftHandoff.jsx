@@ -161,6 +161,11 @@ ${formData.next_shift_notes ? `**Next Shift Notes:** ${formData.next_shift_notes
                   <SelectValue placeholder="Select team member" />
                 </SelectTrigger>
                 <SelectContent>
+                  {user?.full_name && (
+                    <SelectItem value={user.full_name}>
+                      {user.full_name} (Me)
+                    </SelectItem>
+                  )}
                   {teamMembers.map(tm => (
                     <SelectItem key={tm.id} value={tm.full_name}>
                       {tm.full_name} ({tm.relationship})
