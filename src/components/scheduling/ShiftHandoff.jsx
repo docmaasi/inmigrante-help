@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import RecipientCheckboxList from '../shared/RecipientCheckboxList';
 
 export default function ShiftHandoff() {
   const [user, setUser] = useState(null);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
   const [formData, setFormData] = useState({
-    care_recipient_id: '',
     shift_summary: '',
     tasks_completed: '',
     concerns: '',
@@ -47,21 +48,17 @@ export default function ShiftHandoff() {
     mutationFn: (data) => base44.entities.CareNote.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['careNotes']);
-      toast.success('Shift handoff logged');
-      setFormData({
-        care_recipient_id: '',
-        shift_summary: '',
-        tasks_completed: '',
-        concerns: '',
-        handoff_to: '',
-        next_shift_notes: ''
-      });
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
     const handoffContent = `
 **Shift Summary:** ${formData.shift_summary}
 
@@ -75,15 +72,25 @@ ${formData.next_shift_notes ? `**Next Shift Notes:** ${formData.next_shift_notes
 **Logged by:** ${user?.full_name} (${user?.email})
     `.trim();
 
-    createHandoffMutation.mutate({
-      care_recipient_id: formData.care_recipient_id,
-      note_type: 'shift_handoff',
-      title: `Shift Handoff - ${format(new Date(), 'MMM d, h:mm a')}`,
-      content: handoffContent,
-      date: new Date().toISOString().split('T')[0],
-      time: format(new Date(), 'HH:mm'),
-      flagged_important: !!formData.concerns
-    });
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await createHandoffMutation.mutateAsync({
+          care_recipient_id: recipientId,
+          note_type: 'shift_handoff',
+          title: `Shift Handoff - ${format(new Date(), 'MMM d, h:mm a')}`,
+          content: handoffContent,
+          date: new Date().toISOString().split('T')[0],
+          time: format(new Date(), 'HH:mm'),
+          flagged_important: !!formData.concerns
+        });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Shift handoff logged' : `${count} shift handoffs logged`);
+      setSelectedRecipientIds([]);
+      setFormData({ shift_summary: '', tasks_completed: '', concerns: '', handoff_to: '', next_shift_notes: '' });
+    } catch {
+      toast.error('Failed to log shift handoff');
+    }
   };
 
   return (
@@ -98,19 +105,11 @@ ${formData.next_shift_notes ? `**Next Shift Notes:** ${formData.next_shift_notes
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Care Recipient *</Label>
-              <Select value={formData.care_recipient_id} onValueChange={(v) => setFormData({...formData, care_recipient_id: v})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select recipient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {recipients.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <RecipientCheckboxList
+              careRecipients={recipients}
+              selectedIds={selectedRecipientIds}
+              onChange={setSelectedRecipientIds}
+            />
 
             <div>
               <Label>Shift Summary *</Label>

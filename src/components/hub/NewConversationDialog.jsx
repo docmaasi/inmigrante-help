@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import RecipientCheckboxList from '../shared/RecipientCheckboxList';
 
 export default function NewConversationDialog({ open, onClose, recipients }) {
   const queryClient = useQueryClient();
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
-    care_recipient_id: '',
     conversation_type: 'general',
     participants: []
   });
@@ -27,25 +28,39 @@ export default function NewConversationDialog({ open, onClose, recipients }) {
     mutationFn: (data) => base44.entities.Conversation.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['conversations']);
-      toast.success('Conversation created');
-      setFormData({ name: '', care_recipient_id: '', conversation_type: 'general', participants: [] });
-      onClose();
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.care_recipient_id) {
+
+    if (!formData.name) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    createMutation.mutate({
-      ...formData,
-      participants: JSON.stringify(formData.participants),
-      last_message_at: new Date().toISOString()
-    });
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await createMutation.mutateAsync({
+          ...formData,
+          care_recipient_id: recipientId,
+          participants: JSON.stringify(formData.participants),
+          last_message_at: new Date().toISOString()
+        });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Conversation created' : `${count} conversations created`);
+      setSelectedRecipientIds([]);
+      setFormData({ name: '', conversation_type: 'general', participants: [] });
+      onClose();
+    } catch {
+      toast.error('Failed to create conversation');
+    }
   };
 
   const addParticipant = (email) => {
@@ -82,22 +97,11 @@ export default function NewConversationDialog({ open, onClose, recipients }) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="care_recipient_id">Care Recipient *</Label>
-            <Select
-              value={formData.care_recipient_id}
-              onValueChange={(value) => setFormData({ ...formData, care_recipient_id: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select recipient" />
-              </SelectTrigger>
-              <SelectContent>
-                {recipients.map(r => (
-                  <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <RecipientCheckboxList
+            careRecipients={recipients}
+            selectedIds={selectedRecipientIds}
+            onChange={setSelectedRecipientIds}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="conversation_type">Conversation Type</Label>

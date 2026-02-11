@@ -15,15 +15,16 @@ import MessageThread from '../components/messaging/MessageThread';
 import MessageInput from '../components/messaging/MessageInput';
 import ShareUpdateDialog from '../components/messaging/ShareUpdateDialog';
 import ExternalCommLog from '../components/messaging/ExternalCommLog';
+import RecipientCheckboxList from '../components/shared/RecipientCheckboxList';
 
 export default function Messages() {
   const [user, setUser] = useState(null);
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [showNewConvDialog, setShowNewConvDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
   const [newConvData, setNewConvData] = useState({
     name: '',
-    care_recipient_id: '',
     conversation_type: 'general',
     participants: []
   });
@@ -89,8 +90,6 @@ export default function Messages() {
     onSuccess: (newConv) => {
       queryClient.invalidateQueries(['conversations']);
       setSelectedConversationId(newConv.id);
-      setShowNewConvDialog(false);
-      toast.success('Conversation created');
     }
   });
 
@@ -151,14 +150,33 @@ export default function Messages() {
     });
   };
 
-  const handleCreateConversation = () => {
-    const data = {
-      ...newConvData,
-      participants: JSON.stringify(newConvData.participants),
-      last_message_at: new Date().toISOString()
-    };
-    createConversationMutation.mutate(data);
-    setNewConvData({ name: '', care_recipient_id: '', conversation_type: 'general', participants: [] });
+  const handleCreateConversation = async () => {
+    if (!newConvData.name) {
+      toast.error('Please enter a conversation name');
+      return;
+    }
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await createConversationMutation.mutateAsync({
+          ...newConvData,
+          care_recipient_id: recipientId,
+          participants: JSON.stringify(newConvData.participants),
+          last_message_at: new Date().toISOString()
+        });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Conversation created' : `${count} conversations created`);
+      setSelectedRecipientIds([]);
+      setNewConvData({ name: '', conversation_type: 'general', participants: [] });
+      setShowNewConvDialog(false);
+    } catch {
+      toast.error('Failed to create conversation');
+    }
   };
 
   const handleSendMessage = (content) => {
@@ -306,22 +324,11 @@ export default function Messages() {
                 onChange={(e) => setNewConvData({...newConvData, name: e.target.value})}
               />
             </div>
-            <div>
-              <Label>Care Recipient</Label>
-              <Select
-                value={newConvData.care_recipient_id}
-                onValueChange={(value) => setNewConvData({...newConvData, care_recipient_id: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select recipient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {recipients.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <RecipientCheckboxList
+              careRecipients={recipients}
+              selectedIds={selectedRecipientIds}
+              onChange={setSelectedRecipientIds}
+            />
             <div>
               <Label>Conversation Type</Label>
               <Select
@@ -389,7 +396,7 @@ export default function Messages() {
               </Button>
               <Button
                 onClick={handleCreateConversation}
-                disabled={!newConvData.name || !newConvData.care_recipient_id}
+                disabled={!newConvData.name || selectedRecipientIds.length === 0}
               >
                 Create
               </Button>

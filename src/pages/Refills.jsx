@@ -15,6 +15,7 @@ import RefillReminders from '../components/medications/RefillReminders';
 
 export default function Refills() {
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [formData, setFormData] = useState({
     medication_id: '',
     care_recipient_id: '',
@@ -140,9 +141,12 @@ export default function Refills() {
         <p className="text-slate-500 mt-1">Track and manage medication refill reminders</p>
       </div>
 
-      {/* Stats */}
+      {/* Stats — click a card to filter the list below */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="shadow-sm">
+        <Card
+          className={`shadow-sm cursor-pointer transition-all hover:shadow-md ${statusFilter === 'pending' ? 'ring-2 ring-blue-500 bg-blue-50/40' : ''}`}
+          onClick={() => setStatusFilter(f => f === 'pending' ? 'all' : 'pending')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -153,7 +157,10 @@ export default function Refills() {
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-red-200">
+        <Card
+          className={`shadow-sm cursor-pointer transition-all hover:shadow-md border-red-200 ${statusFilter === 'overdue' ? 'ring-2 ring-red-500 bg-red-50/40' : ''}`}
+          onClick={() => setStatusFilter(f => f === 'overdue' ? 'all' : 'overdue')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -164,7 +171,10 @@ export default function Refills() {
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-green-200">
+        <Card
+          className={`shadow-sm cursor-pointer transition-all hover:shadow-md border-green-200 ${statusFilter === 'completed' ? 'ring-2 ring-green-500 bg-green-50/40' : ''}`}
+          onClick={() => setStatusFilter(f => f === 'completed' ? 'all' : 'completed')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -206,7 +216,7 @@ export default function Refills() {
 
         {/* Refill Tracker */}
         <div className="lg:col-span-2">
-          <RefillTracker />
+          <RefillTracker statusFilter={statusFilter} />
         </div>
       </div>
 

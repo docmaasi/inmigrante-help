@@ -13,12 +13,14 @@ import { FileText, Upload, Download, Trash2, Star, Calendar, User, Filter } from
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import RecipientCheckboxList from '../components/shared/RecipientCheckboxList';
 
 export default function Documents() {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [uploading, setUploading] = useState(false);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
   const [formData, setFormData] = useState({
     care_recipient_id: '',
     document_name: '',
@@ -58,14 +60,13 @@ export default function Documents() {
     mutationFn: (data) => base44.entities.Document.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['documents']);
-      toast.success('Document uploaded');
-      handleCloseDialog();
     }
   });
 
   const handleCloseDialog = () => {
     setShowUploadDialog(false);
     setSelectedFile(null);
+    setSelectedRecipientIds([]);
     setFormData({
       care_recipient_id: '',
       document_name: '',
@@ -96,8 +97,8 @@ export default function Documents() {
     setUploading(true);
     try {
       const uploadResult = await base44.integrations.Core.UploadFile({ file: selectedFile });
-      
-      const documentData = {
+
+      const baseData = {
         ...formData,
         file_url: uploadResult.file_url,
         file_size: selectedFile.size,
@@ -105,7 +106,17 @@ export default function Documents() {
         uploaded_by: user?.email
       };
 
-      createMutation.mutate(documentData);
+      if (selectedRecipientIds.length === 0) {
+        await createMutation.mutateAsync(baseData);
+        toast.success('Document uploaded');
+      } else {
+        for (const recipientId of selectedRecipientIds) {
+          await createMutation.mutateAsync({ ...baseData, care_recipient_id: recipientId });
+        }
+        const count = selectedRecipientIds.length;
+        toast.success(count === 1 ? 'Document uploaded' : `${count} documents uploaded`);
+      }
+      handleCloseDialog();
     } catch (error) {
       toast.error('Failed to upload file');
       console.error(error);
@@ -303,19 +314,11 @@ export default function Documents() {
               <DialogTitle>Upload Document</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleUpload} className="space-y-4 mt-4">
-              <div>
-                <Label>Care Recipient *</Label>
-                <Select value={formData.care_recipient_id} onValueChange={(v) => setFormData({...formData, care_recipient_id: v})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select recipient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {recipients.map(r => (
-                      <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <RecipientCheckboxList
+                careRecipients={recipients}
+                selectedIds={selectedRecipientIds}
+                onChange={setSelectedRecipientIds}
+              />
 
               <div>
                 <Label>File *</Label>

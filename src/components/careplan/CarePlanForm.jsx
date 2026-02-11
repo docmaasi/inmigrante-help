@@ -9,10 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Loader2, Plus, Trash2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import RecipientCheckboxList from '../shared/RecipientCheckboxList';
 
 export default function CarePlanForm({ plan, recipients, onClose }) {
   const queryClient = useQueryClient();
-  
+  const isEditing = !!plan?.id;
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState(() => {
+    if (plan?.care_recipient_id) return [plan.care_recipient_id];
+    return [];
+  });
+
   const [formData, setFormData] = useState(plan || {
     care_recipient_id: '',
     plan_name: '',
@@ -33,14 +39,16 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
     plan ? JSON.parse(plan.medication_schedule || '[]') : []
   );
 
+  const firstRecipientId = selectedRecipientIds[0] || formData.care_recipient_id;
+
   const { data: medications = [] } = useQuery({
     queryKey: ['medications'],
     queryFn: () => base44.entities.Medication.list(),
-    enabled: !!formData.care_recipient_id
+    enabled: !!firstRecipientId
   });
 
   const recipientMeds = medications.filter(
-    m => m.care_recipient_id === formData.care_recipient_id && m.active !== false
+    m => m.care_recipient_id === firstRecipientId && m.active !== false
   );
 
   const saveMutation = useMutation({
@@ -52,15 +60,17 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['carePlanDetails']);
-      toast.success(plan ? 'Care plan updated' : 'Care plan created');
-      onClose();
+      if (isEditing) {
+        toast.success('Care plan updated');
+        onClose();
+      }
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.care_recipient_id || !formData.plan_name) {
+
+    if (!formData.plan_name) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -73,7 +83,35 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
       last_updated: new Date().toISOString()
     };
 
-    saveMutation.mutate(dataToSave);
+    if (isEditing) {
+      const recipientId = selectedRecipientIds[0] || formData.care_recipient_id;
+      if (!recipientId) {
+        toast.error('Please select a care recipient');
+        return;
+      }
+      try {
+        await saveMutation.mutateAsync({ ...dataToSave, care_recipient_id: recipientId });
+      } catch {
+        toast.error('Failed to update care plan');
+      }
+      return;
+    }
+
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await saveMutation.mutateAsync({ ...dataToSave, care_recipient_id: recipientId });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Care plan created' : `${count} care plans created`);
+      onClose();
+    } catch {
+      toast.error('Failed to create care plan');
+    }
   };
 
   const addRoutine = () => {
@@ -128,24 +166,32 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-slate-800">Basic Information</h3>
             
-            <div className="space-y-2">
-              <Label htmlFor="care_recipient_id">Care Recipient *</Label>
-              <Select
-                value={formData.care_recipient_id}
-                onValueChange={(value) => setFormData({ ...formData, care_recipient_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select recipient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {recipients.map(recipient => (
-                    <SelectItem key={recipient.id} value={recipient.id}>
-                      {recipient.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {isEditing ? (
+              <div className="space-y-2">
+                <Label htmlFor="care_recipient_id">Care Recipient *</Label>
+                <Select
+                  value={selectedRecipientIds[0] || formData.care_recipient_id}
+                  onValueChange={(value) => setSelectedRecipientIds([value])}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select recipient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recipients.map(recipient => (
+                      <SelectItem key={recipient.id} value={recipient.id}>
+                        {recipient.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <RecipientCheckboxList
+                careRecipients={recipients}
+                selectedIds={selectedRecipientIds}
+                onChange={setSelectedRecipientIds}
+              />
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="plan_name">Plan Name *</Label>
@@ -214,7 +260,7 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
           </div>
 
           {/* Medication Schedule */}
-          {formData.care_recipient_id && (
+          {firstRecipientId && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800">Medication Schedule</h3>
               {recipientMeds.length === 0 ? (

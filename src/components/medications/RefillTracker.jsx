@@ -8,7 +8,7 @@ import { Pill, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { format, parseISO, differenceInDays, isBefore, startOfToday } from 'date-fns';
 import { toast } from 'sonner';
 
-export default function RefillTracker({ recipientId = null }) {
+export default function RefillTracker({ recipientId = null, statusFilter = 'all' }) {
   const queryClient = useQueryClient();
 
   const { data: refills = [] } = useQuery({
@@ -50,7 +50,21 @@ export default function RefillTracker({ recipientId = null }) {
     ? refills.filter(r => r.care_recipient_id === recipientId)
     : refills;
 
-  const pendingRefills = filteredRefills.filter(r => r.status !== 'completed');
+  const today = startOfToday();
+
+  const displayedRefills = filteredRefills.filter(r => {
+    if (statusFilter === 'pending') {
+      return r.status !== 'completed' && !isBefore(parseISO(r.refill_date), today);
+    }
+    if (statusFilter === 'overdue') {
+      return r.status !== 'completed' && isBefore(parseISO(r.refill_date), today);
+    }
+    if (statusFilter === 'completed') {
+      return r.status === 'completed';
+    }
+    // 'all' — show non-completed (original behavior)
+    return r.status !== 'completed';
+  });
 
   const getUrgency = (refillDate) => {
     const today = startOfToday();
@@ -71,12 +85,20 @@ export default function RefillTracker({ recipientId = null }) {
     return recipients.find(r => r.id === id)?.full_name || 'Unknown';
   };
 
-  if (pendingRefills.length === 0) {
+  if (displayedRefills.length === 0) {
+    const emptyMsg = statusFilter === 'completed'
+      ? 'No completed refills yet'
+      : statusFilter === 'overdue'
+        ? 'No overdue refills — great job!'
+        : statusFilter === 'pending'
+          ? 'No pending refills right now'
+          : 'All refills are up to date';
+
     return (
       <Card className="border-slate-200/60">
         <CardContent className="p-8 text-center">
           <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-          <p className="text-slate-600">All refills are up to date</p>
+          <p className="text-slate-600">{emptyMsg}</p>
         </CardContent>
       </Card>
     );
@@ -84,7 +106,7 @@ export default function RefillTracker({ recipientId = null }) {
 
   return (
     <div className="space-y-4">
-      {pendingRefills.map(refill => {
+      {displayedRefills.map(refill => {
         const urgency = getUrgency(refill.refill_date);
         
         return (

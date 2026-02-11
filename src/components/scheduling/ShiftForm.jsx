@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import RecipientCheckboxList from './RecipientCheckboxList';
+import RecipientCheckboxList from '../shared/RecipientCheckboxList';
 
 const SELF_VALUE = '__self__';
 

@@ -10,9 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import FileUpload from '../shared/FileUpload';
+import RecipientCheckboxList from '../shared/RecipientCheckboxList';
 
 export default function MedicationForm({ medication, recipients, onClose }) {
   const queryClient = useQueryClient();
+  const isEditing = !!medication?.id;
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState(() => {
+    if (medication?.care_recipient_id) return [medication.care_recipient_id];
+    return [];
+  });
   const [formData, setFormData] = useState(medication || {
     care_recipient_id: '',
     medication_name: '',
@@ -45,8 +51,10 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['medications']);
-      toast.success(medication ? 'Medication updated' : 'Medication added');
-      onClose();
+      if (isEditing) {
+        toast.success('Medication updated');
+        onClose();
+      }
     }
   });
 
@@ -106,13 +114,42 @@ export default function MedicationForm({ medication, recipients, onClose }) {
     setSuggestions([]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.care_recipient_id || !formData.medication_name || !formData.dosage) {
+    if (!formData.medication_name || !formData.dosage) {
       toast.error('Please fill in all required fields');
       return;
     }
-    saveMutation.mutate(formData);
+
+    if (isEditing) {
+      const recipientId = selectedRecipientIds[0] || formData.care_recipient_id;
+      if (!recipientId) {
+        toast.error('Please select a care recipient');
+        return;
+      }
+      try {
+        await saveMutation.mutateAsync({ ...formData, care_recipient_id: recipientId });
+      } catch {
+        toast.error('Failed to update medication');
+      }
+      return;
+    }
+
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await saveMutation.mutateAsync({ ...formData, care_recipient_id: recipientId });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Medication added' : `${count} medications added`);
+      onClose();
+    } catch {
+      toast.error('Failed to add medication');
+    }
   };
 
   return (
@@ -127,24 +164,32 @@ export default function MedicationForm({ medication, recipients, onClose }) {
       </CardHeader>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="care_recipient_id">Care Recipient *</Label>
-            <Select
-              value={formData.care_recipient_id}
-              onValueChange={(value) => setFormData({ ...formData, care_recipient_id: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select recipient" />
-              </SelectTrigger>
-              <SelectContent>
-                {recipients.map(recipient => (
-                  <SelectItem key={recipient.id} value={recipient.id}>
-                    {recipient.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {isEditing ? (
+            <div className="space-y-2">
+              <Label htmlFor="care_recipient_id">Care Recipient *</Label>
+              <Select
+                value={selectedRecipientIds[0] || formData.care_recipient_id}
+                onValueChange={(value) => setSelectedRecipientIds([value])}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select recipient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {recipients.map(recipient => (
+                    <SelectItem key={recipient.id} value={recipient.id}>
+                      {recipient.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <RecipientCheckboxList
+              careRecipients={recipients}
+              selectedIds={selectedRecipientIds}
+              onChange={setSelectedRecipientIds}
+            />
+          )}
 
           <div className="space-y-2 relative" ref={suggestionsRef}>
             <Label htmlFor="medication_name">Medication Name *</Label>

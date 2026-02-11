@@ -10,13 +10,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Receipt, DollarSign, Calendar, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Checkbox } from '@/components/ui/checkbox';
 import FileUpload from '../components/shared/FileUpload';
 import ShareQRCode from '../components/shared/ShareQRCode';
+import RecipientCheckboxList from '../components/shared/RecipientCheckboxList';
 
 export default function ReceiptsPage() {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [selectedRecipient, setSelectedRecipient] = useState('all');
+  const [filterRecipientIds, setFilterRecipientIds] = useState([]);
 
   const { data: receipts = [] } = useQuery({
     queryKey: ['receipts'],
@@ -28,9 +30,9 @@ export default function ReceiptsPage() {
     queryFn: () => base44.entities.CareRecipient.list()
   });
 
-  const filteredReceipts = selectedRecipient === 'all' 
-    ? receipts 
-    : receipts.filter(r => r.care_recipient_id === selectedRecipient);
+  const filteredReceipts = filterRecipientIds.length === 0
+    ? receipts
+    : receipts.filter(r => filterRecipientIds.includes(r.care_recipient_id));
 
   const totalAmount = filteredReceipts.reduce((sum, r) => sum + (r.amount || 0), 0);
 
@@ -80,17 +82,28 @@ export default function ReceiptsPage() {
           <Card>
             <CardContent className="p-4">
               <Label className="text-sm text-slate-600 mb-2 block">Filter by Recipient</Label>
-              <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Recipients</SelectItem>
-                  {recipients.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="border border-slate-200 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
+                <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 rounded p-1">
+                  <Checkbox
+                    checked={filterRecipientIds.length === 0}
+                    onCheckedChange={() => setFilterRecipientIds([])}
+                  />
+                  <span className="text-sm font-medium">All Recipients</span>
+                </label>
+                {recipients.map(r => (
+                  <label key={r.id} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 rounded p-1">
+                    <Checkbox
+                      checked={filterRecipientIds.includes(r.id)}
+                      onCheckedChange={(checked) => {
+                        setFilterRecipientIds(prev =>
+                          checked ? [...prev, r.id] : prev.filter(id => id !== r.id)
+                        );
+                      }}
+                    />
+                    <span className="text-sm">{r.full_name}</span>
+                  </label>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -125,6 +138,11 @@ export default function ReceiptsPage() {
 
 function ReceiptForm({ recipients, receipt, onClose }) {
   const queryClient = useQueryClient();
+  const isEditing = !!receipt?.id;
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState(() => {
+    if (receipt?.care_recipient_id) return [receipt.care_recipient_id];
+    return [];
+  });
   const [formData, setFormData] = useState(receipt || {
     care_recipient_id: '',
     title: '',
@@ -146,18 +164,49 @@ function ReceiptForm({ recipients, receipt, onClose }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['receipts']);
-      toast.success(receipt ? 'Receipt updated' : 'Receipt added');
-      onClose();
+      if (isEditing) {
+        toast.success('Receipt updated');
+        onClose();
+      }
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.care_recipient_id || !formData.title || !formData.date) {
+    if (!formData.title || !formData.date) {
       toast.error('Please fill in required fields');
       return;
     }
-    saveMutation.mutate(formData);
+
+    if (isEditing) {
+      const recipientId = selectedRecipientIds[0] || formData.care_recipient_id;
+      if (!recipientId) {
+        toast.error('Please select a care recipient');
+        return;
+      }
+      try {
+        await saveMutation.mutateAsync({ ...formData, care_recipient_id: recipientId });
+      } catch {
+        toast.error('Failed to update receipt');
+      }
+      return;
+    }
+
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await saveMutation.mutateAsync({ ...formData, care_recipient_id: recipientId });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Receipt added' : `${count} receipts added`);
+      onClose();
+    } catch {
+      toast.error('Failed to add receipt');
+    }
   };
 
   const categoryColors = {
@@ -179,22 +228,30 @@ function ReceiptForm({ recipients, receipt, onClose }) {
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Care Recipient *</Label>
-              <Select
-                value={formData.care_recipient_id}
-                onValueChange={(value) => setFormData({ ...formData, care_recipient_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select recipient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {recipients.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {isEditing ? (
+              <div className="space-y-2">
+                <Label>Care Recipient *</Label>
+                <Select
+                  value={selectedRecipientIds[0] || formData.care_recipient_id}
+                  onValueChange={(value) => setSelectedRecipientIds([value])}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select recipient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recipients.map(r => (
+                      <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <RecipientCheckboxList
+                careRecipients={recipients}
+                selectedIds={selectedRecipientIds}
+                onChange={setSelectedRecipientIds}
+              />
+            )}
 
             <div className="space-y-2">
               <Label>Category</Label>

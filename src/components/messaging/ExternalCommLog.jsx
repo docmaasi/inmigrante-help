@@ -12,10 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Phone, Mail, Stethoscope, Building2, Plus, Calendar, Clock, AlertCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
+import RecipientCheckboxList from '../shared/RecipientCheckboxList';
 
 export default function ExternalCommLog() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingLog, setEditingLog] = useState(null);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
   const [formData, setFormData] = useState({
     care_recipient_id: '',
     contact_type: 'doctor',
@@ -52,8 +54,6 @@ export default function ExternalCommLog() {
     mutationFn: (data) => base44.entities.ExternalCommunication.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['externalCommunications']);
-      toast.success('Communication logged');
-      handleCloseDialog();
     }
   });
 
@@ -69,6 +69,7 @@ export default function ExternalCommLog() {
   const handleCloseDialog = () => {
     setShowDialog(false);
     setEditingLog(null);
+    setSelectedRecipientIds([]);
     setFormData({
       care_recipient_id: '',
       contact_type: 'doctor',
@@ -87,6 +88,7 @@ export default function ExternalCommLog() {
 
   const handleEdit = (log) => {
     setEditingLog(log);
+    setSelectedRecipientIds([log.care_recipient_id]);
     setFormData({
       care_recipient_id: log.care_recipient_id,
       contact_type: log.contact_type,
@@ -104,14 +106,30 @@ export default function ExternalCommLog() {
     setShowDialog(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const data = { ...formData, logged_by: user?.email };
-    
+
     if (editingLog) {
-      updateMutation.mutate({ id: editingLog.id, data });
-    } else {
-      createMutation.mutate(data);
+      const recipientId = selectedRecipientIds[0] || formData.care_recipient_id;
+      updateMutation.mutate({ id: editingLog.id, data: { ...data, care_recipient_id: recipientId } });
+      return;
+    }
+
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await createMutation.mutateAsync({ ...data, care_recipient_id: recipientId });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Communication logged' : `${count} communications logged`);
+      handleCloseDialog();
+    } catch {
+      toast.error('Failed to log communication');
     }
   };
 
@@ -263,19 +281,30 @@ export default function ExternalCommLog() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Care Recipient *</Label>
-                <Select value={formData.care_recipient_id} onValueChange={(v) => setFormData({...formData, care_recipient_id: v})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select recipient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {recipients.map(r => (
-                      <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {editingLog ? (
+                <div>
+                  <Label>Care Recipient *</Label>
+                  <Select
+                    value={selectedRecipientIds[0] || formData.care_recipient_id}
+                    onValueChange={(value) => setSelectedRecipientIds([value])}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select recipient" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {recipients.map(r => (
+                        <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <RecipientCheckboxList
+                  careRecipients={recipients}
+                  selectedIds={selectedRecipientIds}
+                  onChange={setSelectedRecipientIds}
+                />
+              )}
               <div>
                 <Label>Contact Type *</Label>
                 <Select value={formData.contact_type} onValueChange={(v) => setFormData({...formData, contact_type: v})}>
