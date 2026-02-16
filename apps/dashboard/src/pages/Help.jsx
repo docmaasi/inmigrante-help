@@ -183,10 +183,10 @@ export default function Help() {
                     Get help from our support team within 24-48 hours
                   </p>
                   <a
-                    href="mailto:familycarehelp@mail.com"
+                    href="mailto:admin@familycare.help"
                     className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium text-sm"
                   >
-                    familycarehelp@mail.com
+                    admin@familycare.help
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
@@ -312,7 +312,7 @@ export default function Help() {
               asChild
               className="bg-teal-600 hover:bg-teal-700"
             >
-              <a href="mailto:familycarehelp@mail.com">
+              <a href="mailto:admin@familycare.help">
                 <Mail className="w-4 h-4 mr-2" />
                 Contact Support
               </a>

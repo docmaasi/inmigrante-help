@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Shield, FileText, RefreshCw, Mail, CreditCard, ExternalLink, Receipt, Trash2, AlertTriangle, Loader2, Settings as SettingsIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,7 +26,8 @@ export default function Settings() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const queryClient = useQueryClient();
-  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
 
   const { data: acceptances } = useQuery({
     queryKey: ['legalAcceptances', user?.id],
@@ -87,6 +88,12 @@ export default function Settings() {
   };
 
   const handleManageSubscription = async () => {
+    // If user has no subscription, redirect to Checkout instead
+    if (!profile?.stripe_customer_id) {
+      navigate('/Checkout');
+      return;
+    }
+
     setIsLoadingPortal(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-portal-session', {
@@ -125,7 +132,7 @@ export default function Settings() {
       await signOut();
     } catch (error) {
       console.error('Deletion request failed:', error);
-      toast.error('Failed to process account deletion. Please contact support at familycarehelp@mail.com');
+      toast.error('Failed to process account deletion. Please contact support at admin@familycare.help');
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -274,11 +281,11 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <a
-                href="mailto:familycarehelp@mail.com"
+                href="mailto:admin@familycare.help"
                 className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
               >
                 <Mail className="w-4 h-4" />
-                Contact Support (familycarehelp@mail.com)
+                Contact Support (admin@familycare.help)
               </a>
             </CardContent>
           </Card>

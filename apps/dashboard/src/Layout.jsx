@@ -117,7 +117,7 @@ export default function Layout({ children, currentPageName }) {
                   </React.Fragment>
                 ))}
                 <span className="text-slate-200">|</span>
-                <a href="mailto:familycarehelp@mail.com" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+                <a href="mailto:admin@familycare.help" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
                   <Mail className="w-3.5 h-3.5" />
                   Support
                 </a>
