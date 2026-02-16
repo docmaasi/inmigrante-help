@@ -30,11 +30,9 @@ import ShiftHandoff from "./pages/ShiftHandoff";
 import Tasks from "./pages/Tasks";
 import Team from "./pages/Team";
 import Today from "./pages/Today";
-import { AdminDashboard } from "./pages/admin/admin-dashboard";
 import __Layout from "./Layout.jsx";
 
 export const PAGES = {
-  AdminDashboard,
   Appointments,
   Calendar,
   CareNotes,

@@ -23,12 +23,16 @@ export default function RecordRetentionPolicy() {
 
             <section className="space-y-3">
               <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-                90-Day Retention Period
+                Retention Periods
               </h2>
               <p className="text-slate-700 leading-relaxed">
-                All account data, including care notes, schedules, documents, activity logs, and uploaded files, 
-                will be retained for up to ninety (90) days following the cancellation date.
+                All account data, including care notes, schedules, documents, activity logs, and uploaded files,
+                will be retained based on your account type:
               </p>
+              <ul className="list-disc pl-6 text-slate-700 space-y-2">
+                <li><strong>Paid subscribers who cancel:</strong> Data is retained for sixty (60) days following the cancellation date.</li>
+                <li><strong>Free trial users who do not subscribe:</strong> Data is retained for ten (10) days after the trial expires.</li>
+              </ul>
             </section>
 
             <section className="space-y-3">
@@ -36,27 +40,27 @@ export default function RecordRetentionPolicy() {
                 Access During Retention
               </h2>
               <p className="text-slate-700 leading-relaxed">
-                During the 90-day retention period, access to the account and its records is not guaranteed. 
+                During the retention period, access to the account and its records is not guaranteed.
                 Data is preserved for recovery purposes only.
               </p>
             </section>
 
             <section className="space-y-3">
               <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-                Renewal Within 90 Days
+                Resubscribing During Retention
               </h2>
               <p className="text-slate-700 leading-relaxed">
-                If the subscription is reactivated within ninety (90) days of cancellation, all previously stored 
+                If the subscription is reactivated within the retention period, all previously stored
                 records will be restored in full, with no loss of data.
               </p>
             </section>
 
             <section className="space-y-3">
               <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-                After 90 Days
+                After the Retention Period
               </h2>
               <p className="text-slate-700 leading-relaxed">
-                After the 90-day retention period expires, records may be permanently deleted. Once deletion occurs, 
+                After the retention period expires, records may be permanently deleted. Once deletion occurs,
                 data cannot be recovered, and FamilyCare.Help makes no guarantees regarding data availability or restoration.
               </p>
             </section>

@@ -11,7 +11,7 @@ export default function Emergency() {
 
   const { data: recipients = [], isLoading } = useQuery({
     queryKey: ['careRecipients'],
-    queryFn: () => base44.entities.CareRecipients.list()
+    queryFn: () => base44.entities.CareRecipient.list()
   });
 
   const selectedRecipient = recipients.find(r => r.id === selectedRecipientId);

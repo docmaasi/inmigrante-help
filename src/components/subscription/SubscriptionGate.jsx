@@ -155,8 +155,8 @@ export default function SubscriptionGate({
     staleTime: Infinity,
   });
 
-  // Still loading user data - don't block
-  if (!user) return <>{children}</>;
+  // Still loading user data - show nothing until we know access status
+  if (!user) return null;
 
   // Exempt pages always pass through
   if (EXEMPT_PAGES.includes(currentPageName)) {

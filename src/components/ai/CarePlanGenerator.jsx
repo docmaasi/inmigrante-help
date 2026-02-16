@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -53,50 +54,53 @@ Please generate a comprehensive care plan with the following sections:
 
 Format your response to be clear, actionable, and compassionate.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            daily_schedule: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  time: { type: "string" },
-                  activity: { type: "string" },
-                  notes: { type: "string" }
-                }
-              }
-            },
-            health_monitoring: {
+      const responseSchema = {
+        type: "object",
+        properties: {
+          daily_schedule: {
+            type: "array",
+            items: {
               type: "object",
               properties: {
-                vitals_to_track: { type: "array", items: { type: "string" } },
-                warning_signs: { type: "array", items: { type: "string" } },
-                checkup_frequency: { type: "string" }
+                time: { type: "string" },
+                activity: { type: "string" },
+                notes: { type: "string" }
               }
-            },
-            activities_recommendations: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  category: { type: "string" },
-                  activity: { type: "string" },
-                  frequency: { type: "string" },
-                  benefits: { type: "string" }
-                }
+            }
+          },
+          health_monitoring: {
+            type: "object",
+            properties: {
+              vitals_to_track: { type: "array", items: { type: "string" } },
+              warning_signs: { type: "array", items: { type: "string" } },
+              checkup_frequency: { type: "string" }
+            }
+          },
+          activities_recommendations: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                category: { type: "string" },
+                activity: { type: "string" },
+                frequency: { type: "string" },
+                benefits: { type: "string" }
               }
-            },
-            special_considerations: { type: "array", items: { type: "string" } }
-          }
+            }
+          },
+          special_considerations: { type: "array", items: { type: "string" } }
         }
+      };
+
+      const { data, error } = await supabase.functions.invoke('generate-care-plan', {
+        body: { prompt, responseSchema }
       });
+
+      if (error) throw error;
 
       setGeneratedPlan({
         type: planType,
-        data: result
+        data: data
       });
     } catch (error) {
       toast.error('Failed to generate care plan');

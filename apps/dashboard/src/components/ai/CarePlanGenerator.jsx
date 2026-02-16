@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
-import { useCreateCarePlan } from '@/hooks/use-care-plans';
+import { useCreateCarePlan, useUpdateCarePlanDetails } from '@/hooks/use-care-plans';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -19,6 +19,7 @@ export function CarePlanGenerator({ recipient, medications = [], appointments = 
   const { user } = useAuth();
 
   const createCarePlanMutation = useCreateCarePlan();
+  const updateDetailsMutation = useUpdateCarePlanDetails();
 
   const generateCarePlan = async (planType) => {
     setIsGenerating(true);
@@ -112,22 +113,40 @@ Format your response to be clear, actionable, and compassionate.`;
   };
 
   const savePlan = () => {
+    const recipientLabel = `${recipient.first_name} ${recipient.last_name}`;
+    const planLabel = generatedPlan.type === 'daily' ? 'Daily' : 'Weekly';
+    const today = new Date().toLocaleDateString();
+
     createCarePlanMutation.mutate(
       {
         care_recipient_id: recipient.id,
-        plan_type: generatedPlan.type,
-        daily_schedule: JSON.stringify(generatedPlan.data.daily_schedule),
-        health_monitoring: JSON.stringify(generatedPlan.data.health_monitoring),
-        activities_recommendations: JSON.stringify(generatedPlan.data.activities_recommendations),
-        special_notes: JSON.stringify(generatedPlan.data.special_considerations),
-        generated_date: new Date().toISOString().split('T')[0]
+        title: `${planLabel} Care Plan — ${recipientLabel} (${today})`,
+        description: `AI-generated ${planLabel.toLowerCase()} care plan`,
+        status: 'active',
+        goals: generatedPlan.data.special_considerations || [],
       },
       {
-        onSuccess: () => {
-          toast.success('Care plan saved');
-          setGeneratedPlan(null);
+        onSuccess: (savedPlan) => {
+          // Save each AI section as a care_plan_details row
+          const details = [
+            { section: 'daily_schedule', content: generatedPlan.data.daily_schedule },
+            { section: 'health_monitoring', content: generatedPlan.data.health_monitoring },
+            { section: 'activities_recommendations', content: generatedPlan.data.activities_recommendations },
+            { section: 'special_considerations', content: generatedPlan.data.special_considerations },
+          ].filter((d) => d.content);
+
+          updateDetailsMutation.mutate(
+            { carePlanId: savedPlan.id, details },
+            {
+              onSuccess: () => {
+                toast.success('Care plan saved');
+                setGeneratedPlan(null);
+              },
+              onError: () => toast.error('Plan created but failed to save details'),
+            }
+          );
         },
-        onError: () => toast.error('Failed to save care plan')
+        onError: () => toast.error('Failed to save care plan'),
       }
     );
   };

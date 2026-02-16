@@ -31,6 +31,33 @@ serve(async (req) => {
     );
 
     switch (event.type) {
+      // When a user completes checkout via the Stripe Pricing Table,
+      // this event fires first. We use it to link the Stripe customer
+      // to our user profile so later subscription events can find them.
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const sessionCustomerId = session.customer as string;
+        const sessionEmail = session.customer_details?.email || session.customer_email;
+
+        if (sessionEmail && sessionCustomerId) {
+          const { data: checkoutProfile } = await supabase
+            .from('profiles')
+            .select('id, stripe_customer_id')
+            .eq('email', sessionEmail)
+            .single();
+
+          if (checkoutProfile && !checkoutProfile.stripe_customer_id) {
+            await supabase
+              .from('profiles')
+              .update({ stripe_customer_id: sessionCustomerId })
+              .eq('id', checkoutProfile.id);
+
+            console.log(`Linked Stripe customer ${sessionCustomerId} to profile ${checkoutProfile.id} via checkout`);
+          }
+        }
+        break;
+      }
+
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
