@@ -58,7 +58,7 @@ export default function Signup() {
   // Success state
   if (signupSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-slate-50">
+      <div className="min-h-screen flex items-start sm:items-center justify-center px-4 py-6 sm:py-12 bg-slate-50">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
         `}</style>
@@ -95,7 +95,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-slate-50">
+    <div className="min-h-screen flex items-start sm:items-center justify-center px-4 py-6 sm:py-12 bg-slate-50">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
       `}</style>
