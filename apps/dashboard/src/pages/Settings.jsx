@@ -172,21 +172,29 @@ export default function Settings() {
               <Button
                 onClick={handleManageSubscription}
                 disabled={isLoadingPortal}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 w-full sm:w-auto h-auto"
+                className="inline-flex items-center justify-center gap-3 px-8 py-5 text-lg font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto h-auto animate-pulse hover:animate-none"
               >
                 {isLoadingPortal ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-6 h-6 animate-spin" />
                     Opening Portal...
                   </>
                 ) : (
                   <>
-                    <SettingsIcon className="w-5 h-5" />
+                    <SettingsIcon className="w-6 h-6" />
                     Manage Your Subscription
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className="w-5 h-5" />
                   </>
                 )}
               </Button>
+
+              <button
+                onClick={handleManageSubscription}
+                disabled={isLoadingPortal}
+                className="text-sm font-semibold text-teal-600 hover:text-teal-700 hover:underline transition-colors duration-200"
+              >
+                Add Additional Care Recipients Here
+              </button>
 
               <p className="text-xs text-slate-500">
                 You'll be securely redirected to Stripe to manage your subscription, payment methods, and billing history.
