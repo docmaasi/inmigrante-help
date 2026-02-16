@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap, Mail, LogOut, LogIn } from 'lucide-react';
+import { Home, Users, Calendar, Pill, ListTodo, Heart, ClipboardCheck, AlertCircle, UserCheck, Sparkles, MessageSquare, Bell, FileText, Clock, Zap, Mail, LogOut, LogIn, ChevronDown, ChevronUp } from 'lucide-react';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
+  const [navExpanded, setNavExpanded] = React.useState(false);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -60,7 +61,7 @@ export default function Layout({ children, currentPageName }) {
     ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <style>{`
         :root {
           --primary: #3B82F6;
@@ -145,7 +146,9 @@ export default function Layout({ children, currentPageName }) {
       {/* Navigation */}
       <nav className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-1 py-2">
+          <div className={`grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-1 py-2 transition-all duration-300 ${
+            navExpanded ? '' : 'max-h-[5.5rem] overflow-hidden sm:max-h-none'
+          }`}>
             {navItems.map(item => {
               const Icon = item.icon;
               const isActive = currentPageName === item.path;
@@ -167,11 +170,21 @@ export default function Layout({ children, currentPageName }) {
               );
             })}
           </div>
+          <button
+            onClick={() => setNavExpanded(!navExpanded)}
+            className="w-full py-1.5 text-xs text-slate-500 flex items-center justify-center gap-1 sm:hidden hover:text-slate-700"
+          >
+            {navExpanded ? (
+              <><ChevronUp className="w-3 h-3" /> Show less</>
+            ) : (
+              <><ChevronDown className="w-3 h-3" /> Show all navigation</>
+            )}
+          </button>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="relative min-h-screen">
+      <main className="relative flex-1">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{ 

@@ -42,14 +42,8 @@ export default function CareRecipients() {
   }
 
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/59e1069c0_Untitleddesign17.png)'
-        }}
-      />
-      <div className="max-w-7xl mx-auto relative">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
         <div className="flex flex-col gap-4 mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Care Recipients</h1>

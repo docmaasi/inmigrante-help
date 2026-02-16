@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Calendar, MapPin, User, Clock } from 'lucide-react';
+import { Plus, Calendar, MapPin, User, Clock, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -11,6 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+import RecipientCheckboxList from '@/components/shared/RecipientCheckboxList';
+import { usePermissions } from '@/hooks/usePermissions';
+import { logDelete } from '@/lib/audit-log';
 
 const typeColors = {
   doctor: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -24,8 +28,8 @@ const typeColors = {
 
 export default function Appointments() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState([]);
   const [formData, setFormData] = useState({
-    care_recipient_id: '',
     title: '',
     appointment_type: 'doctor',
     other_type: '',
@@ -39,6 +43,7 @@ export default function Appointments() {
   });
 
   const queryClient = useQueryClient();
+  const { permissions } = usePermissions();
 
   const { data: recipients = [] } = useQuery({
     queryKey: ['recipients'],
@@ -52,11 +57,7 @@ export default function Appointments() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Appointment.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['appointments']);
-      setIsDialogOpen(false);
-      resetForm();
-    },
+    onSuccess: () => queryClient.invalidateQueries(['appointments']),
   });
 
   const toggleCompleteMutation = useMutation({
@@ -64,9 +65,14 @@ export default function Appointments() {
     onSuccess: () => queryClient.invalidateQueries(['appointments']),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Appointment.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['appointments']),
+  });
+
   const resetForm = () => {
+    setSelectedRecipientIds([]);
     setFormData({
-      care_recipient_id: '',
       title: '',
       appointment_type: 'doctor',
       other_type: '',
@@ -80,9 +86,39 @@ export default function Appointments() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    createMutation.mutate(formData);
+    if (selectedRecipientIds.length === 0) {
+      toast.error('Please select at least one care recipient');
+      return;
+    }
+    try {
+      for (const recipientId of selectedRecipientIds) {
+        await createMutation.mutateAsync({ ...formData, care_recipient_id: recipientId });
+      }
+      const count = selectedRecipientIds.length;
+      toast.success(count === 1 ? 'Appointment scheduled' : `${count} appointments scheduled`);
+      setIsDialogOpen(false);
+      resetForm();
+    } catch {
+      toast.error('Failed to schedule appointment');
+    }
+  };
+
+  const handleDelete = async (apt) => {
+    if (!confirm('Delete this appointment?')) return;
+    try {
+      await deleteMutation.mutateAsync(apt.id);
+      await logDelete({
+        careRecipientId: apt.care_recipient_id,
+        entityType: 'appointment',
+        entityId: apt.id,
+        description: `Deleted appointment: ${apt.title}`,
+      });
+      toast.success('Appointment deleted');
+    } catch {
+      toast.error('Failed to delete appointment');
+    }
   };
 
   const getRecipientName = (id) => {
@@ -90,169 +126,151 @@ export default function Appointments() {
   };
 
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/6ebff87ba_Untitleddesign17.png)'
-        }}
-      />
-      <div className="relative max-w-7xl mx-auto">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Appointments</h1>
             <p className="text-sm md:text-base text-slate-700">Schedule and track medical visits</p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="mt-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Appointment
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Schedule Appointment</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label>Care Recipient *</Label>
-                  <Select
-                    value={formData.care_recipient_id}
-                    onValueChange={(value) => setFormData({...formData, care_recipient_id: value})}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select recipient" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {recipients?.map(recipient => (
-                        <SelectItem key={recipient.id} value={recipient.id}>
-                          {recipient.full_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Appointment Title *</Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select
-                      value={formData.appointment_type}
-                      onValueChange={(value) => setFormData({...formData, appointment_type: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="doctor">Doctor Visit</SelectItem>
-                        <SelectItem value="specialist">Specialist</SelectItem>
-                        <SelectItem value="therapy">Therapy</SelectItem>
-                        <SelectItem value="dentist">Dentist</SelectItem>
-                        <SelectItem value="lab_test">Lab Test</SelectItem>
-                        <SelectItem value="hospital">Hospital</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {formData.appointment_type === 'other' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="other_type">Specify Appointment Type *</Label>
-                    <Input
-                      id="other_type"
-                      value={formData.other_type}
-                      onChange={(e) => setFormData({...formData, other_type: e.target.value})}
-                      placeholder="e.g., Physical Therapy, Vision Test, Social Worker"
-                      required
-                    />
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Date *</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => setFormData({...formData, date: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="time">Time</Label>
-                    <Input
-                      id="time"
-                      type="time"
-                      value={formData.time}
-                      onChange={(e) => setFormData({...formData, time: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="doctor">Provider Name</Label>
-                    <Input
-                      id="doctor"
-                      value={formData.provider_name}
-                      onChange={(e) => setFormData({...formData, provider_name: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="assigned">Assigned Caregiver (email)</Label>
-                  <Input
-                    id="assigned"
-                    type="email"
-                    value={formData.assigned_caregiver}
-                    onChange={(e) => setFormData({...formData, assigned_caregiver: e.target.value})}
-                    placeholder="caregiver@email.com"
+          {permissions.canEditRecords && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="mt-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Appointment
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Schedule Appointment</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                  <RecipientCheckboxList
+                    careRecipients={recipients}
+                    selectedIds={selectedRecipientIds}
+                    onChange={setSelectedRecipientIds}
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                    rows={3}
-                  />
-                </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Appointment Title *</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Type</Label>
+                      <Select
+                        value={formData.appointment_type}
+                        onValueChange={(value) => setFormData({...formData, appointment_type: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="doctor">Doctor Visit</SelectItem>
+                          <SelectItem value="specialist">Specialist</SelectItem>
+                          <SelectItem value="therapy">Therapy</SelectItem>
+                          <SelectItem value="dentist">Dentist</SelectItem>
+                          <SelectItem value="lab_test">Lab Test</SelectItem>
+                          <SelectItem value="hospital">Hospital</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                <div className="flex justify-end gap-3">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    {createMutation.isPending ? 'Scheduling...' : 'Schedule Appointment'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  {formData.appointment_type === 'other' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="other_type">Specify Appointment Type *</Label>
+                      <Input
+                        id="other_type"
+                        value={formData.other_type}
+                        onChange={(e) => setFormData({...formData, other_type: e.target.value})}
+                        placeholder="e.g., Physical Therapy, Vision Test, Social Worker"
+                        required
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Date *</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="time">Time</Label>
+                      <Input
+                        id="time"
+                        type="time"
+                        value={formData.time}
+                        onChange={(e) => setFormData({...formData, time: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="location">Location</Label>
+                      <Input
+                        id="location"
+                        value={formData.location}
+                        onChange={(e) => setFormData({...formData, location: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="doctor">Provider Name</Label>
+                      <Input
+                        id="doctor"
+                        value={formData.provider_name}
+                        onChange={(e) => setFormData({...formData, provider_name: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="assigned">Assigned Caregiver (email)</Label>
+                    <Input
+                      id="assigned"
+                      type="email"
+                      value={formData.assigned_caregiver}
+                      onChange={(e) => setFormData({...formData, assigned_caregiver: e.target.value})}
+                      placeholder="caregiver@email.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
+                      {createMutation.isPending ? 'Scheduling...' : 'Schedule Appointment'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         {isLoading ? (
@@ -279,15 +297,17 @@ export default function Appointments() {
             <Calendar className="w-12 h-12 md:w-16 md:h-16 text-purple-300 mx-auto mb-4" />
             <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No appointments scheduled</h3>
             <p className="text-sm md:text-base text-slate-500 mb-6">Schedule your first appointment</p>
-            <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Appointment
-            </Button>
+            {permissions.canEditRecords && (
+              <Button onClick={() => setIsDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Appointment
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {appointments?.map(apt => (
-              <div 
+              <div
                 key={apt.id}
                 className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-shadow"
               >
@@ -303,19 +323,28 @@ export default function Appointments() {
                       For: {getRecipientName(apt.care_recipient_id)}
                     </p>
                   </div>
-                  <button
-                    onClick={() => toggleCompleteMutation.mutate({ 
-                      id: apt.id, 
-                      status: apt.status === 'completed' ? 'scheduled' : 'completed' 
-                    })}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      apt.status === 'completed'
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    {apt.status === 'completed' ? 'Completed' : 'Mark Complete'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {permissions.canEditRecords && (
+                      <button
+                        onClick={() => toggleCompleteMutation.mutate({
+                          id: apt.id,
+                          status: apt.status === 'completed' ? 'scheduled' : 'completed'
+                        })}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                          apt.status === 'completed'
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        }`}
+                      >
+                        {apt.status === 'completed' ? 'Completed' : 'Mark Complete'}
+                      </button>
+                    )}
+                    {!permissions.canEditRecords && apt.status === 'completed' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        Completed
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2 text-sm">
@@ -353,6 +382,19 @@ export default function Appointments() {
                     </div>
                   )}
                 </div>
+
+                {permissions.canEditRecords && (
+                  <div className="flex gap-2 pt-4 border-t border-slate-100 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDelete(apt)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

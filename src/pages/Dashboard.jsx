@@ -60,13 +60,7 @@ export default function Dashboard() {
   }, [shuffledImages]);
 
   return (
-    <div className="min-h-screen relative">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/4e2e7d088_Untitleddesign13.png)'
-        }}
-      />
+    <div className="min-h-screen">
       {/* Header */}
       <header className="relative sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">

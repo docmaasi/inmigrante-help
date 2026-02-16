@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, CheckSquare, User, Calendar, Clock, AlertCircle, Edit2, Trash2, Check } from 'lucide-react';
 import { format, parseISO, isPast, isToday } from 'date-fns';
+import { toast } from 'sonner';
 import { Skeleton } from '../components/ui/skeleton';
 import TaskForm from '../components/tasks/TaskForm';
 import TaskCompletionModal from '../components/tasks/TaskCompletionModal';
+import { usePermissions } from '@/hooks/usePermissions';
+import { logDelete } from '@/lib/audit-log';
 
 export default function Tasks() {
   const [selectedTask, setSelectedTask] = useState(null);
@@ -23,6 +26,7 @@ export default function Tasks() {
   const [sortBy, setSortBy] = useState('due_date');
   const [groupBy, setGroupBy] = useState('none');
   const queryClient = useQueryClient();
+  const { permissions } = usePermissions();
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],
@@ -48,10 +52,24 @@ export default function Tasks() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Task.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['tasks']);
-    }
+    onSuccess: () => queryClient.invalidateQueries(['tasks']),
   });
+
+  const handleDeleteTask = async (task) => {
+    if (!confirm('Delete this task?')) return;
+    try {
+      await deleteMutation.mutateAsync(task.id);
+      await logDelete({
+        careRecipientId: task.care_recipient_id,
+        entityType: 'task',
+        entityId: task.id,
+        description: `Deleted task: ${task.title}`,
+      });
+      toast.success('Task deleted');
+    } catch {
+      toast.error('Failed to delete task');
+    }
+  };
 
   const getRecipientName = (id) => {
     const recipient = recipients.find(r => r.id === id);
@@ -145,30 +163,26 @@ export default function Tasks() {
   };
 
   return (
-    <div className="min-h-screen relative p-4 md:p-8">
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ 
-          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/e44b9ad82_Untitleddesign15.png)'
-        }}
-      />
-      <div className="max-w-7xl mx-auto relative">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col gap-4 mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Tasks</h1>
           <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregiver responsibilities</p>
         </div>
-        <Button
-          onClick={() => {
-            setSelectedTask(null);
-            setShowForm(true);
-          }}
-          className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Task
-        </Button>
+        {permissions.canEditRecords && (
+          <Button
+            onClick={() => {
+              setSelectedTask(null);
+              setShowForm(true);
+            }}
+            className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Task
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -331,7 +345,7 @@ export default function Tasks() {
             <p className="text-sm md:text-base text-slate-500 mb-6">
               {filterStatus === 'all' ? 'Add your first task to get started' : `No ${filterStatus.replace(/_/g, ' ')} tasks`}
             </p>
-            {filterStatus === 'all' && (
+            {filterStatus === 'all' && permissions.canEditRecords && (
               <Button onClick={() => setShowForm(true)} className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Task
@@ -426,43 +440,41 @@ export default function Tasks() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex flex-wrap gap-2">
-                    {task.status !== 'completed' && task.status !== 'cancelled' && (
+                  {permissions.canEditRecords && (
+                    <div className="flex flex-wrap gap-2">
+                      {task.status !== 'completed' && task.status !== 'cancelled' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setCompletingTask(task)}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Complete
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setCompletingTask(task)}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        onClick={() => {
+                          setSelectedTask(task);
+                          setShowForm(true);
+                        }}
+                        className="text-slate-700"
                       >
-                        <Check className="w-3 h-3 mr-1" />
-                        Complete
+                        <Edit2 className="w-3 h-3 mr-1" />
+                        Edit
                       </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedTask(task);
-                        setShowForm(true);
-                      }}
-                      className="text-slate-700"
-                    >
-                      <Edit2 className="w-3 h-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (confirm('Delete this task?')) {
-                          deleteMutation.mutate(task.id);
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteTask(task)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
                 );
