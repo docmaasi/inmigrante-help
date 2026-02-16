@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCareRecipients } from '@/hooks';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
@@ -15,8 +15,17 @@ export default function CareRecipients() {
   const [showLimitError, setShowLimitError] = useState(false);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { data: recipients = [], isLoading } = useCareRecipients();
+
+  // Refresh profile after returning from Stripe billing portal
+  // The webhook may still be processing, so retry after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      refreshProfile();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [refreshProfile]);
 
   const handleAddRecipient = () => {
     const maxAllowed = profile?.max_care_recipients || 1;

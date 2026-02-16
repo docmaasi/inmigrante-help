@@ -13,8 +13,11 @@ import {
   Bell,
   Star,
   Quote,
+  Download,
+  Smartphone,
 } from "lucide-react";
 import MarketingLayout from "../components/MarketingLayout";
+import { usePwaInstall } from "../lib/use-pwa-install";
 
 const DASHBOARD_URL =
   import.meta.env.VITE_DASHBOARD_URL || "http://localhost:3001";
@@ -152,6 +155,7 @@ export default function Landing() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [shuffledImages, setShuffledImages] = useState([]);
+  const { canInstall, install, isInstalled } = usePwaInstall();
 
   useEffect(() => {
     const shuffled = [...IMAGES].sort(() => Math.random() - 0.5);
@@ -242,6 +246,19 @@ export default function Landing() {
                   Learn More
                 </Link>
               </motion.div>
+
+              {canInstall && !isInstalled && (
+                <motion.div variants={itemVariants}>
+                  <button
+                    onClick={install}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#4F46E5] hover:text-[#4338CA] transition-colors"
+                    style={{ fontFamily: "var(--font-body)" }}
+                  >
+                    <Download className="w-4 h-4" />
+                    Install App on Your Device
+                  </button>
+                </motion.div>
+              )}
 
               <motion.div
                 variants={itemVariants}
@@ -845,6 +862,25 @@ export default function Landing() {
                 <Mail className="w-5 h-5" /> Contact Us
               </a>
             </div>
+
+            {canInstall && !isInstalled && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="mt-6"
+              >
+                <button
+                  onClick={install}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/80 backdrop-blur text-[#4F46E5] font-medium text-sm hover:bg-white transition-colors shadow-sm"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  <Smartphone className="w-4 h-4" />
+                  Add to Home Screen
+                </button>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </section>
