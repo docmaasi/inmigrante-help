@@ -102,7 +102,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
                 <>
                   <a
                     href={`${DASHBOARD_URL}/login`}
-                    className="px-5 py-2.5 rounded-full font-medium transition-all duration-200 hover:bg-indigo-50"
+                    className="hidden sm:inline-block px-5 py-2.5 rounded-full font-medium transition-all duration-200 hover:bg-indigo-50"
                     style={{
                       color: "#4F46E5",
                       fontFamily: "var(--font-body), sans-serif",
@@ -112,7 +112,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
                   </a>
                   <a
                     href={`${DASHBOARD_URL}/signup`}
-                    className="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                    className="btn-primary flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium text-sm sm:text-base text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
                     style={{
                       backgroundColor: "#4F46E5",
                       fontFamily: "var(--font-body), sans-serif",
