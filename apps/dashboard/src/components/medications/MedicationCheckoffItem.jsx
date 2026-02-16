@@ -38,6 +38,7 @@ export function MedicationCheckoffItem({ medication, recipientName }) {
       onSuccess: () => {
         toast.success('Medication logged');
         setNotes('');
+        setShowLogs(true);
       },
       onError: (error) => {
         toast.error(error.message || 'Failed to log medication');

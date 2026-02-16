@@ -6,8 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Bell } from 'lucide-react';
 import { toast } from 'sonner';
+
+const REMINDER_OPTIONS = [
+  { value: '0', label: 'No reminder' },
+  { value: '30', label: '30 minutes before' },
+  { value: '60', label: '1 hour before' },
+  { value: '120', label: '2 hours before' },
+  { value: '360', label: '6 hours before' },
+  { value: '720', label: '12 hours before' },
+  { value: '1440', label: '24 hours before' },
+  { value: '2880', label: '48 hours before' },
+  { value: '10080', label: '1 week before' },
+];
 
 export function AppointmentForm({ appointment, recipients, onClose }) {
   const [formData, setFormData] = useState(appointment || {
@@ -21,6 +33,7 @@ export function AppointmentForm({ appointment, recipients, onClose }) {
     provider_name: '',
     notes: '',
     assigned_caregiver: '',
+    reminder_minutes: '1440',
     status: 'scheduled'
   });
 
@@ -46,6 +59,7 @@ export function AppointmentForm({ appointment, recipients, onClose }) {
       location: formData.location || null,
       provider_name: formData.provider_name || null,
       notes: formData.notes || null,
+      reminder_minutes: parseInt(formData.reminder_minutes, 10) || 0,
       status: formData.status
     };
 
@@ -161,6 +175,30 @@ export function AppointmentForm({ appointment, recipients, onClose }) {
                 onChange={(e) => setFormData({ ...formData, time: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="reminder_minutes">
+              <span className="flex items-center gap-1">
+                <Bell className="w-4 h-4" />
+                Reminder
+              </span>
+            </Label>
+            <Select
+              value={String(formData.reminder_minutes)}
+              onValueChange={(value) => setFormData({ ...formData, reminder_minutes: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select reminder time" />
+              </SelectTrigger>
+              <SelectContent>
+                {REMINDER_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

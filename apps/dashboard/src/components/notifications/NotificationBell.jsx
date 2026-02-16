@@ -21,11 +21,25 @@ export default function NotificationBell() {
   const unreadNotifications = notifications.filter((n) => !n.is_read);
 
   const handleMarkAsRead = (notificationId) => {
-    markReadMutation.mutate(notificationId);
+    markReadMutation.mutate(notificationId, {
+      onSuccess: () => {
+        const remaining = unreadNotifications.filter((n) => n.id !== notificationId);
+        if (remaining.length === 0) {
+          setIsOpen(false);
+        }
+      },
+    });
   };
 
   const handleDismiss = (notificationId) => {
-    deleteMutation.mutate(notificationId);
+    deleteMutation.mutate(notificationId, {
+      onSuccess: () => {
+        const remaining = unreadNotifications.filter((n) => n.id !== notificationId);
+        if (remaining.length === 0) {
+          setIsOpen(false);
+        }
+      },
+    });
   };
 
   const getPriorityColor = (priority) => {
