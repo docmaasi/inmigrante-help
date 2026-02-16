@@ -36,8 +36,7 @@ export default function NotificationGenerator() {
           const exists = existingNotifications.some(
             (n) =>
               n.type === 'appointment' &&
-              n.related_entity_id === apt.id &&
-              !n.is_read
+              n.related_entity_id === apt.id
           );
           if (!exists) {
             notificationsToCreate.push({
@@ -63,8 +62,7 @@ export default function NotificationGenerator() {
             const exists = existingNotifications.some(
               (n) =>
                 n.type === 'task' &&
-                n.related_entity_id === task.id &&
-                !n.is_read
+                n.related_entity_id === task.id
             );
             if (!exists) {
               notificationsToCreate.push({
@@ -89,8 +87,7 @@ export default function NotificationGenerator() {
           const exists = existingNotifications.some(
             (n) =>
               n.type === 'medication_refill' &&
-              n.related_entity_id === med.id &&
-              !n.is_read
+              n.related_entity_id === med.id
           );
           if (!exists) {
             notificationsToCreate.push({

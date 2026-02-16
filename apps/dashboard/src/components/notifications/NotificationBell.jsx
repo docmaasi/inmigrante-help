@@ -18,6 +18,8 @@ export default function NotificationBell() {
   const markReadMutation = useMarkNotificationRead();
   const deleteMutation = useDeleteNotification();
 
+  const unreadNotifications = notifications.filter((n) => !n.is_read);
+
   const handleMarkAsRead = (notificationId) => {
     markReadMutation.mutate(notificationId);
   };
@@ -73,14 +75,14 @@ export default function NotificationBell() {
             <p className="text-xs text-slate-500">{unreadCount} unread</p>
           </div>
 
-          {notifications.length === 0 ? (
+          {unreadNotifications.length === 0 ? (
             <div className="p-8 text-center text-slate-500">
               <Bell className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-              <p>No notifications yet</p>
+              <p>No new notifications</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {notifications.map((notif) => (
+              {unreadNotifications.map((notif) => (
                 <div
                   key={notif.id}
                   className={`p-4 ${getPriorityColor(notif.priority)} hover:bg-opacity-75 transition-colors`}
