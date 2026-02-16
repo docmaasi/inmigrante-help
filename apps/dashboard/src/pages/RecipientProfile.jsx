@@ -98,6 +98,12 @@ export default function RecipientProfile() {
                 Born: {format(parseISO(recipient.date_of_birth), 'MMMM d, yyyy')}
               </p>
             )}
+            {recipient.email && (
+              <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                <Mail className="w-3.5 h-3.5" />
+                {recipient.email}
+              </p>
+            )}
           </div>
         </div>
         <Button onClick={() => setShowEditForm(true)} className="bg-teal-600 hover:bg-teal-700">

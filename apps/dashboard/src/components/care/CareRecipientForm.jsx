@@ -30,6 +30,7 @@ export function CareRecipientForm({ recipient, onClose }) {
       first_name: '',
       last_name: '',
       date_of_birth: '',
+      email: '',
       photo_url: '',
       address: '',
       city: '',
@@ -270,6 +271,16 @@ export function CareRecipientForm({ recipient, onClose }) {
                 type="date"
                 value={formData.date_of_birth}
                 onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="care.recipient@example.com"
               />
             </div>
           </div>
