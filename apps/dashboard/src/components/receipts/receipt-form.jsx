@@ -8,36 +8,21 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { FileUpload } from '@/components/shared/FileUpload';
-import RecipientCheckboxList from '@/components/scheduling/RecipientCheckboxList';
 import { useCreateExpense, useUpdateExpense } from '@/hooks';
 import { usePermissions } from '@/hooks';
+import { useAuth } from '@/lib/auth-context';
 import { logAdminAction } from '@/services/admin-activity-logger';
-
-const CATEGORIES = [
-  { value: 'medical', label: 'Medical' },
-  { value: 'pharmacy', label: 'Pharmacy' },
-  { value: 'equipment', label: 'Equipment' },
-  { value: 'transportation', label: 'Transportation' },
-  { value: 'other', label: 'Other' },
-];
-
-const STATUSES = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'reimbursed', label: 'Reimbursed' },
-];
+import {
+  RecipientSection,
+  CategoryAndAmount,
+  DateAndVendor,
+  PaymentMethodSelect,
+  StatusSelect,
+  PhotoAndNotes,
+} from './receipt-form-fields';
 
 export function ReceiptForm({
   open,
@@ -47,15 +32,21 @@ export function ReceiptForm({
 }) {
   const isEditing = !!expense;
   const { isAdmin } = usePermissions();
+  const { profile } = useAuth();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
 
   const [selectedRecipientIds, setSelectedRecipientIds] = useState(
-    expense?.care_recipient_id ? [expense.care_recipient_id] : []
+    expense?.care_recipient_ids?.length
+      ? expense.care_recipient_ids
+      : expense?.care_recipient_id
+        ? [expense.care_recipient_id]
+        : []
   );
   const [formData, setFormData] = useState({
     title: expense?.title ?? '',
     category: expense?.category ?? 'other',
+    custom_category: expense?.custom_category ?? '',
     amount: expense?.amount?.toString() ?? '',
     date: expense?.date
       ? format(new Date(expense.date), 'yyyy-MM-dd')
@@ -63,7 +54,8 @@ export function ReceiptForm({
     vendor: expense?.vendor ?? '',
     photo_url: expense?.photo_url ?? '',
     notes: expense?.notes ?? '',
-    status: expense?.status ?? 'pending',
+    status: expense?.status ?? 'paid',
+    payment_method: expense?.payment_method ?? '',
   });
 
   const isPending = createExpense.isPending || updateExpense.isPending;
@@ -74,7 +66,6 @@ export function ReceiptForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!isEditing && selectedRecipientIds.length === 0) {
       toast.error('Please select at least one care recipient');
       return;
@@ -87,19 +78,26 @@ export function ReceiptForm({
     const baseData = {
       title: formData.title,
       category: formData.category,
+      custom_category:
+        formData.category === 'other'
+          ? formData.custom_category || null
+          : null,
       amount: parseFloat(formData.amount) || 0,
       date: formData.date,
       vendor: formData.vendor || null,
       photo_url: formData.photo_url || null,
       notes: formData.notes || null,
+      payment_method: formData.payment_method || null,
     };
 
     try {
       if (isEditing) {
-        const updateData = { ...baseData, id: expense.id };
-        if (isAdmin) {
-          updateData.status = formData.status;
-        }
+        const updateData = {
+          ...baseData,
+          id: expense.id,
+          care_recipient_ids: selectedRecipientIds,
+        };
+        if (isAdmin) updateData.status = formData.status;
         await updateExpense.mutateAsync(updateData);
         await logAdminAction({
           action: 'expense_updated',
@@ -109,12 +107,10 @@ export function ReceiptForm({
         });
         toast.success('Receipt updated');
       } else {
-        for (const recipientId of selectedRecipientIds) {
-          await createExpense.mutateAsync({
-            ...baseData,
-            care_recipient_id: recipientId,
-          });
-        }
+        await createExpense.mutateAsync({
+          ...baseData,
+          care_recipient_ids: selectedRecipientIds,
+        });
         await logAdminAction({
           action: 'expense_created',
           targetType: 'expense',
@@ -123,17 +119,15 @@ export function ReceiptForm({
             recipientCount: selectedRecipientIds.length,
           },
         });
-        toast.success(
-          selectedRecipientIds.length > 1
-            ? `${selectedRecipientIds.length} receipts added`
-            : 'Receipt added'
-        );
+        toast.success('Receipt added');
       }
       onOpenChange(false);
     } catch (error) {
       toast.error(error.message || 'Failed to save receipt');
     }
   };
+
+  const submitterName = profile?.full_name || profile?.email || 'You';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,27 +138,18 @@ export function ReceiptForm({
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isEditing ? (
-            <div className="space-y-2">
-              <Label>Care Recipient</Label>
-              <Input
-                value={
-                  careRecipients.find(
-                    (r) => r.id === expense.care_recipient_id
-                  )
-                    ? `${careRecipients.find((r) => r.id === expense.care_recipient_id).first_name} ${careRecipients.find((r) => r.id === expense.care_recipient_id).last_name}`
-                    : 'Unknown'
-                }
-                disabled
-              />
-            </div>
-          ) : (
-            <RecipientCheckboxList
-              careRecipients={careRecipients}
-              selectedIds={selectedRecipientIds}
-              onChange={setSelectedRecipientIds}
-            />
-          )}
+          <div className="space-y-2">
+            <Label>Submitted By</Label>
+            <Input value={submitterName} disabled />
+          </div>
+
+          <RecipientSection
+            isEditing={isEditing}
+            expense={expense}
+            careRecipients={careRecipients}
+            selectedIds={selectedRecipientIds}
+            onChangeIds={setSelectedRecipientIds}
+          />
 
           <div className="space-y-2">
             <Label>Title / Description *</Label>
@@ -175,95 +160,30 @@ export function ReceiptForm({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(v) => updateField('category', v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
-                      {c.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => updateField('amount', e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Date *</Label>
-              <Input
-                type="date"
-                value={formData.date}
-                onChange={(e) => updateField('date', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Vendor</Label>
-              <Input
-                value={formData.vendor}
-                onChange={(e) => updateField('vendor', e.target.value)}
-                placeholder="Store or provider"
-              />
-            </div>
-          </div>
+          <CategoryAndAmount
+            formData={formData}
+            updateField={updateField}
+          />
+          <DateAndVendor
+            formData={formData}
+            updateField={updateField}
+          />
+          <PaymentMethodSelect
+            value={formData.payment_method}
+            onChange={(v) => updateField('payment_method', v)}
+          />
 
           {isEditing && isAdmin && (
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(v) => updateField('status', v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <StatusSelect
+              value={formData.status}
+              onChange={(v) => updateField('status', v)}
+            />
           )}
 
-          <div className="space-y-2">
-            <Label>Receipt Photo / PDF</Label>
-            <FileUpload
-              value={formData.photo_url}
-              onChange={(url) => updateField('photo_url', url)}
-              label="Upload Receipt"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Notes</Label>
-            <Textarea
-              value={formData.notes}
-              onChange={(e) => updateField('notes', e.target.value)}
-              placeholder="Additional notes..."
-              rows={2}
-            />
-          </div>
+          <PhotoAndNotes
+            formData={formData}
+            updateField={updateField}
+          />
 
           <div className="flex gap-3 pt-2">
             <Button

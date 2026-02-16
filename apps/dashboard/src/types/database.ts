@@ -1381,6 +1381,7 @@ export interface Database {
           id: string;
           user_id: string;
           care_recipient_id: string | null;
+          care_recipient_ids: string[] | null;
           title: string;
           category: string;
           amount: number;
@@ -1391,6 +1392,8 @@ export interface Database {
           status: string;
           submitted_by_id: string | null;
           submitted_by_name: string | null;
+          payment_method: string | null;
+          custom_category: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -1398,6 +1401,7 @@ export interface Database {
           id?: string;
           user_id: string;
           care_recipient_id?: string | null;
+          care_recipient_ids?: string[] | null;
           title: string;
           category?: string;
           amount: number;
@@ -1408,6 +1412,8 @@ export interface Database {
           status?: string;
           submitted_by_id?: string | null;
           submitted_by_name?: string | null;
+          payment_method?: string | null;
+          custom_category?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1415,6 +1421,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           care_recipient_id?: string | null;
+          care_recipient_ids?: string[] | null;
           title?: string;
           category?: string;
           amount?: number;
@@ -1425,6 +1432,8 @@ export interface Database {
           status?: string;
           submitted_by_id?: string | null;
           submitted_by_name?: string | null;
+          payment_method?: string | null;
+          custom_category?: string | null;
           created_at?: string;
           updated_at?: string;
         };

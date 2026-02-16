@@ -132,6 +132,9 @@ export {
   useDeleteExpense,
 } from './use-expenses';
 
+// Signed URLs (Supabase Storage)
+export { useSignedUrl } from './use-signed-url';
+
 // Permissions
 export { usePermissions } from './use-permissions';
 export type { UsePermissionsReturn } from './use-permissions';

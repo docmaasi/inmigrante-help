@@ -96,7 +96,7 @@ const NAV_GROUPS = [
     label: 'Documents & Records',
     items: [
       { name: 'Documents', icon: FolderOpen, path: 'Documents' },
-      { name: 'Receipts', icon: Receipt, path: 'Receipts' },
+      { name: 'Receipts', icon: Receipt, path: 'Receipts', permission: 'canViewExpenses' },
       { name: 'Reports', icon: BarChart3, path: 'Reports' }
     ]
   },
@@ -119,7 +119,7 @@ export function AppSidebar() {
   const location = useLocation();
   const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
-  const { isAdmin, isSuperAdmin } = usePermissions();
+  const { isAdmin, isSuperAdmin, permissions } = usePermissions();
   const { canInstall, install, isInstalled } = usePwaInstall();
 
   // Close the sidebar on mobile when any menu item is tapped
@@ -177,7 +177,7 @@ export function AppSidebar() {
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {group.items.map((item) => {
+                    {group.items.filter((item) => !item.permission || permissions[item.permission]).map((item) => {
                       const Icon = item.icon;
                       const active = isActive(item.path);
                       return (

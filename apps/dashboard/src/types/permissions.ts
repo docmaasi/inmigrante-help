@@ -46,6 +46,8 @@ export interface Permissions {
   canManageCarePlans: boolean;
   /** Caregiver+: create and edit records (medications, notes, etc.) */
   canEditRecords: boolean;
+  /** Caregiver+: view receipts and expenses */
+  canViewExpenses: boolean;
   /** All authenticated users: view records */
   canViewRecords: boolean;
 }

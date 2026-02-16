@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Upload, X, Loader2, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useSignedUrl } from '@/hooks';
 import { toast } from 'sonner';
 
-function isPdfUrl(url) {
-  return typeof url === 'string' && url.toLowerCase().endsWith('.pdf');
+function isPdf(val) {
+  return typeof val === 'string' && val.toLowerCase().endsWith('.pdf');
 }
 
 export function FileUpload({
@@ -36,11 +37,9 @@ export function FileUpload({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(fileName);
-
-      onChange(publicUrl);
+      // Store the file path (not the full URL) so we can generate
+      // signed URLs later for private bucket access
+      onChange(fileName);
       toast.success('File uploaded successfully');
     } catch (error) {
       toast.error('Failed to upload file');
@@ -54,13 +53,16 @@ export function FileUpload({
     onChange('');
   };
 
+  // Generate signed URL for private bucket files
+  const displayUrl = useSignedUrl(value, bucket);
+
   return (
     <div className="space-y-2">
       {value ? (
         <div className="relative inline-block">
-          {isPdfUrl(value) ? (
+          {isPdf(value) ? (
             <a
-              href={value}
+              href={displayUrl || '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 p-4 border-2 border-slate-200 rounded-lg hover:bg-slate-50"
@@ -70,7 +72,7 @@ export function FileUpload({
             </a>
           ) : (
             <img
-              src={value}
+              src={displayUrl || ''}
               alt="Uploaded"
               className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
             />

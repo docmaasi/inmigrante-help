@@ -27,6 +27,7 @@ function computePermissions(role: UserRole): Permissions {
 
     // Caregiver and above
     canEditRecords: isRoleAllowed(role, ['caregiver', 'admin', 'super_admin']),
+    canViewExpenses: isRoleAllowed(role, ['caregiver', 'admin', 'super_admin']),
 
     // All authenticated users
     canViewRecords: true,

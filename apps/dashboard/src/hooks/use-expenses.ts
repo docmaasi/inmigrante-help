@@ -20,11 +20,15 @@ export function useExpenses(filters?: ExpenseFilters) {
     queryFn: async () => {
       let query = supabase
         .from('expenses')
-        .select('*, care_recipients(first_name, last_name)')
+        .select('*')
         .order('date', { ascending: false });
 
       if (filters?.careRecipientId) {
-        query = query.eq('care_recipient_id', filters.careRecipientId);
+        // Use array contains operator for multi-recipient column
+        query = query.contains(
+          'care_recipient_ids',
+          [filters.careRecipientId],
+        );
       }
       if (filters?.status) {
         query = query.eq('status', filters.status);
@@ -50,7 +54,10 @@ export function useCreateExpense() {
 
   return useMutation({
     mutationFn: async (
-      data: Omit<InsertTables<'expenses'>, 'user_id' | 'submitted_by_id' | 'submitted_by_name'>
+      data: Omit<
+        InsertTables<'expenses'>,
+        'user_id' | 'submitted_by_id' | 'submitted_by_name'
+      >,
     ) => {
       if (!user) throw new Error('Not authenticated');
 
@@ -61,7 +68,8 @@ export function useCreateExpense() {
           ...data,
           user_id: user.id,
           submitted_by_id: user.id,
-          submitted_by_name: profile?.full_name ?? user.email ?? 'Unknown',
+          submitted_by_name:
+            profile?.full_name ?? user.email ?? 'Unknown',
         })
         .select()
         .single();
@@ -105,7 +113,10 @@ export function useDeleteExpense() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('expenses').delete().eq('id', id);
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {

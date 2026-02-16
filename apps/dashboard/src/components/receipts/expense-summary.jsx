@@ -13,14 +13,14 @@ const CATEGORY_LABELS = {
 function SummaryCard({ icon: Icon, iconBg, label, value }) {
   return (
     <Card className="shadow-sm border border-slate-200 bg-white">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
-          <div className={`p-3 rounded-full ${iconBg}`}>
-            <Icon className="w-5 h-5" />
+      <CardContent className="p-3 md:p-4">
+        <div className="flex items-center gap-2">
+          <div className={`p-2 rounded-full flex-shrink-0 ${iconBg}`}>
+            <Icon className="w-4 h-4" />
           </div>
-          <div>
-            <p className="text-sm text-slate-500">{label}</p>
-            <p className="text-xl font-bold text-slate-900">{value}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-slate-500 whitespace-nowrap">{label}</p>
+            <p className="text-sm lg:text-xl font-bold text-slate-900 whitespace-nowrap">{value}</p>
           </div>
         </div>
       </CardContent>
@@ -40,9 +40,9 @@ export function ExpenseSummary({ expenses }) {
       byCategory[cat].total += e.amount || 0;
     }
 
-    const statusCounts = { pending: 0, approved: 0, reimbursed: 0 };
+    const statusCounts = { paid: 0, complete: 0 };
     for (const e of expenses) {
-      const s = e.status || 'pending';
+      const s = e.status || 'paid';
       if (s in statusCounts) statusCounts[s] += 1;
     }
 
@@ -71,14 +71,14 @@ export function ExpenseSummary({ expenses }) {
         <SummaryCard
           icon={Clock}
           iconBg="bg-yellow-50 text-yellow-600"
-          label="Pending"
-          value={stats.statusCounts.pending}
+          label="Paid"
+          value={stats.statusCounts.paid}
         />
         <SummaryCard
           icon={CheckCircle}
           iconBg="bg-blue-50 text-blue-600"
-          label="Approved"
-          value={stats.statusCounts.approved}
+          label="Complete"
+          value={stats.statusCounts.complete}
         />
       </div>
 
