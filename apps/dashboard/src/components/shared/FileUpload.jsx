@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
-export function FileUpload({ value, onChange, accept = "image/*", label = "Upload Photo", bucket = "documents" }) {
+function isPdfUrl(url) {
+  return typeof url === 'string' && url.toLowerCase().endsWith('.pdf');
+}
+
+export function FileUpload({
+  value,
+  onChange,
+  accept = 'image/*,.pdf',
+  label = 'Upload File',
+  bucket = 'documents',
+}) {
   const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
+  const inputId = useId();
+  const inputRef = useRef(null);
 
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
@@ -29,9 +41,9 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
         .getPublicUrl(fileName);
 
       onChange(publicUrl);
-      toast.success('Photo uploaded successfully');
+      toast.success('File uploaded successfully');
     } catch (error) {
-      toast.error('Failed to upload photo');
+      toast.error('Failed to upload file');
       console.error(error);
     } finally {
       setUploading(false);
@@ -46,11 +58,23 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
     <div className="space-y-2">
       {value ? (
         <div className="relative inline-block">
-          <img
-            src={value}
-            alt="Uploaded"
-            className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
-          />
+          {isPdfUrl(value) ? (
+            <a
+              href={value}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 p-4 border-2 border-slate-200 rounded-lg hover:bg-slate-50"
+            >
+              <FileText className="w-8 h-8 text-red-500" />
+              <span className="text-sm text-teal-600 underline">View PDF</span>
+            </a>
+          ) : (
+            <img
+              src={value}
+              alt="Uploaded"
+              className="w-32 h-32 object-cover rounded-lg border-2 border-slate-200"
+            />
+          )}
           <button
             type="button"
             onClick={handleRemove}
@@ -62,34 +86,33 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
       ) : (
         <div className="flex items-center gap-2">
           <input
+            ref={inputRef}
             type="file"
             accept={accept}
             onChange={handleFileSelect}
             className="hidden"
-            id="file-upload"
+            id={inputId}
             disabled={uploading}
           />
-          <label htmlFor="file-upload">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={uploading}
-              onClick={() => document.getElementById('file-upload').click()}
-              className="cursor-pointer"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mr-2" />
-                  {label}
-                </>
-              )}
-            </Button>
-          </label>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            className="cursor-pointer"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                {label}
+              </>
+            )}
+          </Button>
         </div>
       )}
     </div>

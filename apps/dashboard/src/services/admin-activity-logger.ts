@@ -6,7 +6,8 @@ export type AdminActionTargetType =
   | 'setting'
   | 'team'
   | 'care_recipient'
-  | 'feature_flag';
+  | 'feature_flag'
+  | 'expense';
 
 export type AdminActionType =
   | 'user_role_changed'
@@ -23,7 +24,11 @@ export type AdminActionType =
   | 'team_member_removed'
   | 'care_recipient_created'
   | 'care_recipient_updated'
-  | 'care_recipient_deleted';
+  | 'care_recipient_deleted'
+  | 'expense_created'
+  | 'expense_updated'
+  | 'expense_deleted'
+  | 'expense_status_changed';
 
 interface LogAdminActionParams {
   action: AdminActionType;

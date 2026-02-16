@@ -1376,6 +1376,59 @@ export interface Database {
           updated_at?: string;
         };
       };
+      expenses: {
+        Row: {
+          id: string;
+          user_id: string;
+          care_recipient_id: string | null;
+          title: string;
+          category: string;
+          amount: number;
+          date: string;
+          vendor: string | null;
+          photo_url: string | null;
+          notes: string | null;
+          status: string;
+          submitted_by_id: string | null;
+          submitted_by_name: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          care_recipient_id?: string | null;
+          title: string;
+          category?: string;
+          amount: number;
+          date: string;
+          vendor?: string | null;
+          photo_url?: string | null;
+          notes?: string | null;
+          status?: string;
+          submitted_by_id?: string | null;
+          submitted_by_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          care_recipient_id?: string | null;
+          title?: string;
+          category?: string;
+          amount?: number;
+          date?: string;
+          vendor?: string | null;
+          photo_url?: string | null;
+          notes?: string | null;
+          status?: string;
+          submitted_by_id?: string | null;
+          submitted_by_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -1432,3 +1485,4 @@ export type ActionLog = Tables<'action_logs'>;
 export type AdminActivityLog = Tables<'admin_activity_logs'>;
 export type SystemSetting = Tables<'system_settings'>;
 export type FeatureFlag = Tables<'feature_flags'>;
+export type Expense = Tables<'expenses'>;

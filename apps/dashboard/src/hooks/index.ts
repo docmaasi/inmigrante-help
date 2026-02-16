@@ -124,6 +124,14 @@ export {
   useRevokeClientAccess,
 } from './use-client-access';
 
+// Expenses
+export {
+  useExpenses,
+  useCreateExpense,
+  useUpdateExpense,
+  useDeleteExpense,
+} from './use-expenses';
+
 // Permissions
 export { usePermissions } from './use-permissions';
 export type { UsePermissionsReturn } from './use-permissions';

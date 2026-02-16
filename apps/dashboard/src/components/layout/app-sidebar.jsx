@@ -32,7 +32,8 @@ import {
   ShieldCheck,
   History,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  Download
 } from 'lucide-react';
 import {
   Sidebar,
@@ -53,6 +54,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from '@/components/ui/collapsible';
+import { usePwaInstall } from '@/lib/use-pwa-install';
 
 const NAV_GROUPS = [
   {
@@ -118,6 +120,7 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const { isAdmin, isSuperAdmin } = usePermissions();
+  const { canInstall, install, isInstalled } = usePwaInstall();
 
   // Close the sidebar on mobile when any menu item is tapped
   const closeMobileSidebar = () => {
@@ -332,6 +335,18 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-slate-100 p-2">
         <SidebarMenu>
+          {canInstall && !isInstalled && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip="Install App"
+                onClick={install}
+                className="text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+              >
+                <Download className="w-5 h-5" />
+                <span>Install App</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           {BOTTOM_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
