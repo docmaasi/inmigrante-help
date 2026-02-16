@@ -89,7 +89,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: `You are a professional care planning assistant. Always respond with valid JSON matching this schema: ${JSON.stringify(responseSchema)}. Be thorough, compassionate, and practical in your recommendations. Include specific times, dosages, and actionable steps.`,
+              content: `You are a professional care planning assistant. Always respond with valid JSON matching this schema: ${JSON.stringify(responseSchema)}. Generate exactly 3 plan variations: Conservative (minimal, safety-focused), Balanced (moderate, well-rounded), and Comprehensive (thorough, maximal engagement). Each plan must include a "label" field (Conservative/Balanced/Comprehensive) and a "summary" field (2-3 sentence overview). Be thorough, compassionate, and practical. Include specific times, dosages, and actionable steps.`,
             },
             {
               role: 'user',
@@ -97,7 +97,7 @@ serve(async (req) => {
             },
           ],
           temperature: 0.7,
-          max_tokens: 4096,
+          max_tokens: 8192,
         }),
       }
     );
