@@ -115,9 +115,16 @@ const BOTTOM_ITEMS = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
   const { isAdmin, isSuperAdmin } = usePermissions();
+
+  // Close the sidebar on mobile when any menu item is tapped
+  const closeMobileSidebar = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   const isActive = (path) => {
     const currentPath = location.pathname.toLowerCase();
@@ -137,7 +144,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-slate-200">
       <SidebarHeader className="border-b border-slate-100 p-4">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" onClick={closeMobileSidebar} className="flex items-center gap-3">
           <img
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
             alt="FamilyCare.Help Logo"
@@ -179,6 +186,7 @@ export function AppSidebar() {
                           >
                             <Link
                               to={getNavPath(item.path)}
+                              onClick={closeMobileSidebar}
                               className={active ? 'bg-teal-50 text-teal-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                             >
                               <Icon className={`w-5 h-5 ${active ? 'text-teal-600' : ''}`} />
@@ -219,6 +227,7 @@ export function AppSidebar() {
                         >
                           <Link
                             to="/admin"
+                            onClick={closeMobileSidebar}
                             className={location.pathname === '/admin'
                               ? 'bg-purple-50 text-purple-700 font-medium'
                               : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700'}
@@ -239,6 +248,7 @@ export function AppSidebar() {
                           >
                             <Link
                               to="/admin/users"
+                              onClick={closeMobileSidebar}
                               className={location.pathname === '/admin/users'
                                 ? 'bg-amber-50 text-amber-700 font-medium'
                                 : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'}
@@ -260,6 +270,7 @@ export function AppSidebar() {
                           >
                             <Link
                               to="/admin/settings"
+                              onClick={closeMobileSidebar}
                               className={location.pathname === '/admin/settings'
                                 ? 'bg-amber-50 text-amber-700 font-medium'
                                 : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'}
@@ -280,6 +291,7 @@ export function AppSidebar() {
                         >
                           <Link
                             to="/admin/activity"
+                            onClick={closeMobileSidebar}
                             className={location.pathname === '/admin/activity'
                               ? 'bg-purple-50 text-purple-700 font-medium'
                               : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700'}
@@ -299,6 +311,7 @@ export function AppSidebar() {
                         >
                           <Link
                             to="/admin/diagnostics"
+                            onClick={closeMobileSidebar}
                             className={location.pathname === '/admin/diagnostics'
                               ? 'bg-purple-50 text-purple-700 font-medium'
                               : 'text-slate-600 hover:bg-purple-50 hover:text-purple-700'}
@@ -330,7 +343,7 @@ export function AppSidebar() {
                   tooltip={item.name}
                   className={item.special ? 'bg-teal-600 text-white hover:bg-teal-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                 >
-                  <Link to={getNavPath(item.path)}>
+                  <Link to={getNavPath(item.path)} onClick={closeMobileSidebar}>
                     <Icon className="w-5 h-5" />
                     <span>{item.name}</span>
                   </Link>
