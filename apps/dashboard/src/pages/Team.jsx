@@ -12,8 +12,6 @@ import { Users, Plus, Mail, Phone, Shield, UserCheck, Eye, Edit2, Trash2 } from 
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
-import { RequirePermission } from '@/components/auth';
-import { errorHandlers } from "@/lib/error-handler";
 import {
   useTeamMembers,
   useInviteTeamMember,
@@ -95,7 +93,7 @@ export default function Team() {
             handleCloseDialog();
           },
           onError: (error) => {
-            errorHandlers.save('team member', error);
+            toast.error(error.message || 'Failed to save team member');
           },
         }
       );
@@ -114,7 +112,7 @@ export default function Team() {
             handleCloseDialog();
           },
           onError: (error) => {
-            errorHandlers.save('team member', error);
+            toast.error(error.message || 'Failed to save team member');
           },
         }
       );
@@ -170,15 +168,13 @@ export default function Team() {
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Care Team</h1>
           <p className="text-sm md:text-base text-slate-700 mt-1">Manage caregivers, family members, and their roles</p>
         </div>
-        <RequirePermission permission="canManageTeam">
-          <Button
-            onClick={() => setShowAddDialog(true)}
-            className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Team Member
-          </Button>
-        </RequirePermission>
+        <Button
+          onClick={() => setShowAddDialog(true)}
+          className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Team Member
+        </Button>
       </div>
 
       {/* Role Legend */}
@@ -232,15 +228,13 @@ export default function Team() {
             </div>
             <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No Team Members</h3>
             <p className="text-sm md:text-base text-slate-500 mb-6">Add team members to coordinate care</p>
-            <RequirePermission permission="canManageTeam">
-              <Button
-                onClick={() => setShowAddDialog(true)}
-                className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Team Member
-              </Button>
-            </RequirePermission>
+            <Button
+              onClick={() => setShowAddDialog(true)}
+              className="bg-teal-600 hover:bg-teal-700 text-white w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Team Member
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -298,7 +292,6 @@ export default function Team() {
                     )}
                   </div>
 
-                  <RequirePermission permission="canManageTeam">
                     <div className="flex gap-2 pt-3 border-t border-slate-100">
                       <Button
                         size="sm"
@@ -318,7 +311,6 @@ export default function Team() {
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
-                  </RequirePermission>
                 </CardContent>
               </Card>
             );
