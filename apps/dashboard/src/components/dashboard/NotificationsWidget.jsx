@@ -1,10 +1,7 @@
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bell, Calendar, AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
 import { useMarkNotificationRead } from '@/hooks';
 
 export default function NotificationsWidget({ notifications }) {
@@ -52,7 +49,7 @@ export default function NotificationsWidget({ notifications }) {
         <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
           {sortedNotifications.map(notification => {
             const Icon = typeIcons[notification.type] || Info;
-            const isUnread = !notification.read;
+            const isUnread = !notification.is_read;
             return (
               <div
                 key={notification.id}

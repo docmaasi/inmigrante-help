@@ -45,7 +45,7 @@ export default function ImportantAlerts({ tasks, appointments, medications, reci
 
   // Medication refills needed (within 7 days)
   const needsRefill = medications.filter(med => {
-    if (!med.refill_date || !med.active) return false;
+    if (!med.refill_date || !med.is_active) return false;
     const days = differenceInDays(parseISO(med.refill_date), new Date());
     return days >= 0 && days <= 7;
   });

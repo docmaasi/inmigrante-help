@@ -4,14 +4,15 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, Eye } from 'lucide-react';
 
 const WIDGET_LABELS = {
-  upcomingAppointments: 'Upcoming Appointments',
-  todaysMedications: "Today's Medications",
-  urgentTasks: 'Urgent Tasks',
-  activityLog: 'Recent Activity',
-  refillTracker: 'Upcoming Refills',
+  notifications: 'Notifications',
+  todaySchedule: "Today's Schedule",
+  urgentTasks: 'Urgent & Overdue',
+  importantAlerts: 'Important Alerts',
+  assignedTasks: 'My Assigned Tasks',
+  medications: 'Medications',
 };
 
-export default function HiddenWidgets({ config, onShowWidget }) {
+export default function HiddenWidgets({ config, onShow }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const hiddenWidgets = Object.entries(config || {})
@@ -40,7 +41,7 @@ export default function HiddenWidgets({ config, onShowWidget }) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onShowWidget(widgetId)}
+                onClick={() => onShow(widgetId)}
                 className="h-7"
               >
                 <Eye className="w-3 h-3 mr-1" />

@@ -11,8 +11,8 @@ export default function AssignedTasksSummary({ tasks, userEmail, recipients }) {
   const pendingTasks = myTasks.filter(t => t.status === 'pending');
   const inProgressTasks = myTasks.filter(t => t.status === 'in_progress');
   const completedToday = myTasks.filter(t => 
-    t.status === 'completed' && 
-    new Date(t.updated_date).toDateString() === new Date().toDateString()
+    t.status === 'completed' &&
+    new Date(t.updated_at).toDateString() === new Date().toDateString()
   );
 
   const getRecipientName = (id) => {
