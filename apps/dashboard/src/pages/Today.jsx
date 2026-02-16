@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Pill, ListTodo, Clock, CheckCircle2, AlertCircle, Settings, Eye, UserCheck, Bell } from 'lucide-react';
 import { format, isToday, parseISO, isPast } from 'date-fns';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth-context';
 import {
   useAppointments,
@@ -32,11 +33,13 @@ export default function Today() {
   const { user, profile } = useAuth();
   const widgetManager = useWidgetManager(user ? { ...user, ...profile } : null);
 
-  const { data: appointments = [] } = useAppointments();
-  const { data: medications = [] } = useMedications();
-  const { data: tasks = [] } = useTasks();
+  const { data: appointments = [], isLoading: aptsLoading } = useAppointments();
+  const { data: medications = [], isLoading: medsLoading } = useMedications();
+  const { data: tasks = [], isLoading: tasksLoading } = useTasks();
   const { data: recipients = [] } = useCareRecipients();
   const { data: notifications = [] } = useNotifications();
+
+  const isDataLoading = aptsLoading || medsLoading || tasksLoading;
 
   const updateTaskMutation = useUpdateTask();
 
@@ -149,28 +152,36 @@ export default function Today() {
           <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-teal-300 transition-colors" onClick={() => navigate('/Appointments')}>
             <CardContent className="p-4 text-center">
               <Calendar className="w-6 h-6 text-teal-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-slate-800">{todayAppointments.length}</div>
+              {isDataLoading ? <Skeleton className="h-8 w-8 mx-auto mb-1" /> : (
+                <div className="text-2xl font-bold text-slate-800">{todayAppointments.length}</div>
+              )}
               <div className="text-xs text-slate-500">Appointments</div>
             </CardContent>
           </Card>
           <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-blue-300 transition-colors" onClick={() => navigate('/Tasks')}>
             <CardContent className="p-4 text-center">
               <ListTodo className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-slate-800">{todayTasks.length}</div>
+              {isDataLoading ? <Skeleton className="h-8 w-8 mx-auto mb-1" /> : (
+                <div className="text-2xl font-bold text-slate-800">{todayTasks.length}</div>
+              )}
               <div className="text-xs text-slate-500">Tasks Due</div>
             </CardContent>
           </Card>
           <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-amber-300 transition-colors" onClick={() => navigate('/Tasks')}>
             <CardContent className="p-4 text-center">
               <AlertCircle className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-slate-800">{overdueTasks.length}</div>
+              {isDataLoading ? <Skeleton className="h-8 w-8 mx-auto mb-1" /> : (
+                <div className="text-2xl font-bold text-slate-800">{overdueTasks.length}</div>
+              )}
               <div className="text-xs text-slate-500">Overdue</div>
             </CardContent>
           </Card>
           <Card className="shadow-sm border-slate-200 cursor-pointer hover:border-green-300 transition-colors" onClick={() => navigate('/Medications')}>
             <CardContent className="p-4 text-center">
               <Pill className="w-6 h-6 text-green-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-slate-800">{activeMedications.length}</div>
+              {isDataLoading ? <Skeleton className="h-8 w-8 mx-auto mb-1" /> : (
+                <div className="text-2xl font-bold text-slate-800">{activeMedications.length}</div>
+              )}
               <div className="text-xs text-slate-500">Medications</div>
             </CardContent>
           </Card>
