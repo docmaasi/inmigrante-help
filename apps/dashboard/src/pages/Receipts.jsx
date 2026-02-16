@@ -12,6 +12,11 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import FileUpload from '../components/shared/FileUpload';
 import ShareQRCode from '../components/shared/ShareQRCode';
+import { useCareRecipients } from '@/hooks';
+
+function getRecipientDisplayName(r) {
+  return r.full_name || `${r.first_name || ''} ${r.last_name || ''}`.trim() || 'Unknown';
+}
 
 export function ReceiptsPage() {
   const queryClient = useQueryClient();
@@ -30,17 +35,7 @@ export function ReceiptsPage() {
     }
   });
 
-  const { data: recipients = [] } = useQuery({
-    queryKey: ['careRecipients'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('care_recipients')
-        .select('*')
-        .order('full_name');
-      if (error) throw error;
-      return data;
-    }
-  });
+  const { data: recipients = [] } = useCareRecipients();
 
   const filteredReceipts = selectedRecipient === 'all'
     ? receipts
@@ -101,7 +96,7 @@ export function ReceiptsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Recipients</SelectItem>
                   {recipients.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
+                    <SelectItem key={r.id} value={r.id}>{getRecipientDisplayName(r)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -214,7 +209,7 @@ function ReceiptForm({ recipients, receipt, onClose }) {
                 </SelectTrigger>
                 <SelectContent>
                   {recipients.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>
+                    <SelectItem key={r.id} value={r.id}>{getRecipientDisplayName(r)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -372,7 +367,7 @@ function ReceiptCard({ receipt, recipients }) {
             {receipt.category}
           </span>
         </div>
-        <p className="text-sm text-slate-600 mb-2">{recipient?.full_name}</p>
+        <p className="text-sm text-slate-600 mb-2">{recipient ? getRecipientDisplayName(recipient) : 'Unknown'}</p>
         <div className="flex items-center gap-4 text-sm text-slate-500 mb-2">
           <div className="flex items-center gap-1">
             <DollarSign className="w-4 h-4" />
