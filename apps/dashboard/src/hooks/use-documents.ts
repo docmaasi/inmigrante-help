@@ -141,13 +141,8 @@ export function useUploadDocument() {
 
       if (uploadError) throw uploadError;
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('documents').getPublicUrl(fileName);
-
       return {
         filePath: fileName,
-        fileUrl: publicUrl,
         fileType: file.type,
         fileSize: file.size,
       };

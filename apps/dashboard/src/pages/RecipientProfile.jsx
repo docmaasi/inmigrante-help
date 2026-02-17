@@ -236,16 +236,16 @@ export default function RecipientProfile() {
                       <p className="text-sm text-slate-600">{recipient.emergency_contact_relationship}</p>
                     )}
                     {recipient.emergency_contact_phone && (
-                      <p className="text-sm text-slate-700 mt-2 flex items-center gap-2">
+                      <a href={`tel:${recipient.emergency_contact_phone}`} className="text-sm text-teal-600 hover:text-teal-700 mt-2 flex items-center gap-2 font-medium">
                         <Phone className="w-4 h-4" />
                         {recipient.emergency_contact_phone}
-                      </p>
+                      </a>
                     )}
                     {recipient.emergency_contact_email && (
-                      <p className="text-sm text-slate-700 flex items-center gap-2">
+                      <a href={`mailto:${recipient.emergency_contact_email}`} className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-2 font-medium">
                         <Mail className="w-4 h-4" />
                         {recipient.emergency_contact_email}
-                      </p>
+                      </a>
                     )}
                   </div>
                 )}
@@ -254,10 +254,10 @@ export default function RecipientProfile() {
                     <p className="text-xs text-slate-600 font-semibold uppercase mb-2">Secondary Contact</p>
                     <p className="font-semibold text-slate-800">{recipient.secondary_emergency_contact_name}</p>
                     {recipient.secondary_emergency_contact_phone && (
-                      <p className="text-sm text-slate-700 mt-2 flex items-center gap-2">
+                      <a href={`tel:${recipient.secondary_emergency_contact_phone}`} className="text-sm text-teal-600 hover:text-teal-700 mt-2 flex items-center gap-2 font-medium">
                         <Phone className="w-4 h-4" />
                         {recipient.secondary_emergency_contact_phone}
-                      </p>
+                      </a>
                     )}
                   </div>
                 )}
@@ -276,10 +276,10 @@ export default function RecipientProfile() {
                   <div className="space-y-2">
                     <p className="font-semibold text-slate-800">{recipient.primary_physician}</p>
                     {recipient.physician_phone && (
-                      <p className="text-sm text-slate-700 flex items-center gap-2">
+                      <a href={`tel:${recipient.physician_phone}`} className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-2 font-medium">
                         <Phone className="w-4 h-4" />
                         {recipient.physician_phone}
-                      </p>
+                      </a>
                     )}
                   </div>
                 ) : (
