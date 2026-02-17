@@ -1,6 +1,4 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm build:dashboard",
-  "outputDirectory": "dist",
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
