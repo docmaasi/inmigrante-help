@@ -59,7 +59,7 @@ export function Checkout() {
               <div className="flex gap-3">
                 <CheckCircle className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-slate-700 text-left leading-relaxed">
-                  During checkout, you may add one additional family member to your FamilyCare.Help subscription. If you need to include more family members or care partners, additional members can be added at any time through Subscription Management. Each additional member is billed at $5 per month, allowing you to expand access as your care team grows.
+                  After checkout, you may add one care recipient to your FamilyCare.Help subscription. If you need to include more care recipients, additional recipients can be added at any time through Subscription Management. Each additional care recipient is billed at $5 per month, allowing you to expand coverage as the number of individuals receiving care grows.
                 </p>
               </div>
             </CardContent>
