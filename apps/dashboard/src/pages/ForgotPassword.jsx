@@ -25,7 +25,12 @@ export default function ForgotPassword() {
       await resetPassword(email);
       setIsSuccess(true);
     } catch (err) {
-      setError(err.message || 'Failed to send reset email. Please try again.');
+      const msg = err.message || '';
+      if (msg.includes('Authorization') || msg.includes('invalid') || msg.includes('token') || msg.includes('fetch')) {
+        setError('Something went wrong. Please refresh the page and try again.');
+      } else {
+        setError(msg || 'Failed to send reset email. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

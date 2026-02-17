@@ -41,7 +41,12 @@ export default function ResetPassword() {
       if (updateError) throw updateError;
       setIsSuccess(true);
     } catch (err) {
-      setError(err.message || 'Failed to reset password. Please try again.');
+      const msg = err.message || '';
+      if (msg.includes('Authorization') || msg.includes('invalid') || msg.includes('token') || msg.includes('fetch')) {
+        setError('Your reset link has expired or is invalid. Please request a new one.');
+      } else {
+        setError(msg || 'Failed to reset password. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
