@@ -1,8 +1,8 @@
 {
+  "buildCommand": "cd ../.. && pnpm install && pnpm build:dashboard",
   "outputDirectory": "dist",
   "framework": "vite",
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
