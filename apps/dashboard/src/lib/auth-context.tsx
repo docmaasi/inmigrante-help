@@ -129,10 +129,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // getSession() handles token refresh automatically before returning
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // getSession() handles token refresh automatically before returning.
+    // If the stored token is corrupted or expired beyond refresh, clear it.
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!isMounted) return;
       initialSessionHandled = true;
+      if (error) {
+        console.error('Session recovery failed, signing out:', error);
+        supabase.auth.signOut();
+        handleSession(null);
+        return;
+      }
       handleSession(session);
     });
 

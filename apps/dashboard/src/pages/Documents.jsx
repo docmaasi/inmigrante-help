@@ -262,9 +262,15 @@ export default function Documents() {
                       size="sm"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => {
-                        const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(doc.file_path);
-                        window.open(publicUrl, '_blank');
+                      onClick={async () => {
+                        const { data, error } = await supabase.storage
+                          .from('documents')
+                          .createSignedUrl(doc.file_path, 3600);
+                        if (error || !data?.signedUrl) {
+                          toast.error('Failed to open document');
+                          return;
+                        }
+                        window.open(data.signedUrl, '_blank');
                       }}
                     >
                       <Download className="w-4 h-4 mr-1" />

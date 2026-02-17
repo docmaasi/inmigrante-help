@@ -163,7 +163,7 @@ export default function AvailabilityManager({
                   </div>
                 )}
 
-                {slot && (
+                {slot?.is_available && (
                   <Button
                     size="sm"
                     variant="ghost"

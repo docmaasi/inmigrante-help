@@ -27,7 +27,12 @@ export default function Login() {
       await signIn(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
+      const msg = err.message || '';
+      if (msg.includes('Authorization') || msg.includes('invalid') || msg.includes('token')) {
+        setError('Your session expired. Please try signing in again.');
+      } else {
+        setError(msg || 'Failed to sign in. Please check your credentials.');
+      }
     } finally {
       setIsSubmitting(false);
     }
