@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Calendar, Pill, ListTodo, MessageSquare, LogOut } from 'lucide-react';
+import { Calendar, Pill, ListTodo, MessageSquare, Send, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 
@@ -13,7 +13,8 @@ export function ClientPortalNav({ careRecipientName, currentPageName }) {
     { name: 'Appointments', icon: Calendar, path: 'ClientAppointments' },
     { name: 'Medications', icon: Pill, path: 'ClientMedicationLog' },
     { name: 'Tasks', icon: ListTodo, path: 'ClientTasks' },
-    { name: 'Updates', icon: MessageSquare, path: 'ClientUpdates' }
+    { name: 'Updates', icon: MessageSquare, path: 'ClientUpdates' },
+    { name: 'Messages', icon: Send, path: 'ClientMessages' }
   ];
 
   const handleLogout = async () => {

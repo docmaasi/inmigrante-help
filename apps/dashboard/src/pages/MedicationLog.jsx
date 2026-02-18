@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useMedications, useCareRecipients } from '@/hooks';
+import { useMedications, useCareRecipients, useMedicationLogs } from '@/hooks';
 import MedicationCheckoffItem from '../components/medications/MedicationCheckoffItem';
+import { MedicationLogExport } from '../components/medications/MedicationLogExport';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Pill, Filter } from 'lucide-react';
@@ -11,6 +12,7 @@ export default function MedicationLog() {
 
   const { data: medications = [], isLoading } = useMedications();
   const { data: recipients = [] } = useCareRecipients();
+  const { data: allLogs = [] } = useMedicationLogs();
 
   const getRecipientName = (id) => {
     const recipient = recipients.find(r => r.id === id);
@@ -37,10 +39,10 @@ export default function MedicationLog() {
         <p className="text-slate-500 ml-12">Track when medications are taken</p>
       </div>
 
-      {/* Filter Card */}
+      {/* Filter + Export Card */}
       <Card className="mb-6 border border-slate-200 shadow-sm">
         <CardContent className="p-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <Filter className="w-5 h-5 text-slate-400" />
             <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
               <SelectTrigger className="w-64 border-slate-200 focus:ring-teal-500 focus:border-teal-500">
@@ -55,9 +57,12 @@ export default function MedicationLog() {
                 ))}
               </SelectContent>
             </Select>
-            <Badge variant="secondary" className="ml-auto bg-slate-100 text-slate-700">
+            <Badge variant="secondary" className="bg-slate-100 text-slate-700">
               {filteredMedications.length} {filteredMedications.length === 1 ? 'medication' : 'medications'}
             </Badge>
+            <div className="ml-auto">
+              <MedicationLogExport logs={allLogs} />
+            </div>
           </div>
         </CardContent>
       </Card>

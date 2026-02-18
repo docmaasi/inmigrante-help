@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
-import { LogOut, LogIn, Mail } from 'lucide-react';
+import { LogOut, LogIn, Mail, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
@@ -31,6 +32,17 @@ export default function Layout({ children, currentPageName }) {
     navigate('/login');
   };
 
+  const handleShare = async () => {
+    const shareData = { title: 'FamilyCare.Help', url: 'https://www.FamilyCare.Help' };
+    if (navigator.share) {
+      try { await navigator.share(shareData); return; } catch { /* cancelled */ }
+    }
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      toast.success('Link copied!');
+    } catch { window.prompt('Copy this link:', shareData.url); }
+  };
+
   const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || "https://familycare.help";
 
   const footerNavItems = [
@@ -52,6 +64,13 @@ export default function Layout({ children, currentPageName }) {
           <SidebarTrigger />
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleShare}
+              className="inline-flex items-center justify-center rounded-md p-2 text-slate-600 hover:bg-slate-100 hover:text-teal-600 transition-colors"
+              title="Share FamilyCare.Help"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
             <NotificationBell />
             {isAuthenticated ? (
               <Button

@@ -1,6 +1,6 @@
 import React, { useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, X, Loader2, FileText } from 'lucide-react';
+import { Upload, Camera, X, Loader2, FileText } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { useSignedUrl } from '@/hooks';
@@ -16,11 +16,13 @@ export function FileUpload({
   accept = 'image/*,.pdf',
   label = 'Upload File',
   bucket = 'documents',
+  showCamera = false,
 }) {
   const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
   const inputId = useId();
   const inputRef = useRef(null);
+  const cameraRef = useRef(null);
 
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0];
@@ -96,6 +98,17 @@ export function FileUpload({
             id={inputId}
             disabled={uploading}
           />
+          {showCamera && (
+            <input
+              ref={cameraRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={uploading}
+            />
+          )}
           <Button
             type="button"
             variant="outline"
@@ -115,6 +128,18 @@ export function FileUpload({
               </>
             )}
           </Button>
+          {showCamera && !uploading && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploading}
+              onClick={() => cameraRef.current?.click()}
+              className="cursor-pointer"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Take Photo
+            </Button>
+          )}
         </div>
       )}
     </div>

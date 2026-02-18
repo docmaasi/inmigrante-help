@@ -199,6 +199,7 @@ export function PhotoAndNotes({ formData, updateField }) {
           value={formData.photo_url}
           onChange={(url) => updateField('photo_url', url)}
           label="Upload Receipt"
+          showCamera
         />
       </div>
       <div className="space-y-2">

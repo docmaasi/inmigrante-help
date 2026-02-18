@@ -21,11 +21,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/lib/auth-context';
+import { toast } from 'sonner';
 import { usePermissions } from '@/hooks/use-permissions';
 import {
   useAdminUsers,
   useDisableUser,
   useEnableUser,
+  useDeleteUser,
   type AdminUserFilters,
   type AdminUserProfile,
 } from '@/hooks/admin/use-admin-users';
@@ -70,10 +72,12 @@ function UserManagement(): JSX.Element {
   const [isRoleEditorOpen, setIsRoleEditorOpen] = useState(false);
   const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
   const [isEnableDialogOpen, setIsEnableDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data, isLoading, refetch, isRefetching } = useAdminUsers(filters);
   const disableUserMutation = useDisableUser();
   const enableUserMutation = useEnableUser();
+  const deleteUserMutation = useDeleteUser();
 
   const handleSearch = useCallback((): void => {
     setFilters((prev) => ({
@@ -141,6 +145,11 @@ function UserManagement(): JSX.Element {
     setIsEnableDialogOpen(true);
   }
 
+  function handleDeleteUser(user: AdminUserProfile): void {
+    setSelectedUser(user);
+    setIsDeleteDialogOpen(true);
+  }
+
   async function confirmDisableAccount(): Promise<void> {
     if (!selectedUser) {
       return;
@@ -171,6 +180,25 @@ function UserManagement(): JSX.Element {
       setSelectedUser(null);
     } catch {
       // Error handled by mutation
+    }
+  }
+
+  async function confirmDeleteUser(): Promise<void> {
+    if (!selectedUser) {
+      return;
+    }
+
+    try {
+      await deleteUserMutation.mutateAsync({
+        userId: selectedUser.id,
+        email: selectedUser.email,
+      });
+      toast.success(`User ${selectedUser.full_name ?? selectedUser.email} deleted`);
+      setIsDeleteDialogOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Failed to delete user';
+      toast.error(msg);
     }
   }
 
@@ -341,6 +369,7 @@ function UserManagement(): JSX.Element {
               onEditRole={handleEditRole}
               onDisableAccount={handleDisableAccount}
               onEnableAccount={handleEnableAccount}
+              onDeleteUser={handleDeleteUser}
             />
           </CardContent>
         </Card>
@@ -416,6 +445,40 @@ function UserManagement(): JSX.Element {
                   </>
                 ) : (
                   'Enable Account'
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete User Permanently</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to permanently delete{' '}
+                <span className="font-medium text-slate-900">
+                  {selectedUser?.full_name ?? selectedUser?.email}
+                </span>
+                ? This action cannot be undone. All user data will be removed.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteUserMutation.isPending}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDeleteUser}
+                disabled={deleteUserMutation.isPending}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleteUserMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete User'
                 )}
               </AlertDialogAction>
             </AlertDialogFooter>

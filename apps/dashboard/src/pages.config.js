@@ -6,6 +6,7 @@ import CarePlans from "./pages/CarePlans";
 import CareRecipients from "./pages/CareRecipients";
 import { Checkout } from "./pages/Checkout";
 import ClientAppointments from "./pages/ClientAppointments";
+import { ClientMessages } from "./pages/ClientMessages";
 import ClientMedicationLog from "./pages/ClientMedicationLog";
 import { ClientPortal } from "./pages/ClientPortal";
 import ClientTasks from "./pages/ClientTasks";
@@ -41,6 +42,7 @@ export const PAGES = {
   CareRecipients,
   Checkout,
   ClientAppointments,
+  ClientMessages,
   ClientMedicationLog,
   ClientPortal,
   ClientTasks,

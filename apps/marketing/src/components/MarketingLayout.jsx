@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Heart, ArrowRight, Mail, LayoutDashboard } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Heart, ArrowRight, Mail, LayoutDashboard, Share2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../lib/use-auth";
 
 const DASHBOARD_URL =
@@ -8,7 +8,20 @@ const DASHBOARD_URL =
 
 export function MarketingLayout({ children, fullWidth = false }) {
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
+
+  const handleShare = useCallback(async () => {
+    const shareData = { title: 'FamilyCare.Help', url: 'https://www.FamilyCare.Help' };
+    if (navigator.share) {
+      try { await navigator.share(shareData); return; } catch { /* cancelled */ }
+    }
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    } catch { window.prompt('Copy this link:', shareData.url); }
+  }, []);
 
   useEffect(() => {
     function handleScroll() {
@@ -82,8 +95,21 @@ export function MarketingLayout({ children, fullWidth = false }) {
               </div>
             </Link>
 
-            {/* Auth Buttons */}
+            {/* Share + Auth Buttons */}
             <div className="flex items-center gap-3">
+              <button
+                onClick={handleShare}
+                className="relative inline-flex items-center justify-center rounded-full p-2.5 transition-all duration-200 hover:scale-105"
+                style={{ color: '#4F46E5' }}
+                title="Share FamilyCare.Help"
+              >
+                <Share2 className="w-4 h-4" />
+                {showCopied && (
+                  <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap px-2 py-0.5 rounded bg-slate-800 text-white">
+                    Link copied!
+                  </span>
+                )}
+              </button>
               {isLoading ? (
                 <div className="w-24 h-10" />
               ) : isAuthenticated ? (

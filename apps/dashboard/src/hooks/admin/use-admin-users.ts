@@ -311,3 +311,65 @@ export function useAdminUserStats() {
     enabled: !!user && isSuperAdmin,
   });
 }
+
+interface DeleteUserParams {
+  userId: string;
+  email: string | null;
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ userId, email }: DeleteUserParams) => {
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
+      // Delete related data first, then the profile
+      const tables = [
+        'medication_logs',
+        'medications',
+        'appointments',
+        'tasks',
+        'care_recipients',
+        'subscriptions',
+      ] as const;
+
+      for (const table of tables) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from(table) as any)
+          .delete()
+          .eq('user_id', userId);
+
+        if (error) {
+          console.warn(`Failed to delete from ${table}:`, error.message);
+        }
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) {
+        throw new Error(profileError.message);
+      }
+
+      const logResult = await logAdminAction({
+        action: 'user_deleted',
+        targetType: 'user',
+        targetId: userId,
+        details: { email: email ?? 'unknown' },
+      });
+
+      if (!logResult.ok) {
+        console.error('Failed to log admin action:', logResult.error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
+}

@@ -27,6 +27,7 @@ import {
   Shield,
   UserX,
   UserCheck,
+  Trash2,
   Loader2,
   Users,
 } from 'lucide-react';
@@ -45,6 +46,7 @@ interface UserListProps {
   onEditRole: (user: AdminUserProfile) => void;
   onDisableAccount: (user: AdminUserProfile) => void;
   onEnableAccount: (user: AdminUserProfile) => void;
+  onDeleteUser: (user: AdminUserProfile) => void;
 }
 
 type SortableColumn = 'full_name' | 'email' | 'role' | 'created_at';
@@ -103,6 +105,7 @@ function UserList({
   onEditRole,
   onDisableAccount,
   onEnableAccount,
+  onDeleteUser,
 }: UserListProps): JSX.Element {
   const [sortColumn, setSortColumn] = useState<SortableColumn>(filters.sortBy ?? 'created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(filters.sortOrder ?? 'desc');
@@ -242,6 +245,14 @@ function UserList({
                         Disable Account
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => onDeleteUser(user)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete User
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
