@@ -68,7 +68,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
             {/* Logo */}
             <Link
               to="/"
-              className="flex items-center gap-3 group transition-transform duration-200 hover:scale-[1.02]"
+              className="flex items-center gap-3 group transition-transform duration-200 hover:scale-[1.02] min-w-0"
             >
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
@@ -84,7 +84,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
                   <span style={{ color: "#E07A5F" }}>.Help</span>
                 </h1>
                 <p
-                  className="text-xs tracking-wide"
+                  className="text-xs tracking-wide hidden sm:block"
                   style={{
                     color: "#6B7280",
                     fontFamily: "var(--font-body), sans-serif",
@@ -96,7 +96,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
             </Link>
 
             {/* Share + Auth Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <button
                 onClick={handleShare}
                 className="relative inline-flex items-center justify-center rounded-full p-2.5 transition-all duration-200 hover:scale-105"
