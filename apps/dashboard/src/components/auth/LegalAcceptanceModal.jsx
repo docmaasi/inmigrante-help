@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Shield, FileText, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
+import { Shield, FileText, ExternalLink, Loader2 } from 'lucide-react';
 
 const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'https://familycare.help';
 
 export function LegalAcceptanceModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const { data: existingAcceptances } = useQuery({
+  const { data: existingAcceptances, error: queryError } = useQuery({
     queryKey: ['legal-acceptances', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,6 +31,12 @@ export function LegalAcceptanceModal() {
   });
 
   useEffect(() => {
+    // If the query itself fails (table doesn't exist), don't show modal
+    if (queryError) {
+      console.error('Legal acceptances query failed:', queryError);
+      return;
+    }
+
     if (user && existingAcceptances) {
       const hasTerms = existingAcceptances.some(a => a.document_type === 'terms_of_service');
       const hasPrivacy = existingAcceptances.some(a => a.document_type === 'privacy_policy');
@@ -39,35 +45,29 @@ export function LegalAcceptanceModal() {
         setIsOpen(true);
       }
     }
-  }, [user, existingAcceptances]);
+  }, [user, existingAcceptances, queryError]);
 
-  const acceptMutation = useMutation({
-    mutationFn: async () => {
-      const acceptances = [
-        { user_id: user.id, document_type: 'terms_of_service', document_version: '1.0' },
-        { user_id: user.id, document_type: 'privacy_policy', document_version: '1.0' },
-      ];
+  const handleAccept = async () => {
+    if (!agreedToTerms) return;
+    setIsSaving(true);
 
+    try {
       const { error } = await supabase
         .from('legal_acceptances')
-        .insert(acceptances);
+        .insert([
+          { user_id: user.id, document_type: 'terms_of_service', document_version: '1.0' },
+          { user_id: user.id, document_type: 'privacy_policy', document_version: '1.0' },
+        ]);
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
+      if (error) console.error('Legal acceptance save error:', error);
       queryClient.invalidateQueries({ queryKey: ['legal-acceptances'] });
-      setIsOpen(false);
-    },
-    onError: (error) => {
-      console.error('Legal acceptance error:', error);
-      toast.error('Something went wrong. Please try again.');
-    },
-  });
-
-  const handleAccept = () => {
-    if (agreedToTerms) {
-      acceptMutation.mutate();
+    } catch (err) {
+      console.error('Legal acceptance error:', err);
     }
+
+    // Always close the modal — don't trap the user
+    setIsOpen(false);
+    setIsSaving(false);
   };
 
   if (!user) return null;
@@ -126,10 +126,17 @@ export function LegalAcceptanceModal() {
 
           <Button
             onClick={handleAccept}
-            disabled={!agreedToTerms || acceptMutation.isPending}
+            disabled={!agreedToTerms || isSaving}
             className="w-full bg-blue-600 hover:bg-blue-700"
           >
-            {acceptMutation.isPending ? 'Processing...' : 'Accept and Continue'}
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Processing...
+              </>
+            ) : (
+              'Accept and Continue'
+            )}
           </Button>
         </div>
       </DialogContent>
