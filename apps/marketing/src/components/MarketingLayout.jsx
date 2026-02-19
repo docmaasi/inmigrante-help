@@ -162,7 +162,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
       {/* Footer - Dark slate with warm accents */}
       <footer style={{ backgroundColor: "#1F2937" }}>
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-          <div className="grid gap-10 md:grid-cols-3 md:gap-8">
+          <div className="grid gap-10 md:grid-cols-4 md:gap-8">
             {/* Brand Section */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -267,6 +267,34 @@ export function MarketingLayout({ children, fullWidth = false }) {
                 }}
               >
                 We typically respond within 24 hours.
+              </p>
+            </div>
+
+            {/* QR Code Section */}
+            <div className="space-y-4 flex flex-col items-center">
+              <h3
+                className="text-sm font-semibold uppercase tracking-wider"
+                style={{
+                  color: "#9CA3AF",
+                  fontFamily: "var(--font-body), sans-serif",
+                }}
+              >
+                Share with Family
+              </h3>
+              <img
+                src="/images/familycare-qr.png"
+                alt="Scan to visit FamilyCare.Help"
+                className="w-28 h-28 rounded-lg"
+                style={{ background: "white", padding: 4 }}
+              />
+              <p
+                className="text-xs text-center"
+                style={{
+                  color: "#9CA3AF",
+                  fontFamily: "var(--font-body), sans-serif",
+                }}
+              >
+                Scan to share FamilyCare.Help
               </p>
             </div>
           </div>

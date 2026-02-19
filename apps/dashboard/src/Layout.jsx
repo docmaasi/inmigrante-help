@@ -136,6 +136,16 @@ export default function Layout({ children, currentPageName }) {
                 It is not a substitute for professional medical, legal, or financial advice.
               </p>
             </div>
+            <div className="flex justify-center mb-3">
+              <div className="flex flex-col items-center gap-2">
+                <img
+                  src="/images/familycare-qr.png"
+                  alt="Scan to share FamilyCare.Help"
+                  className="w-24 h-24 rounded-lg border border-slate-200"
+                />
+                <p className="text-xs text-slate-400">Share with family</p>
+              </div>
+            </div>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-sm text-slate-500">
                 FamilyCare.Help
