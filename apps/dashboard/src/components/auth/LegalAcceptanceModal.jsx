@@ -6,6 +6,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Shield, FileText, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
+
+const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'https://familycare.help';
 
 export function LegalAcceptanceModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +58,10 @@ export function LegalAcceptanceModal() {
       queryClient.invalidateQueries({ queryKey: ['legal-acceptances'] });
       setIsOpen(false);
     },
+    onError: (error) => {
+      console.error('Legal acceptance error:', error);
+      toast.error('Something went wrong. Please try again.');
+    },
   });
 
   const handleAccept = () => {
@@ -82,7 +89,7 @@ export function LegalAcceptanceModal() {
 
           <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
             <a
-              href="https://familycare.help/TermsOfService"
+              href={`${MARKETING_URL}/terms`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
@@ -92,7 +99,7 @@ export function LegalAcceptanceModal() {
               <ExternalLink className="w-3 h-3" />
             </a>
             <a
-              href="https://familycare.help/PrivacyPolicy"
+              href={`${MARKETING_URL}/privacy`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
