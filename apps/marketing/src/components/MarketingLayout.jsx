@@ -63,12 +63,12 @@ export function MarketingLayout({ children, fullWidth = false }) {
             : "1px solid transparent",
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-5">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link
               to="/"
-              className="flex items-center gap-3 group transition-transform duration-200 hover:scale-[1.02] min-w-0"
+              className="flex items-center gap-3 group transition-transform duration-200 hover:scale-[1.02]"
             >
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
@@ -84,7 +84,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
                   <span style={{ color: "#E07A5F" }}>.Help</span>
                 </h1>
                 <p
-                  className="text-xs tracking-wide hidden sm:block"
+                  className="text-xs tracking-wide"
                   style={{
                     color: "#6B7280",
                     fontFamily: "var(--font-body), sans-serif",
@@ -95,21 +95,8 @@ export function MarketingLayout({ children, fullWidth = false }) {
               </div>
             </Link>
 
-            {/* Share + Auth Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <button
-                onClick={handleShare}
-                className="relative inline-flex items-center justify-center rounded-full p-2.5 transition-all duration-200 hover:scale-105"
-                style={{ color: '#4F46E5' }}
-                title="Share FamilyCare.Help"
-              >
-                <Share2 className="w-4 h-4" />
-                {showCopied && (
-                  <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap px-2 py-0.5 rounded bg-slate-800 text-white">
-                    Link copied!
-                  </span>
-                )}
-              </button>
+            {/* Auth Buttons */}
+            <div className="flex items-center gap-3">
               {isLoading ? (
                 <div className="w-24 h-10" />
               ) : isAuthenticated ? (
@@ -151,6 +138,22 @@ export function MarketingLayout({ children, fullWidth = false }) {
               )}
             </div>
           </div>
+
+          {/* Share row below logo */}
+          <button
+            onClick={handleShare}
+            className="relative inline-flex items-center gap-1.5 mt-2 text-xs font-medium transition-all duration-200 hover:scale-105"
+            style={{ color: '#4F46E5', marginLeft: 56 }}
+            title="Share FamilyCare.Help"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            Share
+            {showCopied && (
+              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs font-medium whitespace-nowrap px-2 py-0.5 rounded bg-slate-800 text-white">
+                Link copied!
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
