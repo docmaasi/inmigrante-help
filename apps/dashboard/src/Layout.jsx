@@ -20,11 +20,12 @@ function MenuButton() {
   return (
     <button
       onClick={toggleSidebar}
-      className="inline-flex items-center justify-center rounded-lg p-3 text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-colors"
-      style={{ minHeight: 48, minWidth: 48 }}
+      className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-colors font-medium text-sm"
+      style={{ minHeight: 48 }}
       aria-label="Open menu"
     >
-      <PanelLeft className="w-6 h-6" />
+      <PanelLeft className="w-5 h-5" />
+      Menu
     </button>
   );
 }

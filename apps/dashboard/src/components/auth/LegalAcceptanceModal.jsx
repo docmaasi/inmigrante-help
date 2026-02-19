@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Shield, FileText, ExternalLink, Loader2 } from 'lucide-react';
 
 const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'https://familycare.help';
+const LEGAL_ACCEPTED_KEY = 'legal_accepted_v1';
 
 export function LegalAcceptanceModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +16,9 @@ export function LegalAcceptanceModal() {
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  // Skip DB query entirely if localStorage says already accepted
+  const alreadyAcceptedLocally = localStorage.getItem(LEGAL_ACCEPTED_KEY) === 'true';
 
   const { data: existingAcceptances, error: queryError } = useQuery({
     queryKey: ['legal-acceptances', user?.id],
@@ -27,10 +31,13 @@ export function LegalAcceptanceModal() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !alreadyAcceptedLocally,
   });
 
   useEffect(() => {
+    // If already accepted on this device, never show the modal
+    if (alreadyAcceptedLocally) return;
+
     // If the query itself fails (table doesn't exist), don't show modal
     if (queryError) {
       console.error('Legal acceptances query failed:', queryError);
@@ -43,9 +50,12 @@ export function LegalAcceptanceModal() {
 
       if (!hasTerms || !hasPrivacy) {
         setIsOpen(true);
+      } else {
+        // DB says accepted — sync to localStorage for future logins
+        localStorage.setItem(LEGAL_ACCEPTED_KEY, 'true');
       }
     }
-  }, [user, existingAcceptances, queryError]);
+  }, [user, existingAcceptances, queryError, alreadyAcceptedLocally]);
 
   const handleAccept = async () => {
     if (!agreedToTerms) return;
@@ -54,16 +64,22 @@ export function LegalAcceptanceModal() {
     try {
       const { error } = await supabase
         .from('legal_acceptances')
-        .insert([
-          { user_id: user.id, document_type: 'terms_of_service', document_version: '1.0' },
-          { user_id: user.id, document_type: 'privacy_policy', document_version: '1.0' },
-        ]);
+        .upsert(
+          [
+            { user_id: user.id, document_type: 'terms_of_service', document_version: '1.0' },
+            { user_id: user.id, document_type: 'privacy_policy', document_version: '1.0' },
+          ],
+          { onConflict: 'user_id,document_type' }
+        );
 
       if (error) console.error('Legal acceptance save error:', error);
       queryClient.invalidateQueries({ queryKey: ['legal-acceptances'] });
     } catch (err) {
       console.error('Legal acceptance error:', err);
     }
+
+    // Remember acceptance on this device so modal never shows again
+    localStorage.setItem(LEGAL_ACCEPTED_KEY, 'true');
 
     // Always close the modal — don't trap the user
     setIsOpen(false);

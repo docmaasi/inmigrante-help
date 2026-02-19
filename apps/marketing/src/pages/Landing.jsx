@@ -235,9 +235,10 @@ export default function Landing() {
               <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
                 <a
                   href={`${DASHBOARD_URL}/signup`}
-                  className="btn-primary text-lg px-8 py-4"
+                  className="inline-flex items-center justify-center gap-2 text-lg px-8 py-4 rounded-full font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                  style={{ backgroundColor: "#8B7EC8" }}
                 >
-                  Get Started Free <ArrowRight className="w-5 h-5" />
+                  Subscribe Free <ArrowRight className="w-5 h-5" />
                 </a>
                 <Link
                   to="/faq"
@@ -852,8 +853,12 @@ export default function Landing() {
               coordination. Start your journey to peace of mind today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href={`${DASHBOARD_URL}/signup`} className="btn-warm text-lg px-8 py-4">
-                Start Free Today <ArrowRight className="w-5 h-5" />
+              <a
+                href={`${DASHBOARD_URL}/signup`}
+                className="inline-flex items-center justify-center gap-2 text-lg px-8 py-4 rounded-full font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                style={{ backgroundColor: "#8B7EC8" }}
+              >
+                Subscribe Now <ArrowRight className="w-5 h-5" />
               </a>
               <a
                 href="mailto:familycarehelp@mail.com"

@@ -127,11 +127,11 @@ export function MarketingLayout({ children, fullWidth = false }) {
                     href={`${DASHBOARD_URL}/signup`}
                     className="btn-primary flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-medium text-sm sm:text-base text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
                     style={{
-                      backgroundColor: "#4F46E5",
+                      backgroundColor: "#8B7EC8",
                       fontFamily: "var(--font-body), sans-serif",
                     }}
                   >
-                    Get Started
+                    Subscribe
                     <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                   </a>
                 </>
