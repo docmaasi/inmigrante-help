@@ -24,8 +24,8 @@ export default function TodaysMedications({ medications }) {
               <h4 className="font-medium text-slate-800">{med.name}</h4>
               <p className="text-sm text-slate-500 mt-1">{med.dosage}</p>
             </div>
-            <Badge className={med.active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}>
-              {med.active ? 'Active' : 'Inactive'}
+            <Badge className={med.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}>
+              {med.is_active ? 'Active' : 'Inactive'}
             </Badge>
           </div>
           {med.times && med.times.length > 0 && (

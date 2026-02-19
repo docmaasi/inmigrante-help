@@ -70,7 +70,7 @@ export function ClientPortal() {
         .from('medications')
         .select('*')
         .eq('care_recipient_id', recipientId)
-        .eq('active', true)
+        .eq('is_active', true)
         .order('medication_name');
       if (error) throw error;
       return data;
