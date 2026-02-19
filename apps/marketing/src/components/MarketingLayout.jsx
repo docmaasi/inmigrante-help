@@ -73,7 +73,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696548f62d7edb19ae83cd93/f2943789d_Screenshot_20260110_164756_ChatGPT.jpg"
                 alt="FamilyCare.Help Logo"
-                className="w-11 h-11 object-contain rounded-lg shadow-sm"
+                className="w-16 h-16 object-contain rounded-lg shadow-sm"
               />
               <div>
                 <h1
@@ -143,7 +143,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
           <button
             onClick={handleShare}
             className="relative inline-flex items-center gap-1.5 mt-2 text-xs font-medium transition-all duration-200 hover:scale-105"
-            style={{ color: '#4F46E5', marginLeft: 56 }}
+            style={{ color: '#4F46E5', marginLeft: 76 }}
             title="Share FamilyCare.Help"
           >
             <Share2 className="w-3.5 h-3.5" />
