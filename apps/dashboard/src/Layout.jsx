@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
-import { LogOut, LogIn, Mail, Share2 } from 'lucide-react';
+import { LogOut, LogIn, Mail, Share2, PanelLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
@@ -11,9 +11,23 @@ import { Button } from '@/components/ui/button';
 import {
   SidebarProvider,
   SidebarInset,
-  SidebarTrigger
+  useSidebar
 } from '@/components/ui/sidebar';
 import { AppSidebar } from './components/layout/app-sidebar';
+
+function MenuButton() {
+  const { toggleSidebar } = useSidebar();
+  return (
+    <button
+      onClick={toggleSidebar}
+      className="inline-flex items-center justify-center rounded-lg p-3 text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-colors"
+      style={{ minHeight: 48, minWidth: 48 }}
+      aria-label="Open menu"
+    >
+      <PanelLeft className="w-6 h-6" />
+    </button>
+  );
+}
 
 export default function Layout({ children, currentPageName }) {
   const { user, isAuthenticated, signOut } = useAuth();
@@ -61,7 +75,7 @@ export default function Layout({ children, currentPageName }) {
       <SidebarInset className="flex flex-col min-h-screen bg-slate-50 overscroll-none">
         {/* Top Header Bar */}
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
-          <SidebarTrigger className="h-10 w-10 min-h-[48px] min-w-[48px] md:min-h-[40px] md:min-w-[40px]" />
+          <MenuButton />
 
           <div className="flex items-center gap-3">
             <button
