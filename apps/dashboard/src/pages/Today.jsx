@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Pill, ListTodo, Clock, CheckCircle2, AlertCircle, Settings, Eye, UserCheck, Bell } from 'lucide-react';
+import { Calendar, Pill, ListTodo, AlertCircle, Settings, Eye, Bell, UserCheck } from 'lucide-react';
 import { format, isToday, parseISO, isPast } from 'date-fns';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,20 +16,35 @@ import {
   useNotifications,
   useUpdateTask
 } from '@/hooks';
-import CaregiverDashboardWidget from '../components/dashboard/CaregiverDashboardWidget';
-import AssignedTasksSummary from '../components/dashboard/AssignedTasksSummary';
-import ImportantAlerts from '../components/dashboard/ImportantAlerts';
-import NotificationsWidget from '../components/dashboard/NotificationsWidget';
 import HiddenWidgets from '../components/dashboard/HiddenWidgets';
 import useWidgetManager from '../components/dashboard/WidgetManager';
 import TaskCompletionModal from '../components/tasks/TaskCompletionModal';
+import UserPreferences from '../components/dashboard/UserPreferences';
+import TodayWidgetsGrid from '../components/dashboard/TodayWidgetsGrid';
+
+const TIME_FORMAT_KEY = 'familycare_time_format';
+
+function formatTime(timeStr, timeFormat) {
+  if (!timeStr || timeFormat === '24h') return timeStr;
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return timeStr;
+  const hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const h12 = hours % 12 || 12;
+  return `${h12}:${minutes} ${suffix}`;
+}
 
 export default function Today() {
   const [showCustomize, setShowCustomize] = useState(false);
   const [completingTask, setCompletingTask] = useState(null);
+  const [timeFormat, setTimeFormat] = useState(
+    () => localStorage.getItem(TIME_FORMAT_KEY) || '12h'
+  );
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const widgetManager = useWidgetManager(user ? { ...user, ...profile } : null);
 
   const { data: appointments = [], isLoading: aptsLoading } = useAppointments();
@@ -73,11 +87,7 @@ export default function Today() {
   const completeTask = (notes) => {
     if (completingTask) {
       updateTaskMutation.mutate(
-        {
-          id: completingTask.id,
-          status: 'completed',
-          completion_notes: notes
-        },
+        { id: completingTask.id, status: 'completed', completion_notes: notes },
         {
           onSuccess: () => {
             toast.success('Task updated');
@@ -86,6 +96,11 @@ export default function Today() {
         }
       );
     }
+  };
+
+  const handleTimeFormatChange = (newFormat) => {
+    setTimeFormat(newFormat);
+    localStorage.setItem(TIME_FORMAT_KEY, newFormat);
   };
 
   const priorityColors = {
@@ -139,6 +154,12 @@ export default function Today() {
         {showCustomize && (
           <Card className="mb-6 bg-teal-50 border-teal-200">
             <CardContent className="p-4">
+              <UserPreferences
+                profile={profile}
+                updateProfile={updateProfile}
+                timeFormat={timeFormat}
+                onTimeFormatChange={handleTimeFormatChange}
+              />
               <HiddenWidgets
                 config={widgetManager.config}
                 onShow={widgetManager.showWidget}
@@ -187,193 +208,25 @@ export default function Today() {
           </Card>
         </div>
 
-        {/* Widgets Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {widgets.map(widget => {
-            if (widget.id === 'notifications') {
-              return (
-                <CaregiverDashboardWidget
-                  key={widget.id}
-                  widgetId={widget.id}
-                  title={`${widget.title} (${unreadNotifications.length})`}
-                  icon={widget.icon}
-                  isPinned={widgetManager.config[widget.id]?.pinned}
-                  onPin={() => widgetManager.pinWidget(widget.id)}
-                  onHide={() => widgetManager.hideWidget(widget.id)}
-                >
-                  <NotificationsWidget notifications={unreadNotifications} />
-                </CaregiverDashboardWidget>
-              );
-            }
+        <TodayWidgetsGrid
+          widgets={widgets}
+          widgetManager={widgetManager}
+          unreadNotifications={unreadNotifications}
+          todayAppointments={todayAppointments}
+          todayTasks={todayTasks}
+          overdueTasks={overdueTasks}
+          activeMedications={activeMedications}
+          tasks={tasks}
+          appointments={appointments}
+          medications={medications}
+          recipients={recipients}
+          setCompletingTask={setCompletingTask}
+          priorityColors={priorityColors}
+          getRecipientName={getRecipientName}
+          formatTime={(t) => formatTime(t, timeFormat)}
+          userEmail={user?.email}
+        />
 
-            if (widget.id === 'todaySchedule') {
-              return (
-                <CaregiverDashboardWidget
-                  key={widget.id}
-                  widgetId={widget.id}
-                  title={`${widget.title} (${todayAppointments.length + todayTasks.length})`}
-                  icon={widget.icon}
-                  isPinned={widgetManager.config[widget.id]?.pinned}
-                  onPin={() => widgetManager.pinWidget(widget.id)}
-                  onHide={() => widgetManager.hideWidget(widget.id)}
-                >
-                  <div className="space-y-3">
-                    {todayAppointments.length === 0 && todayTasks.length === 0 ? (
-                      <p className="text-slate-500 text-sm text-center py-4">No appointments or tasks scheduled for today</p>
-                    ) : (
-                      <>
-                        {todayAppointments.map(apt => (
-                          <div key={`apt-${apt.id}`} className="flex items-center gap-3 p-3 bg-teal-50 rounded-lg">
-                            <Clock className="w-5 h-5 text-teal-600 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-slate-800">{apt.title}</div>
-                              <div className="text-sm text-slate-600">
-                                {getRecipientName(apt.care_recipient_id)}
-                                {apt.time && ` • ${apt.time}`}
-                              </div>
-                            </div>
-                            <Badge className="bg-teal-100 text-teal-700 text-xs">{apt.appointment_type}</Badge>
-                          </div>
-                        ))}
-                        {todayTasks.map(task => (
-                          <div key={`task-${task.id}`} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                            <button
-                              onClick={() => setCompletingTask(task)}
-                              className="mt-1 text-blue-600 hover:text-blue-700"
-                            >
-                              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                            </button>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-slate-800">{task.title}</div>
-                              <div className="text-sm text-slate-600">
-                                {getRecipientName(task.care_recipient_id)}
-                              </div>
-                            </div>
-                            <Badge className={`${priorityColors[task.priority]} text-xs`}>{task.priority}</Badge>
-                          </div>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                </CaregiverDashboardWidget>
-              );
-            }
-
-            if (widget.id === 'urgentTasks') {
-              return (
-                <CaregiverDashboardWidget
-                  key={widget.id}
-                  widgetId={widget.id}
-                  title={`${widget.title} (${overdueTasks.length})`}
-                  icon={widget.icon}
-                  isPinned={widgetManager.config[widget.id]?.pinned}
-                  onPin={() => widgetManager.pinWidget(widget.id)}
-                  onHide={() => widgetManager.hideWidget(widget.id)}
-                >
-                  {overdueTasks.length === 0 ? (
-                    <p className="text-slate-500 text-sm text-center py-4">No overdue tasks</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {overdueTasks.map(task => (
-                        <div key={task.id} className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-slate-800">{task.title}</div>
-                            <div className="text-sm text-red-700">
-                              Due: {format(parseISO(task.due_date), 'MMM d')} • {getRecipientName(task.care_recipient_id)}
-                            </div>
-                          </div>
-                          <Badge className="bg-red-600 text-white text-xs">{task.priority}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CaregiverDashboardWidget>
-              );
-            }
-
-            if (widget.id === 'importantAlerts') {
-              return (
-                <CaregiverDashboardWidget
-                  key={widget.id}
-                  widgetId={widget.id}
-                  title={widget.title}
-                  icon={widget.icon}
-                  isPinned={widgetManager.config[widget.id]?.pinned}
-                  onPin={() => widgetManager.pinWidget(widget.id)}
-                  onHide={() => widgetManager.hideWidget(widget.id)}
-                >
-                  <ImportantAlerts
-                    tasks={tasks}
-                    appointments={appointments}
-                    medications={medications}
-                    recipients={recipients}
-                  />
-                </CaregiverDashboardWidget>
-              );
-            }
-
-            if (widget.id === 'assignedTasks') {
-              return (
-                <CaregiverDashboardWidget
-                  key={widget.id}
-                  widgetId={widget.id}
-                  title={widget.title}
-                  icon={widget.icon}
-                  isPinned={widgetManager.config[widget.id]?.pinned}
-                  onPin={() => widgetManager.pinWidget(widget.id)}
-                  onHide={() => widgetManager.hideWidget(widget.id)}
-                >
-                  <AssignedTasksSummary
-                    tasks={tasks}
-                    userEmail={user?.email}
-                    recipients={recipients}
-                  />
-                </CaregiverDashboardWidget>
-              );
-            }
-
-            if (widget.id === 'medications') {
-              return (
-                <CaregiverDashboardWidget
-                  key={widget.id}
-                  widgetId={widget.id}
-                  title={`${widget.title} (${activeMedications.length})`}
-                  icon={widget.icon}
-                  isPinned={widgetManager.config[widget.id]?.pinned}
-                  onPin={() => widgetManager.pinWidget(widget.id)}
-                  onHide={() => widgetManager.hideWidget(widget.id)}
-                >
-                  <div className="space-y-2">
-                    {activeMedications.length === 0 ? (
-                      <p className="text-slate-500 text-sm text-center py-4">No active medications</p>
-                    ) : (
-                      <>
-                        {activeMedications.map(med => (
-                          <div key={med.id} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                            <Pill className="w-5 h-5 text-green-600 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-slate-800">{med.medication_name}</div>
-                              <div className="text-sm text-slate-600">
-                                {getRecipientName(med.care_recipient_id)} • {med.dosage}
-                                {med.time_of_day && ` • ${med.time_of_day}`}
-                              </div>
-                            </div>
-                            <Badge className="bg-green-100 text-green-700 text-xs whitespace-nowrap">{med.frequency}</Badge>
-                          </div>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                </CaregiverDashboardWidget>
-              );
-            }
-
-            return null;
-          })}
-        </div>
-
-        {/* Completion Modal */}
         <TaskCompletionModal
           isOpen={!!completingTask}
           onClose={() => setCompletingTask(null)}

@@ -59,12 +59,14 @@ import { usePwaInstall } from '@/lib/use-pwa-install';
 const NAV_GROUPS = [
   {
     label: 'Overview',
+    color: 'slate',
     items: [
       { name: 'Dashboard', icon: Home, path: '/' }
     ]
   },
   {
     label: 'Care Management',
+    color: 'teal',
     items: [
       { name: 'Care Recipients', icon: Users, path: 'CareRecipients' },
       { name: 'AI Care Plans', icon: Sparkles, path: 'CarePlans' },
@@ -76,6 +78,7 @@ const NAV_GROUPS = [
   },
   {
     label: 'Medications',
+    color: 'emerald',
     items: [
       { name: 'All Medications', icon: Pill, path: 'Medications' },
       { name: 'Refills', icon: RefreshCw, path: 'Refills' },
@@ -84,6 +87,7 @@ const NAV_GROUPS = [
   },
   {
     label: 'Team & Communication',
+    color: 'violet',
     items: [
       { name: 'Team/Family', icon: Users2, path: 'Team' },
       { name: 'Comm Hub', icon: MessageSquare, path: 'CommunicationHub' },
@@ -94,6 +98,7 @@ const NAV_GROUPS = [
   },
   {
     label: 'Documents & Records',
+    color: 'amber',
     items: [
       { name: 'Documents', icon: FolderOpen, path: 'Documents' },
       { name: 'Receipts', icon: Receipt, path: 'Receipts', permission: 'canViewExpenses' },
@@ -102,11 +107,21 @@ const NAV_GROUPS = [
   },
   {
     label: 'Emergency',
+    color: 'red',
     items: [
       { name: 'Emergency Info', icon: Shield, path: 'EmergencyProfile' }
     ]
   }
 ];
+
+const GROUP_LABEL_STYLES = {
+  slate:   { text: 'text-slate-600',   hover: 'hover:bg-slate-100',   chevron: 'text-slate-400' },
+  teal:    { text: 'text-teal-700',    hover: 'hover:bg-teal-50',     chevron: 'text-teal-500' },
+  emerald: { text: 'text-emerald-700', hover: 'hover:bg-emerald-50',  chevron: 'text-emerald-500' },
+  violet:  { text: 'text-violet-700',  hover: 'hover:bg-violet-50',   chevron: 'text-violet-500' },
+  amber:   { text: 'text-amber-700',   hover: 'hover:bg-amber-50',    chevron: 'text-amber-500' },
+  red:     { text: 'text-red-700',     hover: 'hover:bg-red-50',      chevron: 'text-red-500' },
+};
 
 const BOTTOM_ITEMS = [
   { name: 'Resources', icon: BookOpen, path: 'Resources' },
@@ -169,9 +184,9 @@ export function AppSidebar() {
           <Collapsible key={group.label} defaultOpen className="group/collapsible">
             <SidebarGroup className="py-1">
               <CollapsibleTrigger asChild>
-                <SidebarGroupLabel className="cursor-pointer hover:bg-slate-50 rounded-md transition-colors flex items-center justify-between w-full px-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                <SidebarGroupLabel className={`cursor-pointer rounded-md transition-colors flex items-center justify-between w-full px-2 text-[13px] font-semibold uppercase tracking-wide ${GROUP_LABEL_STYLES[group.color].text} ${GROUP_LABEL_STYLES[group.color].hover}`}>
                   <span>{group.label}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-300 transition-transform group-data-[state=closed]/collapsible:rotate-[-90deg]" />
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform group-data-[state=closed]/collapsible:rotate-[-90deg] ${GROUP_LABEL_STYLES[group.color].chevron}`} />
                 </SidebarGroupLabel>
               </CollapsibleTrigger>
               <CollapsibleContent>
