@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Heart, ArrowRight, Mail, LayoutDashboard, Share2 } from "lucide-react";
+import { Heart, ArrowRight, Mail, LayoutDashboard, Share2, Download } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../lib/use-auth";
+import { usePwaInstall } from "../lib/use-pwa-install";
 
 const DASHBOARD_URL =
   import.meta.env.VITE_DASHBOARD_URL || "http://localhost:3001";
@@ -10,6 +11,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
+  const { canInstall, install, isInstalled } = usePwaInstall();
 
   const handleShare = useCallback(async () => {
     const shareData = { title: 'FamilyCare.Help', url: 'https://www.FamilyCare.Help' };
@@ -97,6 +99,19 @@ export function MarketingLayout({ children, fullWidth = false }) {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
+              {canInstall && !isInstalled && (
+                <button
+                  onClick={install}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                  style={{
+                    background: "linear-gradient(to right, #E07A5F, #F4A261)",
+                    fontFamily: "var(--font-body), sans-serif",
+                  }}
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Install App</span>
+                </button>
+              )}
               {isLoading ? (
                 <div className="w-24 h-10" />
               ) : isAuthenticated ? (

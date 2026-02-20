@@ -1,13 +1,14 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
-import { LogOut, LogIn, Mail, Share2, PanelLeft } from 'lucide-react';
+import { LogOut, LogIn, Mail, Share2, PanelLeft, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import NotificationBell from './components/notifications/NotificationBell';
 import NotificationGenerator from './components/notifications/NotificationGenerator';
 import LegalAcceptanceModal from './components/auth/LegalAcceptanceModal';
 import CancellationReminder from './components/subscription/CancellationReminder';
 import { Button } from '@/components/ui/button';
+import { usePwaInstall } from '@/lib/use-pwa-install';
 import {
   SidebarProvider,
   SidebarInset,
@@ -33,6 +34,7 @@ function MenuButton() {
 export default function Layout({ children, currentPageName }) {
   const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
+  const { canInstall, install, isInstalled } = usePwaInstall();
 
   const handleLogout = async () => {
     try {
@@ -91,6 +93,16 @@ export default function Layout({ children, currentPageName }) {
               >
                 Subscribe — 10 Days Free
               </Link>
+            )}
+            {canInstall && !isInstalled && (
+              <Button
+                onClick={install}
+                size="sm"
+                className="bg-gradient-to-r from-[#E07A5F] to-[#F4A261] hover:from-[#E07A5F]/90 hover:to-[#F4A261]/90 text-white text-xs gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Install App</span>
+              </Button>
             )}
             <button
               onClick={handleShare}
