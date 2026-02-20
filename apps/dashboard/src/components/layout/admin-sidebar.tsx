@@ -61,6 +61,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     name: 'Subscriptions',
     path: '/admin/subscriptions',
     icon: CreditCard,
+    superAdminOnly: true,
   },
   {
     name: 'Diagnostics',
