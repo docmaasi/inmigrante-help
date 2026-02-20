@@ -150,3 +150,13 @@
     @apply text-muted-foreground text-sm;
   }
 }
+
+/* Subscribe button pulse animation */
+@keyframes subscribe-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 126, 200, 0.5); }
+  50% { box-shadow: 0 0 12px 4px rgba(139, 126, 200, 0.3); }
+}
+
+.animate-subscribe-pulse {
+  animation: subscribe-pulse 2.5s ease-in-out infinite;
+}

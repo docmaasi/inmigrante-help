@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { LogOut, LogIn, Mail, Share2, PanelLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,7 +31,7 @@ function MenuButton() {
 }
 
 export default function Layout({ children, currentPageName }) {
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, profile, isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -58,6 +58,10 @@ export default function Layout({ children, currentPageName }) {
     } catch { window.prompt('Copy this link:', shareData.url); }
   };
 
+  const showSubscribeButton = isAuthenticated &&
+    profile?.subscription_status !== 'active' &&
+    profile?.subscription_status !== 'trialing';
+
   const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || "https://familycare.help";
 
   const footerNavItems = [
@@ -79,6 +83,15 @@ export default function Layout({ children, currentPageName }) {
           <MenuButton />
 
           <div className="flex items-center gap-3">
+            {showSubscribeButton && (
+              <Link
+                to="/Checkout"
+                className="animate-subscribe-pulse inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold text-white shadow-md transition-transform hover:scale-105"
+                style={{ backgroundColor: '#8B7EC8' }}
+              >
+                Subscribe — 10 Days Free
+              </Link>
+            )}
             <button
               onClick={handleShare}
               className="inline-flex items-center justify-center rounded-md p-2 text-slate-600 hover:bg-slate-100 hover:text-teal-600 transition-colors"
