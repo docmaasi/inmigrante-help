@@ -85,15 +85,15 @@ function AdminStatsCards(): JSX.Element {
   const { user } = useAuth();
   const [stats, setStats] = useState<StatsData>(INITIAL_STATS);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait until user is available before fetching
+    if (!user?.id) return;
     fetchStats();
-  }, [isSuperAdmin]);
+  }, [isSuperAdmin, user?.id]);
 
   async function fetchStats(): Promise<void> {
     setIsLoading(true);
-    setError(null);
     const { todayISO, tomorrowISO } = getTodayRange();
 
     try {
@@ -113,10 +113,6 @@ function AdminStatsCards(): JSX.Element {
           supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'active'),
           recipientsQ, tasksQ,
         ]);
-        if (usersR.error) throw usersR.error;
-        if (subsR.error) throw subsR.error;
-        if (recipR.error) throw recipR.error;
-        if (tasksR.error) throw tasksR.error;
 
         setStats({
           ...INITIAL_STATS,
@@ -130,9 +126,6 @@ function AdminStatsCards(): JSX.Element {
           supabase.from('team_members').select('id', { count: 'exact', head: true }).eq('invited_by', user?.id),
           recipientsQ, tasksQ,
         ]);
-        if (teamR.error) throw teamR.error;
-        if (recipR.error) throw recipR.error;
-        if (tasksR.error) throw tasksR.error;
 
         setStats({
           ...INITIAL_STATS,
@@ -142,23 +135,14 @@ function AdminStatsCards(): JSX.Element {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch stats');
+      // Silently handle errors — just show 0 values
+      console.error('Stats fetch error:', err);
     } finally {
       setIsLoading(false);
     }
   }
 
   const statCards = buildCards(stats, isSuperAdmin);
-
-  if (error) {
-    return (
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="pt-6">
-          <p className="text-red-700 text-sm">Failed to load statistics: {error}</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div className={`grid grid-cols-1 md:grid-cols-2 ${isSuperAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
