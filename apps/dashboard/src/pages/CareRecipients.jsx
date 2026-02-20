@@ -18,8 +18,6 @@ export default function CareRecipients() {
   const { profile, refreshProfile } = useAuth();
   const { data: recipients = [], isLoading } = useCareRecipients();
 
-  // Refresh profile after returning from Stripe billing portal
-  // The webhook may still be processing, so retry after a short delay
   useEffect(() => {
     const timer = setTimeout(() => {
       refreshProfile();
@@ -37,7 +35,6 @@ export default function CareRecipients() {
   };
 
   const handleManageSubscription = async () => {
-    // If user has no stripe_customer_id, send them to Checkout to subscribe first
     if (!profile?.stripe_customer_id) {
       window.location.href = '/Checkout';
       return;
@@ -53,7 +50,6 @@ export default function CareRecipients() {
       }
     } catch (error) {
       console.error('Failed to open billing portal:', error);
-      // Fallback to checkout page
       window.location.href = '/Checkout';
     } finally {
       setIsLoadingPortal(false);
@@ -69,29 +65,29 @@ export default function CareRecipients() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen bg-[#FAF7F2] p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col gap-4 mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">Care Recipients</h1>
-            <p className="text-sm md:text-base text-slate-600">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#4F46E5] mb-1">Care Recipients</h1>
+            <p className="text-sm md:text-base text-[#8B7EC8]">
               Manage profiles for your loved ones — {recipients.length} of {profile?.max_care_recipients || 1} spot{(profile?.max_care_recipients || 1) !== 1 ? 's' : ''} used
             </p>
           </div>
           {showLimitError && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="bg-[#F4A261]/10 border border-[#F4A261]/30 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-[#E07A5F] flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-amber-800">Care Recipient Limit Reached</p>
-                  <p className="text-sm text-amber-700 mt-1">
+                  <p className="text-sm font-medium text-[#E07A5F]">Care Recipient Limit Reached</p>
+                  <p className="text-sm text-[#E07A5F]/80 mt-1">
                     You're using {recipients.length} of {profile?.max_care_recipients || 1} care recipient spot{(profile?.max_care_recipients || 1) > 1 ? 's' : ''}.
                     Add more care recipients for <span className="font-semibold">$5/month each</span> (up to 10 total).
                   </p>
                   <Button
                     onClick={handleManageSubscription}
                     disabled={isLoadingPortal}
-                    className="mt-3 bg-teal-600 hover:bg-teal-700"
+                    className="mt-3 bg-gradient-to-r from-[#4F46E5] to-[#8B7EC8] hover:from-[#4F46E5]/90 hover:to-[#8B7EC8]/90"
                     size="sm"
                   >
                     {isLoadingPortal ? (
@@ -106,7 +102,7 @@ export default function CareRecipients() {
           )}
           <Button
             onClick={handleAddRecipient}
-            className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto"
+            className="bg-gradient-to-r from-[#E07A5F] to-[#F4A261] hover:from-[#E07A5F]/90 hover:to-[#F4A261]/90 text-white w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Recipient
@@ -116,7 +112,7 @@ export default function CareRecipients() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+              <div key={i} className="bg-white rounded-xl p-6 border border-[#E07A5F]/15 shadow-sm">
                 <div className="flex items-center gap-4 mb-4">
                   <Skeleton className="w-16 h-16 rounded-full" />
                   <div className="flex-1">
@@ -133,12 +129,12 @@ export default function CareRecipients() {
           </div>
         ) : recipients.length === 0 ? (
           <div className="text-center py-12 md:py-16">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-6 h-6 md:w-8 md:h-8 text-teal-600" />
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-[#E07A5F]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-6 h-6 md:w-8 md:h-8 text-[#E07A5F]" />
             </div>
-            <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2">No care recipients yet</h3>
-            <p className="text-sm md:text-base text-slate-500 mb-6">Add your first care recipient to get started</p>
-            <Button onClick={handleAddRecipient} className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto">
+            <h3 className="text-lg md:text-xl font-semibold text-[#4F46E5] mb-2">No care recipients yet</h3>
+            <p className="text-sm md:text-base text-[#8B7EC8] mb-6">Add your first care recipient to get started</p>
+            <Button onClick={handleAddRecipient} className="bg-gradient-to-r from-[#E07A5F] to-[#F4A261] hover:from-[#E07A5F]/90 hover:to-[#F4A261]/90 text-white w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Add Recipient
             </Button>

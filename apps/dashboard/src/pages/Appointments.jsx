@@ -91,14 +91,14 @@ export default function Appointments() {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen bg-[#FAF7F2] p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">Appointments</h1>
-            <p className="text-sm md:text-base text-slate-500 mt-1">Schedule and track medical visits</p>
+            <h1 className="text-2xl md:text-3xl font-semibold text-[#4F46E5]">Appointments</h1>
+            <p className="text-sm md:text-base text-[#8B7EC8] mt-1">Schedule and track medical visits</p>
           </div>
-          <Button onClick={openCreateDialog} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
+          <Button onClick={openCreateDialog} className="w-full sm:w-auto bg-gradient-to-r from-[#E07A5F] to-[#F4A261] hover:from-[#E07A5F]/90 hover:to-[#F4A261]/90 text-white shadow-sm">
             <Plus className="w-4 h-4 mr-2" />Add Appointment
           </Button>
         </div>
@@ -120,7 +120,7 @@ export default function Appointments() {
         {isLoading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+              <div key={i} className="bg-white rounded-xl p-6 border border-[#E07A5F]/15 shadow-sm">
                 <Skeleton className="h-6 w-3/4 mb-2" />
                 <Skeleton className="h-4 w-1/2 mb-4" />
                 <Skeleton className="h-4 w-full" />
@@ -128,13 +128,13 @@ export default function Appointments() {
             ))}
           </div>
         ) : appointments.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-12 md:p-16 text-center">
-            <div className="w-14 h-14 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-7 h-7 text-teal-600" />
+          <div className="bg-white border border-[#E07A5F]/15 rounded-xl shadow-sm p-12 md:p-16 text-center">
+            <div className="w-14 h-14 bg-[#E07A5F]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-7 h-7 text-[#E07A5F]" />
             </div>
-            <h3 className="text-lg md:text-xl font-medium text-slate-800 mb-2">No appointments scheduled</h3>
-            <p className="text-sm text-slate-500 mb-6">Schedule your first appointment to get started</p>
-            <Button onClick={openCreateDialog} className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm">
+            <h3 className="text-lg md:text-xl font-medium text-[#4F46E5] mb-2">No appointments scheduled</h3>
+            <p className="text-sm text-[#8B7EC8] mb-6">Schedule your first appointment to get started</p>
+            <Button onClick={openCreateDialog} className="bg-gradient-to-r from-[#E07A5F] to-[#F4A261] hover:from-[#E07A5F]/90 hover:to-[#F4A261]/90 text-white shadow-sm">
               <Plus className="w-4 h-4 mr-2" />Add Appointment
             </Button>
           </div>
