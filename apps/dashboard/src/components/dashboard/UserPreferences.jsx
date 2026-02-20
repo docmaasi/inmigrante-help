@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { User, Clock } from 'lucide-react';
 
-export default function UserPreferences({ profile, updateProfile, timeFormat, onTimeFormatChange }) {
+export default function UserPreferences({ profile, updateProfile, timeFormat, onTimeFormatChange, onSaveSuccess }) {
   const [nameInput, setNameInput] = useState(profile?.full_name || '');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -17,6 +17,7 @@ export default function UserPreferences({ profile, updateProfile, timeFormat, on
     try {
       await updateProfile({ full_name: trimmed });
       toast.success('Name updated!');
+      onSaveSuccess?.();
     } catch {
       toast.error('Failed to update name. Please try again.');
     } finally {

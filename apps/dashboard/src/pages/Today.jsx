@@ -159,6 +159,7 @@ export default function Today() {
                 updateProfile={updateProfile}
                 timeFormat={timeFormat}
                 onTimeFormatChange={handleTimeFormatChange}
+                onSaveSuccess={() => setShowCustomize(false)}
               />
               <HiddenWidgets
                 config={widgetManager.config}
