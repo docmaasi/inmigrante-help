@@ -70,7 +70,7 @@ export default function MessageThread({ messages, currentUserEmail, searchQuery 
                   </p>
                 </div>
                 <div className={`text-xs mt-1 ${isOwn ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {format(new Date(message.created_date), 'h:mm a')}
+                  {message.created_at ? format(new Date(message.created_at), 'h:mm a') : ''}
                 </div>
               </div>
             </div>
