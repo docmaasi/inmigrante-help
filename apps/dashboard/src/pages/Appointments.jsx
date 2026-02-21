@@ -10,11 +10,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { AppointmentCard } from '@/components/appointments/AppointmentCard';
 import { AppointmentFormFields } from '@/components/appointments/AppointmentFormFields';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function Appointments() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [formData, setFormData] = useState(getEmptyForm());
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data: recipients = [] } = useCareRecipients();
   const { data: appointments = [], isLoading } = useAppointments();
@@ -70,11 +72,16 @@ export default function Appointments() {
   }
 
   function handleDelete(apt) {
-    if (!window.confirm(`Delete "${apt.title}"? This cannot be undone.`)) return;
-    deleteMutation.mutate(apt.id, {
+    setDeleteTarget(apt);
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    deleteMutation.mutate(deleteTarget.id, {
       onSuccess: () => toast.success('Appointment deleted'),
       onError: (err) => toast.error(err.message || 'Failed to delete')
     });
+    setDeleteTarget(null);
   }
 
   function handleToggleStatus(apt) {
@@ -149,6 +156,14 @@ export default function Appointments() {
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Appointment"
+        description={`Delete "${deleteTarget?.title}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

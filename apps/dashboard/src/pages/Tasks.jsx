@@ -10,11 +10,13 @@ import { format, parseISO, isPast, isToday } from 'date-fns';
 import { Skeleton } from '../components/ui/skeleton';
 import TaskForm from '../components/tasks/TaskForm';
 import TaskCompletionModal from '../components/tasks/TaskCompletionModal';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function Tasks() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [completingTask, setCompletingTask] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterRecipient, setFilterRecipient] = useState('all');
@@ -429,11 +431,7 @@ export default function Tasks() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        if (confirm('Delete this task?')) {
-                          deleteTaskMutation.mutate(task.id);
-                        }
-                      }}
+                      onClick={() => setDeleteTarget(task)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -449,6 +447,14 @@ export default function Tasks() {
         </div>
       )}
       </div>
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Task"
+        description="Delete this task? This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => { deleteTaskMutation.mutate(deleteTarget.id); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

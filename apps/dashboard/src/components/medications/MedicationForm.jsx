@@ -488,7 +488,7 @@ export function MedicationForm({ medication, recipients, onClose }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Time of Day</Label>
+              <Label htmlFor="schedule-time-input">Time of Day</Label>
               <div className="flex gap-2">
                 <Select
                   value={timePeriod}
@@ -509,6 +509,7 @@ export function MedicationForm({ medication, recipients, onClose }) {
                   </SelectContent>
                 </Select>
                 <input
+                  id="schedule-time-input"
                   type="time"
                   value={timeValue}
                   onChange={(e) => {

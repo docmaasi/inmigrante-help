@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,23 +25,15 @@ export function Checkout() {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://js.stripe.com/v3/pricing-table.js';
     script.async = true;
     document.body.appendChild(script);
-
-    if (user?.email) {
-      const pricingTable = document.querySelector('stripe-pricing-table');
-      if (pricingTable) {
-        pricingTable.setAttribute('customer-email', user.email);
-      }
-    }
-
     return () => {
       document.body.removeChild(script);
     };
-  }, [user]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -90,7 +82,8 @@ export function Checkout() {
           <CardContent className="p-0">
             <stripe-pricing-table
               pricing-table-id="prctbl_1Sq0SNDw3DaD2xXnnwMDC51e"
-              publishable-key="pk_live_51SdEBaDw3DaD2xXn8j40oxVS5GTtf2y1CT0cN9TUc29BS2suu6jjAPjCAfNwj75XKVYV7oMvgGhSCCFx4C7Zgk6v00P0JBlsS3">
+              publishable-key="pk_live_51SdEBaDw3DaD2xXn8j40oxVS5GTtf2y1CT0cN9TUc29BS2suu6jjAPjCAfNwj75XKVYV7oMvgGhSCCFx4C7Zgk6v00P0JBlsS3"
+              customer-email={user?.email}>
             </stripe-pricing-table>
           </CardContent>
         </Card>

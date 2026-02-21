@@ -12,11 +12,13 @@ import { Skeleton } from '../components/ui/skeleton';
 import MedicationForm from '../components/medications/MedicationForm';
 import { MedicationCard } from '../components/medications/MedicationCard';
 import ShareQRCode from '../components/shared/ShareQRCode';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function Medications() {
   const [selectedMedication, setSelectedMedication] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data: medications = [], isLoading } = useMedications();
   const { data: recipients = [] } = useCareRecipients();
@@ -39,9 +41,7 @@ export default function Medications() {
   };
 
   const handleDelete = (med) => {
-    if (confirm('Delete this medication?')) {
-      deleteMutation.mutate(med.id);
-    }
+    setDeleteTarget(med);
   };
 
   const handleEdit = (med) => {
@@ -148,6 +148,14 @@ export default function Medications() {
         <ShareQRCode />
       </div>
       </div>
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Medication"
+        description={`Delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget.id); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

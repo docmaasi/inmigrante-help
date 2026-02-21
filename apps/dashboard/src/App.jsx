@@ -15,6 +15,7 @@ import AuthCallback from './pages/AuthCallback';
 import { ProtectedRoute } from '@/components/auth';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 const AdminDashboard = lazy(() =>
   import('@/pages/admin/admin-dashboard').then((module) => ({
@@ -215,7 +216,11 @@ function AppRoutes() {
           <ForgotPassword />
         </PublicRoute>
       } />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/reset-password" element={
+        <PublicRoute>
+          <ResetPassword />
+        </PublicRoute>
+      } />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
@@ -224,15 +229,17 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <NavigationTracker />
-          <AppRoutes />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <NavigationTracker />
+            <AppRoutes />
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
 

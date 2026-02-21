@@ -7,6 +7,7 @@ import { Check, X, ChevronDown, ChevronUp, Trash2, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { MedicationCardHeader, TodayLogsList, LogHistory } from './MedicationCardBody';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 function TakenCollapsedRow({ medication, recipientName, onExpand, onDelete }) {
   return (
@@ -44,6 +45,7 @@ export function MedicationCheckoffItem({ medication, recipientName }) {
   const [notes, setNotes] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [justMarkedTaken, setJustMarkedTaken] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
   const currentTime = format(new Date(), 'HH:mm');
@@ -78,11 +80,15 @@ export function MedicationCheckoffItem({ medication, recipientName }) {
   };
 
   const handleDelete = () => {
-    if (!window.confirm(`Delete "${medication.name}"? This cannot be undone.`)) return;
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
     deleteMutation.mutate(medication.id, {
       onSuccess: () => toast.success(`${medication.name} deleted`),
       onError: (err) => toast.error(err.message || 'Failed to delete medication')
     });
+    setShowDeleteDialog(false);
   };
 
   if ((hasTakenToday || justMarkedTaken) && !isExpanded) {
@@ -144,6 +150,14 @@ export function MedicationCheckoffItem({ medication, recipientName }) {
           </div>
         )}
       </CardContent>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        title="Delete Medication"
+        description={`Delete "${medication.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
     </Card>
   );
 }

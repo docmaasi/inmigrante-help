@@ -54,7 +54,8 @@ export default function CareNoteForm({ note, recipients, onClose }) {
             toast.success('Note updated');
             onClose();
           },
-          onError: () => {
+          onError: (error) => {
+            console.error(error);
             toast.error('Failed to update note');
           },
         }
@@ -65,7 +66,8 @@ export default function CareNoteForm({ note, recipients, onClose }) {
           toast.success('Note added');
           onClose();
         },
-        onError: () => {
+        onError: (error) => {
+          console.error(error);
           toast.error('Failed to add note');
         },
       });

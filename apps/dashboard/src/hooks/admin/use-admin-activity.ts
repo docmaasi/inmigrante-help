@@ -36,7 +36,7 @@ interface AdminActivityFilters {
 }
 
 export function useAdminActivity(filters?: AdminActivityFilters) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useQuery({
     queryKey: [QUERY_KEY, filters],
@@ -78,12 +78,12 @@ export function useAdminActivity(filters?: AdminActivityFilters) {
 
       return data as AdminActivityLog[];
     },
-    enabled: !!user,
+    enabled: !!user && ['admin', 'super_admin'].includes(profile?.role ?? ''),
   });
 }
 
 export function useAdminActivityById(id: string | undefined) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
@@ -104,7 +104,7 @@ export function useAdminActivityById(id: string | undefined) {
 
       return data as AdminActivityLog;
     },
-    enabled: !!user && !!id,
+    enabled: !!user && !!id && ['admin', 'super_admin'].includes(profile?.role ?? ''),
   });
 }
 
@@ -140,7 +140,7 @@ export function useLogAdminAction() {
 }
 
 export function useAdminActivityStats() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   return useQuery({
     queryKey: [QUERY_KEY, 'stats'],
@@ -165,6 +165,6 @@ export function useAdminActivityStats() {
         last7Days: last7Days.count ?? 0,
       };
     },
-    enabled: !!user,
+    enabled: !!user && ['admin', 'super_admin'].includes(profile?.role ?? ''),
   });
 }

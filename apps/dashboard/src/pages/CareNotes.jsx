@@ -3,14 +3,17 @@ import { useCareRecipients, useCareNotes, useDeleteCareNote } from '@/hooks';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, FileText, User, Clock, Flag, Edit2, Trash2, Smile, Frown, Meh } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import CareNoteForm from '../components/notes/CareNoteForm';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function CareNotes() {
   const [selectedNote, setSelectedNote] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [filterType, setFilterType] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data: notes = [], isLoading } = useCareNotes();
   const { data: recipients = [] } = useCareRecipients();
@@ -101,8 +104,21 @@ export default function CareNotes() {
 
       {/* Notes List */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="border-slate-200">
+              <CardContent className="p-5">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : filteredNotes.length === 0 ? (
         <Card className="border-slate-200">
@@ -192,11 +208,7 @@ export default function CareNotes() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => {
-                      if (confirm('Delete this note?')) {
-                        deleteMutation.mutate(note.id);
-                      }
-                    }}
+                    onClick={() => setDeleteTarget(note)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -207,6 +219,14 @@ export default function CareNotes() {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Note"
+        description="Delete this note? This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => { deleteMutation.mutate(deleteTarget.id); setDeleteTarget(null); }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

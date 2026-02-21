@@ -371,6 +371,6 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error('Webhook error:', err);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    return new Response('Webhook error', { status: 400 });
   }
 });

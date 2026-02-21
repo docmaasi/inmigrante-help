@@ -6,7 +6,7 @@ import { hasMinimumRole, isRoleAllowed } from '@/types/permissions';
 /**
  * Default role when profile is unavailable.
  */
-const DEFAULT_ROLE: UserRole = 'admin';
+const DEFAULT_ROLE: UserRole = 'viewer';
 
 /**
  * Computes permissions for a given role.

@@ -12,8 +12,11 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-// Billing Portal Configuration ID — set via env var, falls back to current config
-const PORTAL_CONFIGURATION_ID = Deno.env.get('STRIPE_PORTAL_CONFIG_ID') || 'bpc_1Sjt0xDw3DaD2xXniBz3czCa';
+// Billing Portal Configuration ID — must be set via STRIPE_PORTAL_CONFIG_ID env var
+const PORTAL_CONFIGURATION_ID = Deno.env.get('STRIPE_PORTAL_CONFIG_ID');
+if (!PORTAL_CONFIGURATION_ID) {
+  throw new Error('STRIPE_PORTAL_CONFIG_ID environment variable is not set');
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

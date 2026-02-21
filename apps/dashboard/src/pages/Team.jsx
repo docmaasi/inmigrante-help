@@ -14,6 +14,7 @@ import {
 } from '@/hooks';
 import { TeamMemberCard } from '../components/team/TeamMemberCard';
 import { TeamMemberForm } from '../components/team/TeamMemberForm';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 const EMPTY_FORM = {
   email: '', care_recipient_ids: [], role: 'caregiver',
@@ -25,6 +26,7 @@ export default function Team() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [formData, setFormData] = useState({ ...EMPTY_FORM });
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data: teamMembers = [], isLoading } = useTeamMembers();
   const { data: recipients = [] } = useCareRecipients();
@@ -75,9 +77,7 @@ export default function Team() {
   };
 
   const handleDelete = (member) => {
-    if (confirm(`Remove ${member.full_name} from the care team?`)) {
-      removeMutation.mutate(member.id, { onSuccess: () => toast.success('Team member removed') });
-    }
+    setDeleteTarget(member);
   };
 
   const activeMembers = teamMembers.filter(m => m.status !== 'removed');
@@ -157,6 +157,17 @@ export default function Team() {
           onSubmit={handleSubmit} isEditing={!!editingMember}
           isPending={inviteMutation.isPending || updateMutation.isPending}
           recipients={formattedRecipients}
+        />
+        <ConfirmDialog
+          open={!!deleteTarget}
+          title="Remove Team Member"
+          description={`Remove ${deleteTarget?.full_name} from the care team?`}
+          confirmLabel="Remove"
+          onConfirm={() => {
+            removeMutation.mutate(deleteTarget.id, { onSuccess: () => toast.success('Team member removed') });
+            setDeleteTarget(null);
+          }}
+          onCancel={() => setDeleteTarget(null)}
         />
       </div>
     </div>

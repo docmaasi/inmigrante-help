@@ -110,6 +110,7 @@ export function MessageInput({ onSend, onShareUpdate, disabled }) {
               disabled={disabled || uploading}
               onClick={() => document.getElementById('photo-upload').click()}
               className="cursor-pointer"
+              aria-label="Upload photo"
             >
               <Image className="w-4 h-4" />
             </Button>
@@ -119,6 +120,7 @@ export function MessageInput({ onSend, onShareUpdate, disabled }) {
             disabled={disabled || (!message.trim() && photos.length === 0) || uploading}
             className="bg-blue-600 hover:bg-blue-700"
             size="icon"
+            aria-label="Send message"
           >
             <Send className="w-4 h-4" />
           </Button>
@@ -127,6 +129,7 @@ export function MessageInput({ onSend, onShareUpdate, disabled }) {
             disabled={disabled}
             variant="outline"
             size="icon"
+            aria-label="Share update"
           >
             <Share2 className="w-4 h-4" />
           </Button>

@@ -7,21 +7,19 @@ import { toast } from 'sonner';
 import { Skeleton } from '../components/ui/skeleton';
 import CarePlanForm from '../components/careplan/CarePlanForm';
 import CarePlanCard from '../components/careplan/CarePlanCard';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function CarePlanBuilder() {
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data: recipients = [], isLoading: loadingRecipients } = useCareRecipients();
   const { data: carePlans = [], isLoading: loadingPlans } = useCarePlans();
   const deleteMutation = useDeleteCarePlan();
 
   const handleDelete = (plan) => {
-    if (!confirm(`Delete care plan "${plan.title}"? This cannot be undone.`)) return;
-    deleteMutation.mutate(plan.id, {
-      onSuccess: () => toast.success('Care plan deleted'),
-      onError: (err) => toast.error(err.message || 'Failed to delete care plan'),
-    });
+    setDeleteTarget(plan);
   };
 
   const handleEdit = (plan) => {
@@ -108,6 +106,20 @@ export default function CarePlanBuilder() {
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Care Plan"
+        description={`Delete care plan "${deleteTarget?.title}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          deleteMutation.mutate(deleteTarget.id, {
+            onSuccess: () => toast.success('Care plan deleted'),
+            onError: (err) => toast.error(err.message || 'Failed to delete care plan'),
+          });
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

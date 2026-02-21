@@ -58,7 +58,8 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
             toast.success('Care plan updated');
             onClose();
           },
-          onError: () => {
+          onError: (error) => {
+            console.error(error);
             toast.error('Failed to update care plan');
           },
         }
@@ -69,7 +70,8 @@ export default function CarePlanForm({ plan, recipients, onClose }) {
           toast.success('Care plan created');
           onClose();
         },
-        onError: () => {
+        onError: (error) => {
+          console.error(error);
           toast.error('Failed to create care plan');
         },
       });

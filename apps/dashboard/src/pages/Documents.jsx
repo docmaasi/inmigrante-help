@@ -14,12 +14,14 @@ import { FileText, Upload, Download, Trash2, Star, Calendar, User, Filter } from
 import { format, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export default function Documents() {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [uploading, setUploading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [formData, setFormData] = useState({
     care_recipient_id: '',
     name: '',
@@ -97,11 +99,7 @@ export default function Documents() {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this document?')) {
-      deleteMutation.mutate(id, {
-        onSuccess: () => toast.success('Document deleted'),
-      });
-    }
+    setDeleteTarget(id);
   };
 
   const filteredDocuments = documents.filter(doc => {
@@ -378,6 +376,17 @@ export default function Documents() {
           </DialogContent>
         </Dialog>
       </div>
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Document"
+        description="Are you sure you want to delete this document? This cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => {
+          deleteMutation.mutate(deleteTarget, { onSuccess: () => toast.success('Document deleted') });
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

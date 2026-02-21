@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Lock, User, Eye, EyeOff, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 
-const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'http://localhost:3000';
+const MARKETING_URL = import.meta.env.VITE_MARKETING_URL || 'https://familycare.help';
 
 export default function Signup() {
   const [fullName, setFullName] = useState('');
