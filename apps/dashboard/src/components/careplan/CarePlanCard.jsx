@@ -18,7 +18,7 @@ export default function CarePlanCard({ plan, recipients, onEdit, onDelete }) {
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(CarePlanPrint({ plan, recipient }));
+    printWindow.document.write(CarePlanPrint({ plan, recipientName }));
     printWindow.document.close();
     setTimeout(() => {
       printWindow.print();

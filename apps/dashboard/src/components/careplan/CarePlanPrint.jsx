@@ -1,20 +1,42 @@
-export default function CarePlanPrint({ plan, recipient }) {
-  const routines = JSON.parse(plan.daily_routines || '[]');
-  const contacts = JSON.parse(plan.important_contacts || '[]');
-  const medications = JSON.parse(plan.medication_schedule || '[]');
+// Called as a plain function from CarePlanCard.jsx — returns an HTML string.
+// Accepts recipientName as a pre-built string (not the raw recipient object)
+// so the caller controls name resolution (handles both joined data and array lookup).
+export default function CarePlanPrint({ plan, recipientName }) {
+  const goals = Array.isArray(plan.goals) ? plan.goals.filter(Boolean) : [];
+  const updatedAt = plan.updated_at
+    ? new Date(plan.updated_at).toLocaleDateString()
+    : 'N/A';
+
+  const goalsHtml = goals.length > 0
+    ? `<div class="section">
+        <h2>Goals</h2>
+        ${goals.map(goal => `
+          <div class="goal-item">
+            <span class="bullet">&#8227;</span>
+            <span>${goal}</span>
+          </div>
+        `).join('')}
+      </div>`
+    : '';
+
+  const descriptionHtml = plan.description
+    ? `<div class="section">
+        <h2>Description</h2>
+        <div class="notes">
+          ${plan.description.split('\n').map(line => `<p style="margin: 6px 0;">${line}</p>`).join('')}
+        </div>
+      </div>`
+    : '';
 
   return `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <title>${plan.plan_name} - ${recipient?.full_name || 'Care Plan'}</title>
+      <title>${plan.title || 'Care Plan'} — ${recipientName || 'Care Plan'}</title>
       <style>
-        @media print {
-          @page { margin: 1cm; }
-          body { margin: 0; }
-        }
-        
+        @page { margin: 1.5cm; }
+
         body {
           font-family: Arial, sans-serif;
           line-height: 1.6;
@@ -23,145 +45,100 @@ export default function CarePlanPrint({ plan, recipient }) {
           margin: 0 auto;
           padding: 20px;
         }
-        
+
         .header {
           border-bottom: 3px solid #9333ea;
           padding-bottom: 20px;
           margin-bottom: 30px;
         }
-        
+
         .header h1 {
-          margin: 0;
+          margin: 0 0 6px;
           color: #9333ea;
           font-size: 28px;
         }
-        
-        .header .subtitle {
-          color: #666;
-          font-size: 16px;
-          margin-top: 5px;
+
+        .header .meta {
+          color: #555;
+          font-size: 15px;
+          line-height: 1.8;
         }
-        
+
+        .status-badge {
+          display: inline-block;
+          margin-top: 8px;
+          padding: 2px 10px;
+          border-radius: 12px;
+          font-size: 13px;
+          font-weight: bold;
+          background: #e9d5ff;
+          color: #6b21a8;
+        }
+
         .section {
-          margin-bottom: 30px;
+          margin-bottom: 28px;
           page-break-inside: avoid;
         }
-        
+
         .section h2 {
           color: #9333ea;
-          font-size: 20px;
+          font-size: 18px;
           border-bottom: 2px solid #e9d5ff;
-          padding-bottom: 8px;
-          margin-bottom: 15px;
+          padding-bottom: 6px;
+          margin-bottom: 14px;
         }
-        
-        .routine-item, .contact-item, .med-item {
-          background: #f8f9fa;
-          padding: 12px;
-          margin-bottom: 10px;
+
+        .goal-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 8px 12px;
+          margin-bottom: 8px;
+          background: #f8f4ff;
           border-left: 3px solid #9333ea;
           border-radius: 4px;
         }
-        
-        .routine-item .time {
-          font-weight: bold;
+
+        .bullet {
           color: #9333ea;
-          display: inline-block;
-          min-width: 80px;
+          font-size: 18px;
+          line-height: 1.4;
+          flex-shrink: 0;
         }
-        
-        .contact-item strong {
-          color: #9333ea;
-        }
-        
-        .emergency {
-          background: #fee2e2;
-          border-left-color: #dc2626;
-          padding: 15px;
-          border-radius: 4px;
-        }
-        
+
         .notes {
           background: #f0f9ff;
-          padding: 15px;
+          padding: 14px;
           border-radius: 4px;
           border-left: 3px solid #3b82f6;
         }
-        
+
         .footer {
           margin-top: 40px;
-          padding-top: 20px;
+          padding-top: 16px;
           border-top: 2px solid #e5e7eb;
           text-align: center;
-          color: #666;
+          color: #888;
           font-size: 12px;
         }
       </style>
     </head>
     <body>
       <div class="header">
-        <h1>${plan.plan_name}</h1>
-        <div class="subtitle">
-          <strong>Care Recipient:</strong> ${recipient?.full_name || 'N/A'}<br>
-          <strong>Last Updated:</strong> ${plan.last_updated ? new Date(plan.last_updated).toLocaleDateString() : 'N/A'}
+        <h1>${plan.title || 'Care Plan'}</h1>
+        <div class="meta">
+          <strong>Care Recipient:</strong> ${recipientName || 'N/A'}<br>
+          <strong>Last Updated:</strong> ${updatedAt}
         </div>
+        <div class="status-badge">${plan.status || 'draft'}</div>
       </div>
 
-      ${routines.length > 0 ? `
-        <div class="section">
-          <h2>Daily Routines</h2>
-          ${routines.sort((a, b) => (a.time || '').localeCompare(b.time || '')).map(routine => `
-            <div class="routine-item">
-              <span class="time">${routine.time || 'No time'}</span>
-              <strong>${routine.activity}</strong>
-              ${routine.notes ? `<br><em style="color: #666; font-size: 14px;">${routine.notes}</em>` : ''}
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-
-      ${medications.length > 0 ? `
-        <div class="section">
-          <h2>Medication Schedule</h2>
-          <p style="color: #666; font-style: italic;">Medication IDs included in this plan: ${medications.join(', ')}</p>
-          <p style="color: #666; font-size: 14px;">Please refer to the full medication list for detailed dosage and timing information.</p>
-        </div>
-      ` : ''}
-
-      ${contacts.length > 0 ? `
-        <div class="section">
-          <h2>Important Contacts</h2>
-          ${contacts.map(contact => `
-            <div class="contact-item">
-              <strong>${contact.name}</strong> - ${contact.relationship || 'N/A'}<br>
-              Phone: ${contact.phone || 'N/A'}
-              ${contact.email ? `<br>Email: ${contact.email}` : ''}
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-
-      ${plan.emergency_procedures ? `
-        <div class="section">
-          <h2>Emergency Procedures</h2>
-          <div class="emergency">
-            ${plan.emergency_procedures.split('\n').map(line => `<p style="margin: 8px 0;">${line}</p>`).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      ${plan.special_notes ? `
-        <div class="section">
-          <h2>Special Notes</h2>
-          <div class="notes">
-            ${plan.special_notes.split('\n').map(line => `<p style="margin: 8px 0;">${line}</p>`).join('')}
-          </div>
-        </div>
-      ` : ''}
+      ${descriptionHtml}
+      ${goalsHtml}
 
       <div class="footer">
         <p>Generated by FamilyCare.Help Care Plan Builder</p>
-        <p>This care plan is for informational purposes. Always consult healthcare professionals for medical decisions.</p>
+        <p style="color: #e07a5f;">This care plan is for informational purposes only. Always consult healthcare professionals for medical decisions.</p>
       </div>
     </body>
     </html>
