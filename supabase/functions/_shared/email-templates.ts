@@ -90,3 +90,27 @@ export function subscriptionCanceledHtml(userName: string, deletionDate: string)
     ${p('Changed your mind? You can resubscribe any time before the deletion date to keep everything.')}
     ${btn(`${URL}/Checkout`, 'Resubscribe')}`);
 }
+
+/** Sent when a caregiver is invited to join a care team. */
+export function teamInviteHtml(params: {
+  inviteeName: string;
+  caregiverName: string;
+  careRecipientNames: string[];
+  signupUrl: string;
+}): string {
+  const { inviteeName, caregiverName, careRecipientNames, signupUrl } = params;
+  const recipientList = careRecipientNames.length > 0
+    ? careRecipientNames.join(', ')
+    : 'your care recipient';
+  return emailLayout(`
+    <div style="background:#0d9488;color:#fff;padding:12px 16px;border-radius:6px;margin-bottom:20px;text-align:center;">
+      <strong style="font-size:16px;">You've been invited to FamilyCare.Help</strong>
+    </div>
+    ${p(`Hi ${inviteeName},`)}
+    ${p(`<strong>${caregiverName}</strong> has invited you to help coordinate care for <strong>${recipientList}</strong>.`)}
+    ${p('Create your free account to view care schedules, log medications, read care notes, and coordinate with the rest of the team.')}
+    ${btn(signupUrl, 'Accept Invitation & Create Account')}
+    <p style="color:#64748b;font-size:13px;text-align:center;">
+      Sign up with this email address — your account will be linked to the care team automatically.
+    </p>`);
+}

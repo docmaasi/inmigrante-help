@@ -43,19 +43,20 @@ export function useTeamMember(id: string | undefined) {
   });
 }
 
+type InviteInput = Omit<InsertTables<'team_members'>, 'user_id' | 'status' | 'invited_at'> & {
+  careRecipientNames?: string[];
+};
+
 export function useInviteTeamMember() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (
-      data: Omit<InsertTables<'team_members'>, 'user_id' | 'status' | 'invited_at'>
-    ) => {
+    mutationFn: async ({ careRecipientNames: _names, ...data }: InviteInput) => {
       if (!user) throw new Error('Not authenticated');
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase
-        .from('team_members') as any)
+      const { data: result, error } = await (supabase.from('team_members') as any)
         .insert({
           ...data,
           user_id: user.id,
@@ -68,8 +69,21 @@ export function useInviteTeamMember() {
       if (error) throw error;
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (_result, variables) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+
+      // Fire-and-forget: send invite email (and auto-link if account already exists).
+      supabase.functions
+        .invoke('send-team-invite', {
+          body: {
+            teamMemberEmail: variables.email,
+            teamMemberName: variables.full_name,
+            caregiverName:
+              user?.user_metadata?.full_name || user?.email || 'Your care team',
+            careRecipientNames: variables.careRecipientNames ?? [],
+          },
+        })
+        .catch(console.warn);
     },
   });
 }
@@ -83,8 +97,7 @@ export function useUpdateTeamMember() {
       ...data
     }: UpdateTables<'team_members'> & { id: string }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase
-        .from('team_members') as any)
+      const { data: result, error } = await (supabase.from('team_members') as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -113,134 +126,7 @@ export function useRemoveTeamMember() {
   });
 }
 
-// Caregiver Shifts
-export function useCaregiverShifts(filters?: {
-  teamMemberId?: string;
-  careRecipientId?: string;
-  startDate?: string;
-  endDate?: string;
-}) {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['caregiver-shifts', filters],
-    queryFn: async () => {
-      let query = supabase
-        .from('caregiver_shifts')
-        .select('*, team_members(full_name), care_recipients(first_name, last_name)')
-        .order('start_time', { ascending: true });
-
-      if (filters?.teamMemberId) {
-        query = query.eq('team_member_id', filters.teamMemberId);
-      }
-      if (filters?.careRecipientId) {
-        query = query.eq('care_recipient_id', filters.careRecipientId);
-      }
-      if (filters?.startDate) {
-        query = query.gte('start_time', filters.startDate);
-      }
-      if (filters?.endDate) {
-        query = query.lte('end_time', filters.endDate);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-}
-
-export function useCreateShift() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async (data: Omit<InsertTables<'caregiver_shifts'>, 'user_id'>) => {
-      if (!user) throw new Error('Not authenticated');
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase
-        .from('caregiver_shifts') as any)
-        .insert({ ...data, user_id: user.id })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['caregiver-shifts'] });
-    },
-  });
-}
-
-export function useUpdateShift() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      ...data
-    }: UpdateTables<'caregiver_shifts'> & { id: string }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase
-        .from('caregiver_shifts') as any)
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['caregiver-shifts'] });
-    },
-  });
-}
-
-// Team Announcements
-export function useTeamAnnouncements() {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ['team-announcements'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('team_announcements')
-        .select('*, profiles:user_id(full_name)')
-        .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-}
-
-export function useCreateAnnouncement() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async (data: Omit<InsertTables<'team_announcements'>, 'user_id'>) => {
-      if (!user) throw new Error('Not authenticated');
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase
-        .from('team_announcements') as any)
-        .insert({ ...data, user_id: user.id })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['team-announcements'] });
-    },
-  });
-}
+// Re-export shift and announcement hooks for backward compatibility.
+// The implementations have moved to their own files to keep file sizes under 200 lines.
+export { useCaregiverShifts, useCreateShift, useUpdateShift } from './use-shifts';
+export { useTeamAnnouncements, useCreateAnnouncement } from './use-announcements';

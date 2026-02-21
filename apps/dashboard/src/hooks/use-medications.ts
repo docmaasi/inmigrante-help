@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useWorkspace } from './use-workspace';
 import type { InsertTables, UpdateTables } from '@/types/database';
 
 const QUERY_KEY = 'medications';
@@ -141,6 +142,7 @@ export function useMedicationLogs(medicationId?: string, careRecipientId?: strin
 export function useLogMedication() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { workspaceOwnerUserId } = useWorkspace();
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'medication_logs'>, 'user_id'>) => {
@@ -149,7 +151,7 @@ export function useLogMedication() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: result, error } = await (supabase
         .from('medication_logs') as any)
-        .insert({ ...data, user_id: user.id })
+        .insert({ ...data, user_id: workspaceOwnerUserId })
         .select()
         .single();
 

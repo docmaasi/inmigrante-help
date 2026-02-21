@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useWorkspace } from './use-workspace';
 import type { InsertTables, UpdateTables } from '@/types/database';
 
 const QUERY_KEY = 'tasks';
@@ -74,6 +75,7 @@ export function useTask(id: string | undefined) {
 export function useCreateTask() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { workspaceOwnerUserId } = useWorkspace();
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'tasks'>, 'user_id'>) => {
@@ -82,7 +84,7 @@ export function useCreateTask() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: result, error } = await (supabase
         .from('tasks') as any)
-        .insert({ ...data, user_id: user.id })
+        .insert({ ...data, user_id: workspaceOwnerUserId })
         .select()
         .single();
 

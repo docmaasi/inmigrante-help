@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useWorkspace } from './use-workspace';
 import type { InsertTables, UpdateTables } from '@/types/database';
 
 const QUERY_KEY = 'documents';
@@ -59,6 +60,7 @@ export function useDocument(id: string | undefined) {
 export function useCreateDocument() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { workspaceOwnerUserId } = useWorkspace();
 
   return useMutation({
     mutationFn: async (data: Omit<InsertTables<'documents'>, 'user_id'>) => {
@@ -67,7 +69,7 @@ export function useCreateDocument() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: result, error } = await (supabase
         .from('documents') as any)
-        .insert({ ...data, user_id: user.id })
+        .insert({ ...data, user_id: workspaceOwnerUserId })
         .select()
         .single();
 
