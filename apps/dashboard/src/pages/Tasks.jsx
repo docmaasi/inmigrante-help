@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, CheckSquare, User, Calendar, Clock, AlertCircle, Edit2, Trash2, Check } from 'lucide-react';
+import { Plus, CheckSquare, User, Calendar, Clock, AlertCircle, Edit2, Trash2, Check, Printer } from 'lucide-react';
+import { printTasks } from '@/components/tasks/tasks-print';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import { Skeleton } from '../components/ui/skeleton';
 import TaskForm from '../components/tasks/TaskForm';
@@ -134,16 +135,23 @@ export default function Tasks() {
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Tasks</h1>
           <p className="text-sm md:text-base text-slate-500 mt-1">Manage caregiver responsibilities</p>
         </div>
-        <Button
-          onClick={() => {
-            setSelectedTask(null);
-            setShowForm(true);
-          }}
-          className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Task
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => printTasks(filteredTasks, getRecipientName)}
+            disabled={isLoading || filteredTasks.length === 0}
+            className="border-teal-200 text-teal-700"
+          >
+            <Printer className="w-4 h-4 mr-2" />Print
+          </Button>
+          <Button
+            onClick={() => { setSelectedTask(null); setShowForm(true); }}
+            className="flex-1 sm:flex-initial bg-teal-600 hover:bg-teal-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Task
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

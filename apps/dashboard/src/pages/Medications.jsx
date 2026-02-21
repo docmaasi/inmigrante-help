@@ -7,7 +7,8 @@ import {
 } from '@/hooks';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Pill } from 'lucide-react';
+import { Plus, Pill, Printer } from 'lucide-react';
+import { printMedications } from '@/components/medications/medications-print';
 import { Skeleton } from '../components/ui/skeleton';
 import MedicationForm from '../components/medications/MedicationForm';
 import { MedicationCard } from '../components/medications/MedicationCard';
@@ -66,6 +67,16 @@ export default function Medications() {
             className={showInactive ? 'border-[#4F46E5]/30 text-[#4F46E5]' : 'border-[#8B7EC8]/30 text-[#8B7EC8]'}
           >
             {showInactive ? 'Hide Inactive' : 'Show Inactive'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => printMedications(filteredMedications, getRecipientName)}
+            disabled={isLoading || filteredMedications.length === 0}
+            className="border-[#8B7EC8]/30 text-[#8B7EC8]"
+          >
+            <Printer className="w-4 h-4 mr-1" />
+            Print
           </Button>
           <Button
             onClick={() => {

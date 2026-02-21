@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Calendar, Heart, FileText, AlertCircle, Utensils, Phone, Mail, Edit, Pill, Clock, StickyNote } from 'lucide-react';
+import { User, Calendar, Heart, FileText, AlertCircle, Utensils, Phone, Mail, Edit, Pill, Clock, StickyNote, Printer } from 'lucide-react';
+import { printRecipientProfile } from '@/components/care/recipient-profile-print';
 import { format, parseISO, differenceInYears, isAfter } from 'date-fns';
 import CareRecipientForm from '../components/care/CareRecipientForm';
 
@@ -106,10 +107,20 @@ export default function RecipientProfile() {
             )}
           </div>
         </div>
-        <Button onClick={() => setShowEditForm(true)} className="bg-teal-600 hover:bg-teal-700">
-          <Edit className="w-4 h-4 mr-2" />
-          Edit Profile
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => printRecipientProfile(recipient, medications, upcomingAppointments)}
+            className="border-teal-200 text-teal-700"
+          >
+            <Printer className="w-4 h-4 mr-2" />
+            Print Summary
+          </Button>
+          <Button onClick={() => setShowEditForm(true)} className="bg-teal-600 hover:bg-teal-700">
+            <Edit className="w-4 h-4 mr-2" />
+            Edit Profile
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">

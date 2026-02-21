@@ -3,7 +3,8 @@ import {
   useAppointments, useCreateAppointment, useUpdateAppointment,
   useDeleteAppointment, useCareRecipients
 } from '@/hooks';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, Printer } from 'lucide-react';
+import { printAppointments } from '@/components/appointments/appointments-print';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -105,9 +106,19 @@ export default function Appointments() {
             <h1 className="text-2xl md:text-3xl font-semibold text-[#4F46E5]">Appointments</h1>
             <p className="text-sm md:text-base text-[#8B7EC8] mt-1">Schedule and track medical visits</p>
           </div>
-          <Button onClick={openCreateDialog} className="w-full sm:w-auto bg-gradient-to-r from-[#E07A5F] to-[#F4A261] hover:from-[#E07A5F]/90 hover:to-[#F4A261]/90 text-white shadow-sm">
-            <Plus className="w-4 h-4 mr-2" />Add Appointment
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => printAppointments(appointments, getRecipientName)}
+              disabled={isLoading || appointments.length === 0}
+              className="border-[#E07A5F]/40 text-[#E07A5F]"
+            >
+              <Printer className="w-4 h-4 mr-2" />Print
+            </Button>
+            <Button onClick={openCreateDialog} className="flex-1 sm:flex-initial bg-gradient-to-r from-[#E07A5F] to-[#F4A261] hover:from-[#E07A5F]/90 hover:to-[#F4A261]/90 text-white shadow-sm">
+              <Plus className="w-4 h-4 mr-2" />Add Appointment
+            </Button>
+          </div>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, FileText, User, Clock, Flag, Edit2, Trash2, Smile, Frown, Meh } from 'lucide-react';
+import { Plus, FileText, User, Clock, Flag, Edit2, Trash2, Smile, Frown, Meh, Printer } from 'lucide-react';
+import { printCareNotes } from '@/components/notes/care-notes-print';
 import { format, parseISO } from 'date-fns';
 import CareNoteForm from '../components/notes/CareNoteForm';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -63,16 +64,23 @@ export default function CareNotes() {
           <h1 className="text-3xl font-bold text-slate-800">Care Notes</h1>
           <p className="text-slate-500 mt-1">Log daily activities and observations</p>
         </div>
-        <Button
-          onClick={() => {
-            setSelectedNote(null);
-            setShowForm(true);
-          }}
-          className="bg-teal-600 hover:bg-teal-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Note
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => printCareNotes(filteredNotes, getRecipientName)}
+            disabled={isLoading || filteredNotes.length === 0}
+            className="border-teal-200 text-teal-700"
+          >
+            <Printer className="w-4 h-4 mr-2" />Print
+          </Button>
+          <Button
+            onClick={() => { setSelectedNote(null); setShowForm(true); }}
+            className="bg-teal-600 hover:bg-teal-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Note
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
