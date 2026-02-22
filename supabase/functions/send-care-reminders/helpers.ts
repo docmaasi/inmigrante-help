@@ -2,9 +2,11 @@
  * Helper functions for the send-care-reminders edge function.
  * Handles querying appointments/medications and dispatching reminder emails
  * to all relevant parties: caregiver, care recipient, and accepted team members.
+ * Also sends SMS to the caregiver if they have opted in via sms_reminders_enabled.
  */
 
 import { sendEmail } from '../_shared/send-email.ts';
+import { sendSms } from '../_shared/send-sms.ts';
 import {
   appointmentReminderHtml,
   medicationRefillReminderHtml,
@@ -13,6 +15,13 @@ import {
 interface EmailTarget {
   email: string;
   name: string;
+}
+
+interface CaregiverProfile {
+  email: string;
+  full_name: string;
+  phone: string | null;
+  sms_reminders_enabled: boolean;
 }
 
 /**
@@ -56,7 +65,8 @@ async function collectRecipients(
 
 /**
  * Queries all appointments happening tomorrow that haven't had a reminder sent,
- * emails every relevant party, then stamps reminder_sent_at on the row.
+ * emails every relevant party, sends SMS to caregiver if opted in,
+ * then stamps reminder_sent_at on the row.
  * Returns the number of appointment rows processed.
  */
 export async function processAppointmentReminders(
@@ -74,7 +84,7 @@ export async function processAppointmentReminders(
     .select(
       `id, title, start_time, provider_name, location, user_id, care_recipient_id,
        care_recipients ( first_name, last_name, email ),
-       profiles ( email, full_name )`
+       profiles ( email, full_name, phone, sms_reminders_enabled )`
     )
     .gte('start_time', windowStart)
     .lte('start_time', windowEnd)
@@ -89,10 +99,7 @@ export async function processAppointmentReminders(
   let processed = 0;
 
   for (const appt of appointments || []) {
-    const profile = appt.profiles as {
-      email: string;
-      full_name: string;
-    } | null;
+    const profile = appt.profiles as CaregiverProfile | null;
     const cr = appt.care_recipients as {
       first_name: string;
       last_name: string;
@@ -148,6 +155,18 @@ export async function processAppointmentReminders(
       }
     }
 
+    // Send SMS only to the caregiver, only if they've explicitly opted in
+    if (profile.sms_reminders_enabled && profile.phone) {
+      const smsBody = `FamilyCare: ${careRecipientName}'s appt "${appt.title}" is tomorrow at ${time}.`;
+      const smsResult = await sendSms({ to: profile.phone, body: smsBody });
+      if (!smsResult.success) {
+        console.error(
+          `Failed to send appointment SMS to ${profile.phone}:`,
+          smsResult.error
+        );
+      }
+    }
+
     // Stamp row so this appointment isn't re-processed on the next run
     await supabase
       .from('appointments')
@@ -162,8 +181,8 @@ export async function processAppointmentReminders(
 
 /**
  * Queries all active medications with 0 or 1 refills remaining that haven't
- * had a refill reminder sent, emails every relevant party, then stamps
- * refill_reminder_sent_at on the row.
+ * had a refill reminder sent, emails every relevant party, sends SMS to
+ * caregiver if opted in, then stamps refill_reminder_sent_at on the row.
  * Returns the number of medication rows processed.
  */
 export async function processMedicationRefillReminders(
@@ -174,7 +193,7 @@ export async function processMedicationRefillReminders(
     .select(
       `id, name, dosage, user_id, care_recipient_id, refills_remaining,
        care_recipients ( first_name, last_name, email ),
-       profiles ( email, full_name )`
+       profiles ( email, full_name, phone, sms_reminders_enabled )`
     )
     .eq('is_active', true)
     .in('refills_remaining', [0, 1])
@@ -188,10 +207,7 @@ export async function processMedicationRefillReminders(
   let processed = 0;
 
   for (const med of medications || []) {
-    const profile = med.profiles as {
-      email: string;
-      full_name: string;
-    } | null;
+    const profile = med.profiles as CaregiverProfile | null;
     const cr = med.care_recipients as {
       first_name: string;
       last_name: string;
@@ -228,6 +244,19 @@ export async function processMedicationRefillReminders(
         console.error(
           `Failed to send refill reminder to ${target.email}:`,
           result.error
+        );
+      }
+    }
+
+    // Send SMS only to the caregiver, only if they've explicitly opted in
+    if (profile.sms_reminders_enabled && profile.phone) {
+      const refillsLeft = med.refills_remaining === 0 ? 'no' : med.refills_remaining;
+      const smsBody = `FamilyCare: ${med.name} for ${careRecipientName} needs a refill — ${refillsLeft} refill(s) left.`;
+      const smsResult = await sendSms({ to: profile.phone, body: smsBody });
+      if (!smsResult.success) {
+        console.error(
+          `Failed to send refill SMS to ${profile.phone}:`,
+          smsResult.error
         );
       }
     }

@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, FileText, RefreshCw, Mail, CreditCard, ExternalLink, Receipt, Trash2, AlertTriangle, Loader2, Settings as SettingsIcon } from 'lucide-react';
+import { Shield, FileText, RefreshCw, Mail, CreditCard, ExternalLink, Receipt, Trash2, AlertTriangle, Loader2, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
@@ -25,7 +27,18 @@ export default function Settings() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [smsEnabled, setSmsEnabled] = useState(false);
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false);
   const queryClient = useQueryClient();
+
+  // Populate phone/SMS state once profile data is available
+  useEffect(() => {
+    if (profile) {
+      setPhoneNumber(profile.phone || '');
+      setSmsEnabled(profile.sms_reminders_enabled || false);
+    }
+  }, [profile]);
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
 
@@ -114,6 +127,26 @@ export default function Settings() {
     }
   };
 
+  const handleSaveNotifications = async () => {
+    setIsSavingNotifications(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          phone: phoneNumber || null,
+          sms_reminders_enabled: smsEnabled,
+        })
+        .eq('id', user.id);
+      if (error) throw error;
+      toast.success('Notification settings saved.');
+    } catch (error) {
+      console.error('Failed to save notification settings:', error);
+      toast.error('Failed to save settings. Please try again.');
+    } finally {
+      setIsSavingNotifications(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') return;
 
@@ -198,6 +231,68 @@ export default function Settings() {
               <p className="text-xs text-slate-500">
                 You'll be securely redirected to Stripe to manage your subscription, payment methods, and billing history.
               </p>
+            </CardContent>
+          </Card>
+
+          {/* SMS Notifications Section */}
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-teal-600" />
+                SMS Notifications
+              </CardTitle>
+              <CardDescription>
+                Receive text message reminders for appointments and medication refills
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="phone-number" className="text-sm font-medium text-slate-700">
+                  Mobile Phone Number
+                </Label>
+                <Input
+                  id="phone-number"
+                  type="tel"
+                  placeholder="+12065551234"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-slate-500">
+                  Enter in international format (e.g. +12065551234). Required to receive texts.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="sms-enabled"
+                  checked={smsEnabled}
+                  onCheckedChange={setSmsEnabled}
+                  disabled={!phoneNumber.trim()}
+                />
+                <Label htmlFor="sms-enabled" className="text-sm text-slate-700 cursor-pointer">
+                  Receive SMS reminders
+                </Label>
+              </div>
+
+              <p className="text-xs text-slate-500">
+                Standard messaging rates apply. You can opt out at any time by disabling the toggle above.
+              </p>
+
+              <Button
+                onClick={handleSaveNotifications}
+                disabled={isSavingNotifications}
+                className="bg-teal-600 hover:bg-teal-700"
+              >
+                {isSavingNotifications ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Notification Settings'
+                )}
+              </Button>
             </CardContent>
           </Card>
 
