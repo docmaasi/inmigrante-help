@@ -52,8 +52,8 @@ export default function RecordRetentionPolicy() {
         <div className="callout">
           <p className="flex items-center gap-2">
             <Mail className="w-4 h-4" />
-            <a href="mailto:familycarehelp@mail.com" className="text-teal-600 hover:text-teal-700">
-              familycarehelp@mail.com
+            <a href="mailto:admin@familycare.help" className="text-teal-600 hover:text-teal-700">
+              admin@familycare.help
             </a>
           </p>
         </div>
@@ -111,8 +111,8 @@ export default function RecordRetentionPolicy() {
       <div className="callout">
         <p>
           For questions about this policy, please contact us at{" "}
-          <a href="mailto:familycarehelp@mail.com" className="text-teal-600 hover:text-teal-700">
-            familycarehelp@mail.com
+          <a href="mailto:admin@familycare.help" className="text-teal-600 hover:text-teal-700">
+            admin@familycare.help
           </a>
         </p>
       </div>

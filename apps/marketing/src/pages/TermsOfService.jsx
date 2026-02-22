@@ -68,7 +68,7 @@ export default function TermsOfService() {
         <h2>Contact</h2>
         <p>
           Questions about the Terms of Service should be sent to{" "}
-          <a href="mailto:familycarehelp@mail.com">familycarehelp@mail.com</a>
+          <a href="mailto:admin@familycare.help">admin@familycare.help</a>
         </p>
       </section>
     </LegalPageLayout>

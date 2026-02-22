@@ -262,7 +262,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
                 Get in Touch
               </h3>
               <a
-                href="mailto:familycarehelp@mail.com"
+                href="mailto:admin@familycare.help"
                 className="inline-flex items-center gap-2 text-sm transition-all duration-200 group"
                 style={{
                   color: "#D1D5DB",
@@ -275,7 +275,7 @@ export function MarketingLayout({ children, fullWidth = false }) {
                   className="w-4 h-4 transition-transform duration-200 group-hover:scale-110"
                   style={{ color: "#E07A5F" }}
                 />
-                familycarehelp@mail.com
+                admin@familycare.help
               </a>
               <p
                 className="text-xs"

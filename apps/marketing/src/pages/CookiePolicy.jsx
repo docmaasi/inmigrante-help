@@ -57,7 +57,7 @@ export default function CookiePolicy() {
         <h2>Contact Us</h2>
         <p>
           If you have questions about our use of cookies, please contact us at{" "}
-          <a href="mailto:privacy@familycare.help">privacy@familycare.help</a>
+          <a href="mailto:admin@familycare.help">admin@familycare.help</a>
         </p>
       </section>
     </LegalPageLayout>

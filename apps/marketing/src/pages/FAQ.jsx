@@ -75,7 +75,7 @@ export default function FAQ() {
         },
         {
           q: "Can I manage care for more than one loved one?",
-          a: "Yes. You can create and manage multiple Loved One Profiles within a single account for $5 per month each. Currently, only one additional profile is available. We are working on adding multiple profiles. Email familycarehelp@mail.com for updates or questions."
+          a: "Yes. You can create and manage multiple Loved One Profiles within a single account for $5 per month each. Currently, only one additional profile is available. We are working on adding multiple profiles. Email admin@familycare.help for updates or questions."
         }
       ]
     },
@@ -269,7 +269,7 @@ export default function FAQ() {
                 </p>
               </div>
               <a
-                href="mailto:familycarehelp@mail.com"
+                href="mailto:admin@familycare.help"
                 className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105"
                 style={{
                   background: 'var(--gradient-warm)',
@@ -408,7 +408,7 @@ export default function FAQ() {
               We're here to help you every step of the way. Our team is ready to support your care coordination needs.
             </p>
             <a
-              href="mailto:familycarehelp@mail.com"
+              href="mailto:admin@familycare.help"
               className="inline-flex items-center gap-3 px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
               style={{
                 background: 'var(--gradient-accent)',

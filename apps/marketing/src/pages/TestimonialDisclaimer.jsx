@@ -75,7 +75,7 @@ export default function TestimonialDisclaimer() {
         <p>
           If you have questions about our testimonials or this disclaimer,
           please contact us at{" "}
-          <a href="mailto:familycarehelp@mail.com">familycarehelp@mail.com</a>
+          <a href="mailto:admin@familycare.help">admin@familycare.help</a>
         </p>
       </section>
     </LegalPageLayout>

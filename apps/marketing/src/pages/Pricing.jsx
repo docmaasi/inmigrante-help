@@ -358,7 +358,7 @@ export default function Pricing() {
               Our team is here to help you find the right plan for your family.
             </p>
             <a
-              href="mailto:familycarehelp@mail.com"
+              href="mailto:admin@familycare.help"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 hover:scale-105"
               style={{
                 background: 'var(--gradient-warm)',

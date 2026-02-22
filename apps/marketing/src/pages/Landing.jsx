@@ -861,7 +861,7 @@ export default function Landing() {
                 Subscribe Now <ArrowRight className="w-5 h-5" />
               </a>
               <a
-                href="mailto:familycarehelp@mail.com"
+                href="mailto:admin@familycare.help"
                 className="btn-secondary text-lg px-8 py-4"
               >
                 <Mail className="w-5 h-5" /> Contact Us

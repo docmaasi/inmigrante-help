@@ -74,7 +74,7 @@ export default function PrivacyPolicy() {
       <section>
         <h2>Contact Us</h2>
         <p>
-          If you have any questions about this Privacy Policy, please contact us at privacy@familycare.help
+          If you have any questions about this Privacy Policy, please contact us at admin@familycare.help
         </p>
       </section>
     </LegalPageLayout>
